@@ -1,0 +1,56 @@
+{
+  "Vue SFC": {
+    "scope": "vue",
+    "prefix": "!sfc",
+    "body": [
+      "<script setup lang=\"ts\">",
+      "defineProps<{",
+      "  test: string;",
+      "}>();",
+      "</script>",
+      "",
+      "<template>",
+      "  <div class=\"flex items-center\">",
+      "    Hello, {{ test }}$0",
+      "  </div>",
+      "</template>",
+      "",
+    ],
+  },
+  "Vue 스크립트 태그": {
+    "scope": "vue",
+    "prefix": ["!script", "!ts"],
+    "body": [
+      "<script lang=\"ts\">",
+      "$0",
+      "</script>",
+    ],
+  },
+  "Vue setup 스크립트 태그": {
+    "scope": "vue",
+    "prefix": ["!setup", "!script-setup", "!ts-setup"],
+    "body": [
+      "<script setup lang=\"ts\">",
+      "$0",
+      "</script>",
+    ],
+  },
+  "Vue 템플릿 태그": {
+    "scope": "vue",
+    "prefix": ["!template", "!html"],
+    "body": [
+      "<template>",
+      "\t$0",
+      "</template>",
+    ],
+  },
+  "Vue 범위가 지정된 스타일 태그": {
+    "scope": "vue",
+    "prefix": ["!style", "!css"],
+    "body": [
+      "<style scoped>",
+      "$0",
+      "</style>",
+    ],
+  },
+}

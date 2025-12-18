@@ -1,0 +1,809 @@
+<template>
+  <div class="page">
+    <!-- 상단바(페이지 전용) -->
+    <header class="topbar">
+      <div class="topbar-left">
+        <button
+          class="back-btn"
+          type="button"
+          @click="goBack"
+          aria-label="뒤로가기"
+        >
+          <!-- 좌상단 화살표 -->
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="18"
+            height="18"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            aria-hidden="true"
+          >
+            <path d="M15 18l-6-6 6-6" />
+          </svg>
+        </button>
+
+        <div class="title-wrap">
+          <h1 class="title">{{ detail?.title ?? "-" }}</h1>
+          <div class="sub">
+            <span class="avatar">{{
+              (detail?.uploader.initials ?? "-").slice(0, 1)
+            }}</span>
+            <span class="sub-text">{{ detail?.uploader.name ?? "-" }}</span>
+            <span class="dot">•</span>
+            <span class="sub-text">{{
+              detail ? formatDate(detail.createdAt) : "-"
+            }}</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- 우상단 버튼들 -->
+      <div class="topbar-actions">
+        <!-- (비로그인 상태)로그인 버튼 -->
+        <button
+          v-if="isLoggedIn !== true"
+          class="btn btn-ghost"
+          type="button"
+          @click="openLogin"
+        >
+          <span class="btn-icon" aria-hidden="true" data-v-88d55a61="">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="18"
+              height="18"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              data-v-88d55a61=""
+            >
+              <path
+                d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"
+                data-v-88d55a61=""
+              ></path>
+              <circle cx="9" cy="7" r="4" data-v-88d55a61=""></circle>
+              <path d="M22 21v-2a4 4 0 0 0-3-3.87" data-v-88d55a61=""></path>
+              <path d="M16 3.128a4 4 0 0 1 0 7.744" data-v-88d55a61=""></path>
+            </svg>
+          </span>
+          로그인
+        </button>
+        <!-- (로그인 상태)사용자 아이콘 -->
+        <button
+          v-else
+          class="my-avatar"
+          aria-label="사용자 메뉴"
+          @click="onLogoutClick"
+        >
+          <span class="my-avatar-text">{{ userInitial }}</span>
+        </button>
+
+        <button
+          class="border-2 bg-white border-gray-200 hover:border-[#fb2c36] rounded-lg size-10 flex items-center justify-center"
+          type="button"
+          @click="toggleLike"
+          aria-label="좋아요"
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="20"
+            height="20"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            class="lucide lucide-heart text-[#0a0a0a]"
+            aria-hidden="true"
+          >
+            <path
+              d="M2 9.5a5.5 5.5 0 0 1 9.591-3.676.56.56 0 0 0 .818 0A5.49 5.49 0 0 1 22 9.5c0 2.29-1.5 4-3 5.5l-5.492 5.313a2 2 0 0 1-3 .019L5 15c-1.5-1.5-3-3.2-3-5.5"
+            ></path>
+          </svg>
+        </button>
+
+        <button
+          class="bg-white border-2 border-gray-200 hover:border-[#155dfc] text-[#0a0a0a] rounded-lg h-10 px-4 flex items-center gap-2 text-[14px]"
+          type="button"
+          @click="onShare"
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="16"
+            height="16"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            class="lucide lucide-share2 lucide-share-2"
+            aria-hidden="true"
+          >
+            <circle cx="18" cy="5" r="3"></circle>
+            <circle cx="6" cy="12" r="3"></circle>
+            <circle cx="18" cy="19" r="3"></circle>
+            <line x1="8.59" x2="15.42" y1="13.51" y2="17.49"></line>
+            <line x1="15.41" x2="8.59" y1="6.51" y2="10.49"></line>
+          </svg>
+          공유
+        </button>
+
+        <button
+          class="justify-center whitespace-nowrap font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none py-2 has-[>svg]:px-3 bg-[#155dfc] hover:bg-[#1447e6] text-white rounded-lg h-10 px-4 flex items-center gap-2 text-[14px]"
+          type="button"
+          @click="onDownload"
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="16"
+            height="16"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            class="lucide lucide-download"
+            aria-hidden="true"
+          >
+            <path d="M12 15V3"></path>
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+            <path d="m7 10 5 5 5-5"></path>
+          </svg>
+          다운로드
+        </button>
+      </div>
+    </header>
+
+    <main class="main">
+      <div v-if="pending" class="state">불러오는 중...</div>
+      <div v-else-if="error || !detail" class="state error">
+        데이터를 불러오지 못했습니다.
+      </div>
+
+      <div v-else class="grid">
+        <!-- 왼쪽 컬럼 -->
+        <section class="left">
+          <!-- 시뮬레이션 영상 자리(더미) -->
+          <div class="video-card">
+            <button
+              class="video-play"
+              type="button"
+              @click="onPlayVideo"
+              aria-label="시뮬레이션 재생"
+            >
+              <div class="play-circle">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="26"
+                  height="26"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  aria-hidden="true"
+                >
+                  <polygon points="6 3 20 12 6 21 6 3"></polygon>
+                </svg>
+              </div>
+              <div class="video-text">
+                <div class="video-title">시뮬레이션 영상</div>
+                <div class="video-sub">클릭하여 시뮬레이션 재생</div>
+              </div>
+            </button>
+          </div>
+
+          <!-- 설명 -->
+          <div class="panel">
+            <div class="panel-title">설명</div>
+            <p class="panel-body">{{ detail.description }}</p>
+          </div>
+
+          <!-- 코드(탭 제거, 글씨 버튼/이벤트 제거) -->
+          <div class="panel">
+            <div class="panel-title">
+              <span class="code-label">
+                <!-- 아이콘은 제공해준 코드 아이콘 사용 -->
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="16"
+                  height="16"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  class="lucide lucide-code"
+                  aria-hidden="true"
+                >
+                  <path d="m16 18 6-6-6-6"></path>
+                  <path d="m8 6-6 6 6 6"></path>
+                </svg>
+                시나리오 코드
+              </span>
+            </div>
+
+            <pre class="code"><code>{{ detail.code }}</code></pre>
+          </div>
+        </section>
+
+        <!-- 오른쪽 컬럼 -->
+        <aside class="right">
+          <!-- 통계 -->
+          <div class="side-card">
+            <div class="side-title">통계</div>
+
+            <div class="stat-row">
+              <div class="stat-left">
+                <div
+                  class="flex items-center gap-lg text-[#4a5565] text-[14px]"
+                >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="16"
+                    height="16"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    class="lucide lucide-download"
+                    aria-hidden="true"
+                  >
+                    <path d="M12 15V3"></path>
+                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                    <path d="m7 10 5 5 5-5"></path>
+                  </svg>
+                  <span class="stat-text">다운로드</span>
+                </div>
+              </div>
+              <div class="stat-value">
+                {{ formatNumber(detail.stats.downloads) }}
+              </div>
+            </div>
+
+            <div class="stat-row">
+              <div class="stat-left">
+                <div
+                  class="flex items-center gap-lg text-[#4a5565] text-[14px]"
+                >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="16"
+                    height="16"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    class="lucide lucide-eye"
+                    aria-hidden="true"
+                  >
+                    <path
+                      d="M2.062 12.348a1 1 0 0 1 0-.696 10.75 10.75 0 0 1 19.876 0 1 1 0 0 1 0 .696 10.75 10.75 0 0 1-19.876 0"
+                    ></path>
+                    <circle cx="12" cy="12" r="3"></circle>
+                  </svg>
+                  <span class="stat-text">조회수</span>
+                </div>
+              </div>
+              <div class="stat-value">
+                {{ formatNumber(detail.stats.views) }}
+              </div>
+            </div>
+
+            <div class="stat-row">
+              <div class="stat-left">
+                <div
+                  class="flex items-center gap-lg text-[#4a5565] text-[14px]"
+                >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="16"
+                    height="16"
+                    viewBox="0 0 24 0 0"
+                    style="display: none"
+                  ></svg>
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="16"
+                    height="16"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    class="lucide lucide-heart"
+                    aria-hidden="true"
+                  >
+                    <path
+                      d="M2 9.5a5.5 5.5 0 0 1 9.591-3.676.56.56 0 0 0 .818 0A5.49 5.49 0 0 1 22 9.5c0 2.29-1.5 4-3 5.5l-5.492 5.313a2 2 0 0 1-3 .019L5 15c-1.5-1.5-3-3.2-3-5.5"
+                    ></path>
+                  </svg>
+                  <span class="stat-text">좋아요</span>
+                </div>
+              </div>
+              <div class="stat-value">
+                {{ formatNumber(detail.stats.likes) }}
+              </div>
+            </div>
+          </div>
+
+          <!-- 태그 -->
+          <div class="side-card">
+            <div class="side-title">태그</div>
+            <div class="tags">
+              <span v-for="t in detail.tags" :key="t" class="tag">{{ t }}</span>
+            </div>
+          </div>
+
+          <!-- 파일 정보 -->
+          <div class="side-card">
+            <div class="side-title">파일 정보</div>
+            <div class="info-row">
+              <span class="info-key">형식</span
+              ><span class="info-val">{{ detail.file.format }}</span>
+            </div>
+            <div class="info-row">
+              <span class="info-key">버전</span
+              ><span class="info-val">{{ detail.file.version }}</span>
+            </div>
+            <div class="info-row">
+              <span class="info-key">파일 크기</span
+              ><span class="info-val">{{ detail.file.size }}</span>
+            </div>
+          </div>
+
+          <!-- 업로드한 사람 -->
+          <div class="side-card">
+            <div class="side-title">업로드한 사람</div>
+            <div class="uploader">
+              <div class="uploader-avatar">{{ detail.uploader.initials }}</div>
+              <div class="uploader-meta">
+                <div class="uploader-name">{{ detail.uploader.name }}</div>
+                <div class="uploader-email">{{ detail.uploader.email }}</div>
+                <div class="uploader-sub">
+                  총 {{ formatNumber(detail.uploader.totalScenarios) }}개의
+                  시나리오
+                </div>
+              </div>
+            </div>
+          </div>
+        </aside>
+      </div>
+    </main>
+  </div>
+</template>
+
+<script setup lang="ts">
+definePageMeta({ layout: false }); // 기본 레이아웃(상단 헤더 포함) 비활성화 [web:73]
+const { logout } = useAuth();
+const { isLoggedIn, userName } = useHeaderState();
+const userInitial = computed(() =>
+  (userName.value?.trim()?.[0] ?? "U").toUpperCase()
+);
+const { openLogin } = useAuthModal();
+
+type ScenarioDetail = {
+  id: string;
+  title: string;
+  createdAt: string;
+  description: string;
+  code: string;
+  tags: string[];
+  stats: { downloads: number; views: number; likes: number };
+  file: { format: string; version: string; size: string };
+  uploader: {
+    name: string;
+    email: string;
+    initials: string;
+    totalScenarios: number;
+  };
+};
+
+const route = useRoute();
+const id = computed(() => String(route.params.id));
+
+// 서버 연동 형태: /api/scenarios/:id 로부터 상세 데이터 수신 (지금은 더미 API로) [web:80]
+const {
+  data: detail,
+  pending,
+  error,
+  refresh,
+} = await useFetch<ScenarioDetail>(() => `/api/scenarios/${id.value}`, {
+  key: () => `scenario:${id.value}`,
+  watch: [id],
+});
+
+async function onLogoutClick() {
+  await logout();
+}
+
+function goBack() {
+  // "방금 있었던 곳" = 브라우저 히스토리 back
+  if (import.meta.client) history.back();
+}
+
+function toggleLike() {
+  // TODO: 서버 연동으로 좋아요 토글 (현재는 콘솔)
+  console.log("like toggle");
+}
+
+async function onShare() {
+  const url = import.meta.client ? window.location.href : "";
+  if (import.meta.client && navigator.clipboard) {
+    await navigator.clipboard.writeText(url);
+    alert("링크가 복사되었습니다.");
+  }
+}
+
+function onDownload() {
+  // TODO: 서버에서 파일 다운로드 URL 받아서 이동/스트리밍
+  console.log("download");
+}
+
+function onPlayVideo() {
+  // TODO: 영상 URL 연동
+  console.log("play video");
+}
+
+function formatDate(iso: string) {
+  const d = new Date(iso);
+  return `${d.getFullYear()}.${d.getMonth() + 1}.${d.getDate()}`;
+}
+
+function formatNumber(n: number) {
+  return new Intl.NumberFormat("en-US").format(n);
+}
+</script>
+
+<style scoped>
+.page {
+  min-height: 100vh;
+  background: #f5f7fb;
+  color: #0f172a;
+  font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto,
+    "Noto Sans KR", Apple SD Gothic Neo, "Malgun Gothic", sans-serif;
+}
+
+/* topbar */
+.topbar {
+  height: 72px;
+  background: #fff;
+  border-bottom: 1px solid rgba(15, 23, 42, 0.08);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 0 20px;
+}
+
+.topbar-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+.back-btn {
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  border: 1px solid rgba(15, 23, 42, 0.1);
+  background: #fff;
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+}
+.back-btn:hover {
+  border-color: rgba(21, 93, 252, 0.55);
+}
+
+.title-wrap {
+  min-width: 0;
+}
+.title {
+  margin: 0;
+  font-size: 18px;
+  letter-spacing: -0.3px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.sub {
+  margin-top: 6px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #64748b;
+  font-size: 12px;
+}
+.avatar {
+  width: 18px;
+  height: 18px;
+  border-radius: 999px;
+  background: #155dfc;
+  color: #fff;
+  display: grid;
+  place-items: center;
+  font-weight: 700;
+  font-size: 11px;
+}
+.dot {
+  opacity: 0.6;
+}
+
+.topbar-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.main {
+  max-width: 1120px;
+  margin: 0 auto;
+  padding: 18px 16px 42px;
+}
+.state {
+  padding: 14px 16px;
+  border-radius: 12px;
+  background: #fff;
+  border: 1px solid rgba(15, 23, 42, 0.08);
+}
+.state.error {
+  color: #b91c1c;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 340px;
+  gap: 18px;
+  margin-top: 14px;
+}
+
+/* left */
+.video-card {
+  background: #fff;
+  border: 1px solid rgba(15, 23, 42, 0.1);
+  border-radius: 16px;
+  padding: 18px;
+  height: 320px;
+  display: grid;
+  place-items: center;
+}
+
+.video-play {
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+  display: grid;
+  place-items: center;
+  gap: 10px;
+  text-align: center;
+  color: #64748b;
+}
+
+.play-circle {
+  width: 64px;
+  height: 64px;
+  border-radius: 999px;
+  background: #155dfc;
+  color: #fff;
+  display: grid;
+  place-items: center;
+  box-shadow: 0 12px 28px rgba(21, 93, 252, 0.25);
+}
+
+.video-title {
+  font-weight: 800;
+  color: #0f172a;
+}
+.video-sub {
+  font-size: 12px;
+}
+
+.panel {
+  margin-top: 14px;
+  background: #fff;
+  border: 1px solid rgba(15, 23, 42, 0.1);
+  border-radius: 16px;
+  padding: 16px 16px 14px;
+}
+
+.panel-title {
+  font-weight: 800;
+  color: #0f172a;
+  font-size: 14px;
+  margin-bottom: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.panel-body {
+  margin: 0;
+  color: #475569;
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.code-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: #0f172a;
+}
+.code {
+  margin: 0;
+  border-radius: 14px;
+  background: #0b1220;
+  color: #e2e8f0;
+  padding: 14px;
+  overflow: auto;
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+/* right */
+.side-card {
+  background: #fff;
+  border: 1px solid rgba(15, 23, 42, 0.1);
+  border-radius: 16px;
+  padding: 14px;
+}
+.side-card + .side-card {
+  margin-top: 14px;
+}
+.side-title {
+  font-weight: 800;
+  font-size: 14px;
+  margin-bottom: 10px;
+  padding: 8px 16px;
+}
+
+.stat-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 16px;
+}
+.stat-row + .stat-row {
+  border-top: 1px solid rgba(15, 23, 42, 0.06);
+}
+.stat-value {
+  font-weight: 800;
+  color: #0f172a;
+  font-size: 14px;
+}
+.stat-text {
+  margin-left: 8px;
+}
+
+.tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.tag {
+  background: rgba(21, 93, 252, 0.1);
+  color: #155dfc;
+  border: 1px solid rgba(21, 93, 252, 0.18);
+  padding: 5px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.info-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 8px 0;
+  color: #334155;
+  font-size: 13px;
+}
+.info-row + .info-row {
+  border-top: 1px solid rgba(15, 23, 42, 0.06);
+}
+.info-key {
+  color: #64748b;
+}
+
+.uploader {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+}
+.uploader-avatar {
+  width: 42px;
+  height: 42px;
+  border-radius: 999px;
+  background: #155dfc;
+  color: #fff;
+  display: grid;
+  place-items: center;
+  font-weight: 900;
+}
+.my-avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 999px;
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  background: #eef2ff;
+  cursor: pointer;
+  display: grid;
+  margin: 0 8px;
+  place-items: center;
+}
+.my-avatar-text {
+  font-weight: 800;
+  color: #334155;
+  font-size: 14px;
+}
+
+.uploader-name {
+  font-weight: 900;
+  color: #0f172a;
+}
+.uploader-email {
+  color: #64748b;
+  font-size: 12px;
+  margin-top: 2px;
+}
+.uploader-sub {
+  color: #64748b;
+  font-size: 12px;
+  margin-top: 6px;
+}
+
+@media (max-width: 980px) {
+  .grid {
+    grid-template-columns: 1fr;
+  }
+  .right {
+    order: 2;
+  }
+}
+.btn {
+  height: 40px;
+  border-radius: 8px;
+  border: 2px solid transparent;
+  padding: 0 16px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  font-weight: 700;
+  font-size: 14px;
+}
+.btn.btn-ghost {
+  transition: background-color 0.15s ease, color 0.15s ease, filter 0.15s ease;
+  background: #fff;
+  border-color: rgba(15, 23, 42, 0.08);
+  color: #0f172a;
+}
+.btn.btn-ghost:hover {
+  background-color: rgba(0, 0, 0, 0.08); /* 더 어둡게: 0.12 ~ 0.16 */
+}
+.backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+  display: grid;
+  place-items: center;
+  z-index: 9999;
+}
+</style>

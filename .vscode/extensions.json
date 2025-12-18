@@ -1,0 +1,17 @@
+{
+  "recommendations": [
+    "alimozdemir.vscode-nuxt-dx-tools",
+    "antfu.iconify",
+    "bradlc.vscode-tailwindcss",
+    "dbaeumer.vscode-eslint",
+    "editorconfig.editorconfig",
+    "esbenp.prettier-vscode",
+    "formulahendry.code-runner",
+    "jacobcassidy.css-nesting-syntax-highlighting",
+    "streetsidesoftware.code-spell-checker",
+    "Vue.volar",
+  ],
+  "unwantedRecommendations": [
+    "Nuxt.mdc",
+  ],
+}

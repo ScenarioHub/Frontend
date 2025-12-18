@@ -1,0 +1,40 @@
+# VS Code
+.vscode/*
+!.vscode/*.code-workspace
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+!.vscode/*.code-snippets
+!.vscode/custom-data
+!.vscode/iconify
+
+# 개발/빌드
+.output
+.data
+.nuxt
+.nitro
+.cache
+dist
+*.tsbuildinfo
+
+# Node 종속성
+node_modules
+
+# 로그
+logs
+*.log
+
+# 테스트
+__screenshots__
+test-results
+
+# 기타
+.DS_Store
+.fleet
+.idea
+
+# 로컬 env 파일
+.env
+.env.*
+!.env.example

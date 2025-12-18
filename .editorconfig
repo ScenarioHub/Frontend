@@ -1,0 +1,16 @@
+# EditorConfig는 다양한 편집기와 IDE에서 동일한 프로젝트를 작업하는 여러
+# 개발자를 위해 일관된 코딩 스타일을 유지하도록 도와줍니다.
+#
+# editorconfig.org
+
+root = true
+
+[*]
+
+indent_style = space
+indent_size = 2
+
+end_of_line = lf
+charset = utf-8
+trim_trailing_whitespace = true
+insert_final_newline = true
