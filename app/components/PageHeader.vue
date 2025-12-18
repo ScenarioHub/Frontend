@@ -73,7 +73,7 @@
 
       <!-- 로그인 하면 (후) -->
       <template v-if="isLoggedIn === true">
-        <button class="btn btn-primary" @click="navigateTo('generator')">
+        <button class="btn btn-primary" @click="navigateTo('upload')">
           <span class="btn-icon" aria-hidden="true">
             <svg
               xmlns="http://www.w3.org/2000/svg"
