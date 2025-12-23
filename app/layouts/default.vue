@@ -1,29 +1,18 @@
 <script setup lang="ts">
-import PageHeader from "@/components/PageHeader.vue";
-
 const { q, isLoggedIn, userName } = useHeaderState();
-const { isOpen, mode, close, openLogin, openSignup } = useAuthModal();
-
-const { applyLogin, applySignedUp } = useAuthActions();
-
-function onLoggedIn(payload: { userName?: string }) {
-  applyLogin(payload);
-}
-function onSignedUp(payload: { userName?: string }) {
-  applySignedUp(payload);
-}
+const { openLogin } = useAuthModal();
 </script>
 
 <template>
   <div class="page">
     <PageHeader
-      :modelValue="q ?? ''"
-      @update:modelValue="q = $event"
+      :model-value="q ?? ''"
       :is-logged-in="isLoggedIn === true"
       :user-name="userName ?? ''"
+      @update:model-value="q = $event"
       @login="openLogin"
     />
-    <slot></slot>
+    <slot />
   </div>
 </template>
 

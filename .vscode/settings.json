@@ -185,4 +185,14 @@
     "tw",
   ],
   "typescript.tsdk": "node_modules/typescript/lib",
+  "editor.tokenColorCustomizations": {
+        "textMateRules": [
+            {
+                "scope": "invalid.illegal.character-not-allowed-here.html",
+                "settings": {
+                    "foreground": "#808080"
+                }
+            }
+        ]
+    },
 }

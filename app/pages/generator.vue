@@ -1,156 +1,158 @@
 <template>
-  <ProgressModal
-    v-if="isProgressModalOpen"
-    :percent="progress"
-    :lines="statusLines"
-  />
+  <div>
+    <ProgressModal
+      v-if="isProgressModalOpen"
+      :percent="progress"
+      :lines="statusLines"
+    />
 
-  <!-- page wrapper는 layout에서 하니까, 여기서는 내용만 -->
-  <div class="stepbar">
-    <div class="steps">
-      <div class="step" :class="{ 'is-active': currentStep === 1 }">
-        <span class="step-num">1</span>
-        <span class="step-text">1단계: 입력</span>
-      </div>
-      <span class="step-arrow">→</span>
-      <div class="step" :class="{ 'is-active': currentStep === 2 }">
-        <span class="step-num">2</span>
-        <span class="step-text">2단계: 생성 중</span>
-      </div>
-      <span class="step-arrow">→</span>
-      <div class="step" :class="{ 'is-active': currentStep === 3 }">
-        <span class="step-num">3</span>
-        <span class="step-text">3단계: 실행 완료</span>
+    <!-- page wrapper는 layout에서 하니까, 여기서는 내용만 -->
+    <div class="stepbar">
+      <div class="steps">
+        <div class="step" :class="{ 'is-active': currentStep === 1 }">
+          <span class="step-num">1</span>
+          <span class="step-text">1단계: 입력</span>
+        </div>
+        <span class="step-arrow">→</span>
+        <div class="step" :class="{ 'is-active': currentStep === 2 }">
+          <span class="step-num">2</span>
+          <span class="step-text">2단계: 생성 중</span>
+        </div>
+        <span class="step-arrow">→</span>
+        <div class="step" :class="{ 'is-active': currentStep === 3 }">
+          <span class="step-num">3</span>
+          <span class="step-text">3단계: 실행 완료</span>
+        </div>
       </div>
     </div>
-  </div>
 
-  <main class="main">
-    <section class="grid">
-      <!-- 자연어 입력 div -->
-      <article class="panel panel-input">
-        <div class="panel-head">
-          <span class="pill">자연어 입력</span>
-        </div>
+    <main class="main">
+      <section class="grid">
+        <!-- 자연어 입력 div -->
+        <article class="panel panel-input">
+          <div class="panel-head">
+            <span class="pill">자연어 입력</span>
+          </div>
 
-        <p class="panel-sub">시나리오 설명을 입력하세요</p>
+          <p class="panel-sub">시나리오 설명을 입력하세요</p>
 
-        <textarea
-          v-model="prompt"
-          class="textarea"
-          placeholder="예: 차량이 좌회전 중 보행자를 만나는 상황"
-        ></textarea>
+          <textarea
+            v-model="prompt"
+            class="textarea"
+            placeholder="예: 차량이 좌회전 중 보행자를 만나는 상황"
+          />
 
-        <button
-          class="btn-primary"
-          @click="uiState === 'done' ? onReset() : onGenerate()"
-        >
-          {{ uiState === "done" ? "초기화" : "시나리오 생성하기" }}
-        </button>
-      </article>
+          <button
+            class="btn-primary"
+            @click="uiState === 'done' ? onReset() : onGenerate()"
+          >
+            {{ uiState === "done" ? "초기화" : "시나리오 생성하기" }}
+          </button>
+        </article>
 
-      <!-- 결과 div -->
+        <!-- 결과 div -->
 
-      <article class="panel">
-        <div class="panel-head">
-          <span class="pill pill-dark">시뮬레이터 화면</span>
-        </div>
+        <article class="panel">
+          <div class="panel-head">
+            <span class="pill pill-dark">시뮬레이터 화면</span>
+          </div>
 
-        <p class="panel-sub">시나리오 대기 중</p>
+          <p class="panel-sub">시나리오 대기 중</p>
 
-        <div class="sim-viewport">
-          <template v-if="uiState === 'done' && videoUrl">
-            <video
-              v-if="uiState === 'done' && videoUrl"
-              ref="videoEl"
-              class="video"
-              :src="videoUrl"
-              autoplay
-              muted
-              playsinline
-              controls
-            ></video>
-          </template>
-          <template v-else>
-            <div>
-              <div class="wait-icon" aria-hidden="true">
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="64"
-                  height="64"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-width="2"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  class="wait-car"
-                >
-                  <path
-                    d="M19 17h2c.6 0 1-.4 1-1v-3c0-.9-.7-1.7-1.5-1.9C18.7 10.6 16 10 16 10s-1.3-1.4-2.2-2.3c-.5-.4-1.1-.7-1.8-.7H5c-.6 0-1.1.4-1.4.9l-1.4 2.9A3.7 3.7 0 0 0 2 12v4c0 .6.4 1 1 1h2"
-                  />
-                  <circle cx="7" cy="17" r="2" />
-                  <path d="M9 17h6" />
-                  <circle cx="17" cy="17" r="2" />
-                </svg>
-              </div>
-              <div class="sim-text">
-                <div class="sim-title">시뮬레이터 준비 완료</div>
-                <div class="sim-desc">
-                  시나리오를 생성하면 여기에 표시됩니다
+          <div class="sim-viewport">
+            <template v-if="uiState === 'done' && videoUrl">
+              <video
+                v-if="uiState === 'done' && videoUrl"
+                ref="videoEl"
+                class="video"
+                :src="videoUrl"
+                autoplay
+                muted
+                playsinline
+                controls
+              />
+            </template>
+            <template v-else>
+              <div>
+                <div class="wait-icon" aria-hidden="true">
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="64"
+                    height="64"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    class="wait-car"
+                  >
+                    <path
+                      d="M19 17h2c.6 0 1-.4 1-1v-3c0-.9-.7-1.7-1.5-1.9C18.7 10.6 16 10 16 10s-1.3-1.4-2.2-2.3c-.5-.4-1.1-.7-1.8-.7H5c-.6 0-1.1.4-1.4.9l-1.4 2.9A3.7 3.7 0 0 0 2 12v4c0 .6.4 1 1 1h2"
+                    />
+                    <circle cx="7" cy="17" r="2" />
+                    <path d="M9 17h6" />
+                    <circle cx="17" cy="17" r="2" />
+                  </svg>
+                </div>
+                <div class="sim-text">
+                  <div class="sim-title">시뮬레이터 준비 완료</div>
+                  <div class="sim-desc">
+                    시나리오를 생성하면 여기에 표시됩니다
+                  </div>
                 </div>
               </div>
-            </div>
-          </template>
-        </div>
-        <div class="sim-actions">
-          <button
-            class="btn btn-green"
-            :disabled="currentStep !== 3"
-            @click="onDownloadXosc"
-          >
-            <svg
-              class="icon"
-              xmlns="http://www.w3.org/2000/svg"
-              width="24"
-              height="24"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              aria-hidden="true"
+            </template>
+          </div>
+          <div class="sim-actions">
+            <button
+              class="btn btn-green"
+              :disabled="currentStep !== 3"
+              @click="onDownloadXosc"
             >
-              <path d="M12 15V3"></path>
-              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-              <path d="m7 10 5 5 5-5"></path>
-            </svg>
-            <span class="btn-text">시나리오 파일 다운로드 (.xosc)</span>
-          </button>
+              <svg
+                class="icon"
+                xmlns="http://www.w3.org/2000/svg"
+                width="24"
+                height="24"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                aria-hidden="true"
+              >
+                <path d="M12 15V3" />
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                <path d="m7 10 5 5 5-5" />
+              </svg>
+              <span class="btn-text">시나리오 파일 다운로드 (.xosc)</span>
+            </button>
+          </div>
+        </article>
+      </section>
+    </main>
+    <div v-if="isProgressOpen" class="p-backdrop">
+      <div
+        class="p-modal"
+        role="dialog"
+        aria-modal="true"
+        aria-label="시나리오 생성 중"
+      >
+        <div class="p-spinner" aria-hidden="true" />
+
+        <div class="p-title">시나리오 생성 중...</div>
+        <div class="p-sub">{{ statusText }}</div>
+
+        <div class="p-row">
+          <span class="p-left">진행 중</span>
+          <span class="p-right">{{ progress }}%</span>
         </div>
-      </article>
-    </section>
-  </main>
-  <div v-if="isProgressOpen" class="p-backdrop">
-    <div
-      class="p-modal"
-      role="dialog"
-      aria-modal="true"
-      aria-label="시나리오 생성 중"
-    >
-      <div class="p-spinner" aria-hidden="true"></div>
 
-      <div class="p-title">시나리오 생성 중...</div>
-      <div class="p-sub">{{ statusText }}</div>
-
-      <div class="p-row">
-        <span class="p-left">진행 중</span>
-        <span class="p-right">{{ progress }}%</span>
-      </div>
-
-      <div class="p-bar">
-        <div class="p-bar-fill" :style="{ width: progress + '%' }"></div>
+        <div class="p-bar">
+          <div class="p-bar-fill" :style="{ width: progress + '%' }" />
+        </div>
       </div>
     </div>
   </div>
@@ -169,20 +171,27 @@ autoplay는 실패할 수 있음:
  -->
 
 <!--
-서버(jobId 기준)는 최소 4개의 상태를 나눠두면 프론트가 깔끔해집니다.​
+서버(jobId 기준)는 최소 4개의 상태를 나눠두면 프론트가 깔끔해집니다.
 
-gpt_generating : GPT로 .xosc 생성 중(진행률 모달)​
-xosc_ready : .xosc 생성 완료 → 이때 다운로드 버튼 활성화​
-stream_ready : HLS의 index.m3u8가 생성되고 최초 세그먼트가 붙기 시작 → 모달 닫고 video 재생 시작​
+gpt_generating : GPT로 .xosc 생성 중(진행률 모달)
+xosc_ready : .xosc 생성 완료 → 이때 다운로드 버튼 활성화
+stream_ready : HLS의 index.m3u8가 생성되고 최초 세그먼트가 붙기 시작 → 모달 닫고 video 재생 시작
 stream_ended : 시뮬 종료 → FFmpeg 종료 + 플레이리스트에 #EXT-X-ENDLIST가 최종적으로 붙게(또는 event playlist로 마무리)
+
+server-sent events (progress 진행률 실시간 전송)
+video js 라이브러리 사용
+서버에서 m3u8
+
+서버에서
+사용자의 코드 -> gpt로 시나리오 코드 -> (실행) 동영상 추출 ->
 -->
 
 <!--
 설명문(복붙용, API 포함)
-프로젝트 목표는 “자연어 입력 → 서버에서 GPT로 OpenSCENARIO(.xosc) 생성 → esmini로 시뮬레이션 실행 → 영상은 HLS(3~10초 지연 허용)로 스트리밍 → 웹에서 라이브처럼 재생”이다. mp4 완성본을 다 만들고 전송하면 시뮬 길이만큼(예: 1분) 추가 대기가 생겨 UX가 나쁘므로, 서버가 시뮬을 돌리는 동시에 FFmpeg로 HLS 세그먼트를 생성해 클라이언트가 몇 초 후 바로 재생을 시작하게 만들고 싶다.​
+프로젝트 목표는 “자연어 입력 → 서버에서 GPT로 OpenSCENARIO(.xosc) 생성 → esmini로 시뮬레이션 실행 → 영상은 HLS(3~10초 지연 허용)로 스트리밍 → 웹에서 라이브처럼 재생”이다. mp4 완성본을 다 만들고 전송하면 시뮬 길이만큼(예: 1분) 추가 대기가 생겨 UX가 나쁘므로, 서버가 시뮬을 돌리는 동시에 FFmpeg로 HLS 세그먼트를 생성해 클라이언트가 몇 초 후 바로 재생을 시작하게 만들고 싶다.
 
 상태 머신(클라 UX)
-서버는 jobId 단위로 상태를 관리하고, 클라에서는 모달 진행률 + 버튼 활성화 타이밍을 아래처럼 제어한다.​
+서버는 jobId 단위로 상태를 관리하고, 클라에서는 모달 진행률 + 버튼 활성화 타이밍을 아래처럼 제어한다.
 
 gpt_generating: GPT로 xosc 생성 중(모달 진행률 표시)
 
@@ -190,7 +199,7 @@ xosc_ready: xosc 생성 완료 → xosc 다운로드 버튼 즉시 활성화
 
 stream_ready: HLS playlist(m3u8)와 초기 세그먼트가 준비됨 → 모달 닫고 <video> 라이브 재생 시작
 
-stream_ended: 시뮬 종료 → 라이브 재생 종료(playlist가 더 이상 갱신되지 않거나 ENDLIST 처리)​
+stream_ended: 시뮬 종료 → 라이브 재생 종료(playlist가 더 이상 갱신되지 않거나 ENDLIST 처리)
 
 API 엔드포인트(초안)
 Job 생성
@@ -199,7 +208,7 @@ POST /api/scenarios
 
 body: { prompt: string }
 
-response: 201 Created + { jobId: string } (또는 Location 헤더로 job 리소스 제공)​
+response: 201 Created + { jobId: string } (또는 Location 헤더로 job 리소스 제공)
 
 진행률/상태 SSE
 
@@ -207,7 +216,7 @@ GET /api/scenarios/{jobId}/events
 
 response: Content-Type: text/event-stream
 
-서버는 event: + data: 형태로 JSON을 계속 push (예: percent/message/state/urls)​
+서버는 event: + data: 형태로 JSON을 계속 push (예: percent/message/state/urls)
 
 예시 data: { state: "xosc_ready", percent: 25, message: "...", xoscUrl: "..." }
 
@@ -225,7 +234,7 @@ GET /api/scenarios/{jobId}/hls/index.m3u8
 
 GET /api/scenarios/{jobId}/hls/{segment}.ts (또는 fMP4 세그먼트)
 
-클라이언트는 stream_ready 이후 index.m3u8를 재생한다. HLS는 m3u8(매니페스트)이 세그먼트(.ts 등) 목록을 가리키는 구조라서, 라이브는 플레이리스트가 계속 갱신된다.​
+클라이언트는 stream_ready 이후 index.m3u8를 재생한다. HLS는 m3u8(매니페스트)이 세그먼트(.ts 등) 목록을 가리키는 구조라서, 라이브는 플레이리스트가 계속 갱신된다.
 
 (옵션) 취소(새로고침/이탈 시 무조건 취소 정책)
 
@@ -234,11 +243,11 @@ DELETE /api/scenarios/{jobId}
 서버의 실행 중 작업(esmini/ffmpeg)을 중단하고 리소스를 정리
 
 클라이언트 동작 요약
-사용자가 “생성 시작” 클릭 → POST /api/scenarios로 jobId 받음 → GET /api/scenarios/{jobId}/events SSE 연결 → gpt_generating 동안 모달 진행률 표시.​
+사용자가 “생성 시작” 클릭 → POST /api/scenarios로 jobId 받음 → GET /api/scenarios/{jobId}/events SSE 연결 → gpt_generating 동안 모달 진행률 표시.
 
 SSE에서 xosc_ready 수신 즉시 다운로드 버튼 활성화.
 
-SSE에서 stream_ready 수신 즉시 video에 HLS(m3u8) 붙여 재생 시작(Chrome/Firefox는 hls.js 사용 고려, Safari는 네이티브 가능).​
+SSE에서 stream_ready 수신 즉시 video에 HLS(m3u8) 붙여 재생 시작(Chrome/Firefox는 hls.js 사용 고려, Safari는 네이티브 가능).
 
 SSE에서 stream_ended 수신하면 UI를 3단계 완료로 바꾸고, 라이브 재생 종료 처리.
  -->
@@ -323,8 +332,8 @@ function startMockProgress() {
     if (progress.value >= 100) {
       currentStep.value = 3;
       uiState.value = "done";
-      videoUrl.value =
-        "https://github.com/esmini/esmini.github.io/raw/main/images/custom_camera_fixed_pos.mp4?raw=true";
+      videoUrl.value
+        = "https://github.com/esmini/esmini.github.io/raw/main/images/custom_camera_fixed_pos.mp4?raw=true";
       closeProgress();
     }
   }, 100);
@@ -334,7 +343,7 @@ function startMockProgress() {
 const sseUrl = computed(() =>
   jobId.value
     ? `/api/scenario/progress?jobId=${encodeURIComponent(jobId.value)}`
-    : undefined
+    : undefined,
 );
 
 const { data, close, open } = useEventSource(sseUrl, [], {

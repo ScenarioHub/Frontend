@@ -1,6 +1,6 @@
 <template>
   <div class="modal" role="dialog" aria-modal="true" aria-label="회원가입">
-    <button class="x" type="button" @click="$emit('close')" aria-label="닫기">
+    <button class="x" type="button" aria-label="닫기" @click="$emit('close')">
       ×
     </button>
 
@@ -13,7 +13,7 @@
       class="input"
       type="text"
       placeholder="이름을 입력하세요"
-    />
+    >
 
     <label class="label">이메일</label>
     <input
@@ -21,7 +21,7 @@
       class="input"
       type="email"
       placeholder="example@email.com"
-    />
+    >
 
     <label class="label">비밀번호</label>
     <input
@@ -29,7 +29,7 @@
       class="input"
       type="password"
       placeholder="비밀번호를 입력하세요 (8자 이상)"
-    />
+    >
 
     <label class="label">비밀번호 확인</label>
     <input
@@ -37,7 +37,7 @@
       class="input"
       type="password"
       placeholder="비밀번호를 다시 입력하세요"
-    />
+    >
 
     <button
       class="primary"
@@ -49,9 +49,9 @@
     </button>
 
     <div class="divider">
-      <span class="line"></span>
+      <span class="line" />
       <span class="or">또는</span>
-      <span class="line"></span>
+      <span class="line" />
     </div>
 
     <button class="social" type="button" @click="onGoogleSignup">

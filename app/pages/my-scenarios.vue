@@ -31,9 +31,9 @@
                   stroke-linejoin="round"
                   aria-hidden="true"
                 >
-                  <path d="M12 15V3"></path>
-                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-                  <path d="m7 10 5 5 5-5"></path>
+                  <path d="M12 15V3" />
+                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                  <path d="m7 10 5 5 5-5" />
                 </svg>
                 {{ item.downloadCount }}
               </span>
@@ -59,8 +59,8 @@
               >
                 <path
                   d="M2.062 12.348a1 1 0 0 1 0-.696 10.75 10.75 0 0 1 19.876 0 1 1 0 0 1 0 .696 10.75 10.75 0 0 1-19.876 0"
-                ></path>
-                <circle cx="12" cy="12" r="3"></circle>
+                />
+                <circle cx="12" cy="12" r="3" />
               </svg>
               보기
             </button>
@@ -81,11 +81,11 @@
                 stroke-linejoin="round"
                 aria-hidden="true"
               >
-                <path d="M10 11v6"></path>
-                <path d="M14 11v6"></path>
-                <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"></path>
-                <path d="M3 6h18"></path>
-                <path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                <path d="M10 11v6" />
+                <path d="M14 11v6" />
+                <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6" />
+                <path d="M3 6h18" />
+                <path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
               </svg>
               삭제
             </button>
@@ -148,7 +148,7 @@ const { data, pending, error } = await useFetch<Scenario[]>(
   "/api/my-scenarios",
   {
     immediate: isLoggedIn.value === true,
-  }
+  },
 );
 
 const scenarios = computed(() => data.value ?? []);
@@ -165,7 +165,7 @@ watch(
       navigateTo("/"); // 로그아웃/세션만료 등 즉시 홈으로 [web:37]
     }
   },
-  { immediate: true }
+  { immediate: true },
 );
 
 function onView(item: Scenario) {
@@ -189,7 +189,7 @@ async function confirmDelete() {
 
   // 지금은 더미 삭제(프론트에서 제거)로 처리
   data.value = (data.value ?? []).filter(
-    (s) => s.id !== deletingItem.value!.id
+    (s) => s.id !== deletingItem.value!.id,
   );
 
   // 실제 서버 연동 시엔 아래처럼 바꾸면 됨:
@@ -204,7 +204,7 @@ function formatDate(iso: string) {
   const d = new Date(iso);
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(
     2,
-    "0"
+    "0",
   )}-${String(d.getDate()).padStart(2, "0")}`;
 }
 </script>

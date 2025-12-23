@@ -195,22 +195,22 @@ const { data } = await useFetch<Stats>("/api/stats");
 const sharedScenariosText = computed(() =>
   data.value?.sharedScenarios != null
     ? formatStat(data.value.sharedScenarios)
-    : "-"
+    : "-",
 );
 const activeUsersText = computed(() =>
-  data.value?.activeUsers != null ? formatStat(data.value.activeUsers) : "-"
+  data.value?.activeUsers != null ? formatStat(data.value.activeUsers) : "-",
 );
 const totalDownloadsText = computed(() =>
   data.value?.totalDownloads != null
     ? formatStat(data.value.totalDownloads)
-    : "-"
+    : "-",
 );
 
 function goGenerator() {
   navigateTo("/generator");
 }
 function onExploreCommunity() {
-  console.log("community explore");
+  navigateTo("/explore");
 }
 
 function formatStat(n: number) {

@@ -32,15 +32,16 @@
         <NuxtLink to="/explore" class="menu-item">탐색</NuxtLink>
         <!-- is-active 클래스에 넣으면 굵게 -->
         <NuxtLink to="#" class="menu-item">문서</NuxtLink>
-        <NuxtLink v-if="isLoggedIn === true" to="#" class="menu-item"
-          >찜</NuxtLink
-        >
+        <NuxtLink
+          v-if="isLoggedIn === true"
+          to="#"
+          class="menu-item"
+        >찜</NuxtLink>
         <NuxtLink
           v-if="isLoggedIn === true"
           to="/my-scenarios"
           class="menu-item"
-          >내 시나리오</NuxtLink
-        >
+        >내 시나리오</NuxtLink>
       </nav>
     </div>
 
@@ -68,7 +69,7 @@
           placeholder="시나리오 검색..."
           aria-label="시나리오 검색"
           @input="onInput"
-        />
+        >
       </div>
 
       <!-- 로그인 하면 (후) -->
@@ -88,9 +89,9 @@
               class="lucide lucide-upload mr-2"
               aria-hidden="true"
             >
-              <path d="M12 3v12"></path>
-              <path d="m17 8-5-5-5 5"></path>
-              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+              <path d="M12 3v12" />
+              <path d="m17 8-5-5-5 5" />
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
             </svg>
           </span>
           업로드
@@ -164,7 +165,7 @@ const props = withDefaults(
     modelValue: "",
     isLoggedIn: false,
     userName: "",
-  }
+  },
 );
 
 const emit = defineEmits<{

@@ -1,56 +1,16 @@
 <template>
-  <div class="page">
-    <!-- 상단바(페이지 전용) -->
-    <header class="topbar">
-      <div class="topbar-left">
-        <button
-          class="back-btn"
-          type="button"
-          @click="goBack"
-          aria-label="뒤로가기"
-        >
-          <!-- 좌상단 화살표 -->
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            width="18"
-            height="18"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="2"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-            aria-hidden="true"
+  <div>
+    <div class="page">
+      <!-- 상단바(페이지 전용) -->
+      <header class="topbar">
+        <div class="topbar-left">
+          <button
+            class="back-btn"
+            type="button"
+            aria-label="뒤로가기"
+            @click="goBack"
           >
-            <path d="M15 18l-6-6 6-6" />
-          </svg>
-        </button>
-
-        <div class="title-wrap">
-          <h1 class="title">{{ detail?.title ?? "-" }}</h1>
-          <div class="sub">
-            <span class="avatar">{{
-              (detail?.uploader.initials ?? "-").slice(0, 1)
-            }}</span>
-            <span class="sub-text">{{ detail?.uploader.name ?? "-" }}</span>
-            <span class="dot">•</span>
-            <span class="sub-text">{{
-              detail ? formatDate(detail.createdAt) : "-"
-            }}</span>
-          </div>
-        </div>
-      </div>
-
-      <!-- 우상단 버튼들 -->
-      <div class="topbar-actions">
-        <!-- (비로그인 상태)로그인 버튼 -->
-        <button
-          v-if="isLoggedIn !== true"
-          class="btn btn-ghost"
-          type="button"
-          @click="openLogin"
-        >
-          <span class="btn-icon" aria-hidden="true" data-v-88d55a61="">
+            <!-- 좌상단 화살표 -->
             <svg
               xmlns="http://www.w3.org/2000/svg"
               width="18"
@@ -61,194 +21,198 @@
               stroke-width="2"
               stroke-linecap="round"
               stroke-linejoin="round"
-              data-v-88d55a61=""
+              aria-hidden="true"
+            >
+              <path d="M15 18l-6-6 6-6" />
+            </svg>
+          </button>
+
+          <div class="title-wrap">
+            <h1 class="title">{{ detail?.title ?? "-" }}</h1>
+            <div class="sub">
+              <span class="avatar">{{
+                (detail?.uploader.initials ?? "-").slice(0, 1)
+              }}</span>
+              <span class="sub-text">{{ detail?.uploader.name ?? "-" }}</span>
+              <span class="dot">•</span>
+              <span class="sub-text">{{
+                detail ? formatDate(detail.createdAt) : "-"
+              }}</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- 우상단 버튼들 -->
+        <div class="topbar-actions">
+          <button
+            class="bg-white border-2 border-gray-200 hover:border-[#155dfc] text-[#0a0a0a] rounded-lg h-10 px-4 flex items-center gap-2 text-[14px]"
+            type="button"
+            @click="onShare"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="16"
+              height="16"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              class="lucide lucide-share2 lucide-share-2"
+              aria-hidden="true"
+            >
+              <circle cx="18" cy="5" r="3" />
+              <circle cx="6" cy="12" r="3" />
+              <circle cx="18" cy="19" r="3" />
+              <line x1="8.59" x2="15.42" y1="13.51" y2="17.49" />
+              <line x1="15.41" x2="8.59" y1="6.51" y2="10.49" />
+            </svg>
+            공유
+          </button>
+
+          <button
+            class="justify-center whitespace-nowrap font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none py-2 has-[>svg]:px-3 bg-[#155dfc] hover:bg-[#1447e6] text-white rounded-lg h-10 px-4 flex items-center gap-2 text-[14px]"
+            type="button"
+            @click="onDownload"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="16"
+              height="16"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              class="lucide lucide-download"
+              aria-hidden="true"
+            >
+              <path d="M12 15V3" />
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+              <path d="m7 10 5 5 5-5" />
+            </svg>
+            다운로드
+          </button>
+          <button
+            class="border-2 bg-white border-gray-200 hover:border-[#fb2c36] rounded-lg size-10 flex items-center justify-center"
+            type="button"
+            aria-label="좋아요"
+            @click="toggleLike"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="20"
+              height="20"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              class="lucide lucide-heart text-[#0a0a0a]"
+              aria-hidden="true"
             >
               <path
-                d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"
-                data-v-88d55a61=""
-              ></path>
-              <circle cx="9" cy="7" r="4" data-v-88d55a61=""></circle>
-              <path d="M22 21v-2a4 4 0 0 0-3-3.87" data-v-88d55a61=""></path>
-              <path d="M16 3.128a4 4 0 0 1 0 7.744" data-v-88d55a61=""></path>
+                d="M2 9.5a5.5 5.5 0 0 1 9.591-3.676.56.56 0 0 0 .818 0A5.49 5.49 0 0 1 22 9.5c0 2.29-1.5 4-3 5.5l-5.492 5.313a2 2 0 0 1-3 .019L5 15c-1.5-1.5-3-3.2-3-5.5"
+              />
             </svg>
-          </span>
-          로그인
-        </button>
-        <!-- (로그인 상태)사용자 아이콘 -->
-        <button
-          v-else
-          class="my-avatar"
-          aria-label="사용자 메뉴"
-          @click="onLogoutClick"
-        >
-          <span class="my-avatar-text">{{ userInitial }}</span>
-        </button>
-
-        <button
-          class="border-2 bg-white border-gray-200 hover:border-[#fb2c36] rounded-lg size-10 flex items-center justify-center"
-          type="button"
-          @click="toggleLike"
-          aria-label="좋아요"
-        >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            width="20"
-            height="20"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="2"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-            class="lucide lucide-heart text-[#0a0a0a]"
-            aria-hidden="true"
+          </button>
+          <!-- (비로그인 상태)로그인 버튼 -->
+          <button
+            v-if="isLoggedIn !== true"
+            class="btn btn-ghost"
+            type="button"
+            @click="openLogin"
           >
-            <path
-              d="M2 9.5a5.5 5.5 0 0 1 9.591-3.676.56.56 0 0 0 .818 0A5.49 5.49 0 0 1 22 9.5c0 2.29-1.5 4-3 5.5l-5.492 5.313a2 2 0 0 1-3 .019L5 15c-1.5-1.5-3-3.2-3-5.5"
-            ></path>
-          </svg>
-        </button>
-
-        <button
-          class="bg-white border-2 border-gray-200 hover:border-[#155dfc] text-[#0a0a0a] rounded-lg h-10 px-4 flex items-center gap-2 text-[14px]"
-          type="button"
-          @click="onShare"
-        >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            width="16"
-            height="16"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="2"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-            class="lucide lucide-share2 lucide-share-2"
-            aria-hidden="true"
+            <span class="btn-icon" aria-hidden="true" data-v-88d55a61="">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="18"
+                height="18"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                data-v-88d55a61=""
+              >
+                <path
+                  d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"
+                  data-v-88d55a61=""
+                />
+                <circle cx="9" cy="7" r="4" data-v-88d55a61="" />
+                <path d="M22 21v-2a4 4 0 0 0-3-3.87" data-v-88d55a61="" />
+                <path d="M16 3.128a4 4 0 0 1 0 7.744" data-v-88d55a61="" />
+              </svg>
+            </span>
+            로그인
+          </button>
+          <!-- (로그인 상태)사용자 아이콘 -->
+          <button
+            v-else
+            class="my-avatar"
+            aria-label="사용자 메뉴"
+            @click="onLogoutClick"
           >
-            <circle cx="18" cy="5" r="3"></circle>
-            <circle cx="6" cy="12" r="3"></circle>
-            <circle cx="18" cy="19" r="3"></circle>
-            <line x1="8.59" x2="15.42" y1="13.51" y2="17.49"></line>
-            <line x1="15.41" x2="8.59" y1="6.51" y2="10.49"></line>
-          </svg>
-          공유
-        </button>
+            <span class="my-avatar-text">{{ userInitial }}</span>
+          </button>
+        </div>
+      </header>
 
-        <button
-          class="justify-center whitespace-nowrap font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none py-2 has-[>svg]:px-3 bg-[#155dfc] hover:bg-[#1447e6] text-white rounded-lg h-10 px-4 flex items-center gap-2 text-[14px]"
-          type="button"
-          @click="onDownload"
-        >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            width="16"
-            height="16"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="2"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-            class="lucide lucide-download"
-            aria-hidden="true"
-          >
-            <path d="M12 15V3"></path>
-            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-            <path d="m7 10 5 5 5-5"></path>
-          </svg>
-          다운로드
-        </button>
-      </div>
-    </header>
+      <main class="main">
+        <div v-if="pending" class="state">불러오는 중...</div>
+        <div v-else-if="error || !detail" class="state error">
+          데이터를 불러오지 못했습니다.
+        </div>
 
-    <main class="main">
-      <div v-if="pending" class="state">불러오는 중...</div>
-      <div v-else-if="error || !detail" class="state error">
-        데이터를 불러오지 못했습니다.
-      </div>
-
-      <div v-else class="grid">
-        <!-- 왼쪽 컬럼 -->
-        <section class="left">
-          <!-- 시뮬레이션 영상 자리(더미) -->
-          <div class="video-card">
-            <button
-              class="video-play"
-              type="button"
-              @click="onPlayVideo"
-              aria-label="시뮬레이션 재생"
-            >
-              <div class="play-circle">
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="26"
-                  height="26"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-width="2"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  aria-hidden="true"
-                >
-                  <polygon points="6 3 20 12 6 21 6 3"></polygon>
-                </svg>
-              </div>
-              <div class="video-text">
-                <div class="video-title">시뮬레이션 영상</div>
-                <div class="video-sub">클릭하여 시뮬레이션 재생</div>
-              </div>
-            </button>
-          </div>
-
-          <!-- 설명 -->
-          <div class="panel">
-            <div class="panel-title">설명</div>
-            <p class="panel-body">{{ detail.description }}</p>
-          </div>
-
-          <!-- 코드(탭 제거, 글씨 버튼/이벤트 제거) -->
-          <div class="panel">
-            <div class="panel-title">
-              <span class="code-label">
-                <!-- 아이콘은 제공해준 코드 아이콘 사용 -->
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="16"
-                  height="16"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-width="2"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  class="lucide lucide-code"
-                  aria-hidden="true"
-                >
-                  <path d="m16 18 6-6-6-6"></path>
-                  <path d="m8 6-6 6 6 6"></path>
-                </svg>
-                시나리오 코드
-              </span>
+        <div v-else class="grid">
+          <!-- 왼쪽 컬럼 -->
+          <section class="left">
+            <!-- 시뮬레이션 영상 자리(더미) -->
+            <div class="video-card">
+              <button
+                class="video-play"
+                type="button"
+                aria-label="시뮬레이션 재생"
+                @click="onPlayVideo"
+              >
+                <div class="play-circle">
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="26"
+                    height="26"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    aria-hidden="true"
+                  >
+                    <polygon points="6 3 20 12 6 21 6 3" />
+                  </svg>
+                </div>
+                <div class="video-text">
+                  <div class="video-title">시뮬레이션 영상</div>
+                  <div class="video-sub">클릭하여 시뮬레이션 재생</div>
+                </div>
+              </button>
             </div>
 
-            <pre class="code"><code>{{ detail.code }}</code></pre>
-          </div>
-        </section>
+            <!-- 설명 -->
+            <div class="panel">
+              <div class="panel-title">설명</div>
+              <p class="panel-body">{{ detail.description }}</p>
+            </div>
 
-        <!-- 오른쪽 컬럼 -->
-        <aside class="right">
-          <!-- 통계 -->
-          <div class="side-card">
-            <div class="side-title">통계</div>
-
-            <div class="stat-row">
-              <div class="stat-left">
-                <div
-                  class="flex items-center gap-lg text-[#4a5565] text-[14px]"
-                >
+            <!-- 코드(탭 제거, 글씨 버튼/이벤트 제거) -->
+            <div class="panel">
+              <div class="panel-title">
+                <span class="code-label">
+                  <!-- 아이콘은 제공해준 코드 아이콘 사용 -->
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
                     width="16"
@@ -259,133 +223,159 @@
                     stroke-width="2"
                     stroke-linecap="round"
                     stroke-linejoin="round"
-                    class="lucide lucide-download"
+                    class="lucide lucide-code"
                     aria-hidden="true"
                   >
-                    <path d="M12 15V3"></path>
-                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-                    <path d="m7 10 5 5 5-5"></path>
+                    <path d="m16 18 6-6-6-6" />
+                    <path d="m8 6-6 6 6 6" />
                   </svg>
-                  <span class="stat-text">다운로드</span>
-                </div>
+                  시나리오 코드
+                </span>
               </div>
-              <div class="stat-value">
-                {{ formatNumber(detail.stats.downloads) }}
-              </div>
-            </div>
 
-            <div class="stat-row">
-              <div class="stat-left">
-                <div
-                  class="flex items-center gap-lg text-[#4a5565] text-[14px]"
-                >
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    width="16"
-                    height="16"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    stroke-width="2"
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    class="lucide lucide-eye"
-                    aria-hidden="true"
+              <pre class="code"><code>{{ detail.code }}</code></pre>
+            </div>
+          </section>
+
+          <!-- 오른쪽 컬럼 -->
+          <aside class="right">
+            <!-- 통계 -->
+            <div class="side-card">
+              <div class="side-title">통계</div>
+
+              <div class="stat-row">
+                <div class="stat-left">
+                  <div
+                    class="flex items-center gap-lg text-[#4a5565] text-[14px]"
                   >
-                    <path
-                      d="M2.062 12.348a1 1 0 0 1 0-.696 10.75 10.75 0 0 1 19.876 0 1 1 0 0 1 0 .696 10.75 10.75 0 0 1-19.876 0"
-                    ></path>
-                    <circle cx="12" cy="12" r="3"></circle>
-                  </svg>
-                  <span class="stat-text">조회수</span>
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="16"
+                      height="16"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="2"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      class="lucide lucide-download"
+                      aria-hidden="true"
+                    >
+                      <path d="M12 15V3" />
+                      <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                      <path d="m7 10 5 5 5-5" />
+                    </svg>
+                    <span class="stat-text">다운로드</span>
+                  </div>
+                </div>
+                <div class="stat-value">
+                  {{ formatNumber(detail.stats.downloads) }}
                 </div>
               </div>
-              <div class="stat-value">
-                {{ formatNumber(detail.stats.views) }}
-              </div>
-            </div>
 
-            <div class="stat-row">
-              <div class="stat-left">
-                <div
-                  class="flex items-center gap-lg text-[#4a5565] text-[14px]"
-                >
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    width="16"
-                    height="16"
-                    viewBox="0 0 24 0 0"
-                    style="display: none"
-                  ></svg>
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    width="16"
-                    height="16"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    stroke-width="2"
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    class="lucide lucide-heart"
-                    aria-hidden="true"
+              <div class="stat-row">
+                <div class="stat-left">
+                  <div
+                    class="flex items-center gap-lg text-[#4a5565] text-[14px]"
                   >
-                    <path
-                      d="M2 9.5a5.5 5.5 0 0 1 9.591-3.676.56.56 0 0 0 .818 0A5.49 5.49 0 0 1 22 9.5c0 2.29-1.5 4-3 5.5l-5.492 5.313a2 2 0 0 1-3 .019L5 15c-1.5-1.5-3-3.2-3-5.5"
-                    ></path>
-                  </svg>
-                  <span class="stat-text">좋아요</span>
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="16"
+                      height="16"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="2"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      class="lucide lucide-eye"
+                      aria-hidden="true"
+                    >
+                      <path
+                        d="M2.062 12.348a1 1 0 0 1 0-.696 10.75 10.75 0 0 1 19.876 0 1 1 0 0 1 0 .696 10.75 10.75 0 0 1-19.876 0"
+                      />
+                      <circle cx="12" cy="12" r="3" />
+                    </svg>
+                    <span class="stat-text">조회수</span>
+                  </div>
+                </div>
+                <div class="stat-value">
+                  {{ formatNumber(detail.stats.views) }}
                 </div>
               </div>
-              <div class="stat-value">
-                {{ formatNumber(detail.stats.likes) }}
-              </div>
-            </div>
-          </div>
 
-          <!-- 태그 -->
-          <div class="side-card">
-            <div class="side-title">태그</div>
-            <div class="tags">
-              <span v-for="t in detail.tags" :key="t" class="tag">{{ t }}</span>
-            </div>
-          </div>
-
-          <!-- 파일 정보 -->
-          <div class="side-card">
-            <div class="side-title">파일 정보</div>
-            <div class="info-row">
-              <span class="info-key">형식</span
-              ><span class="info-val">{{ detail.file.format }}</span>
-            </div>
-            <div class="info-row">
-              <span class="info-key">버전</span
-              ><span class="info-val">{{ detail.file.version }}</span>
-            </div>
-            <div class="info-row">
-              <span class="info-key">파일 크기</span
-              ><span class="info-val">{{ detail.file.size }}</span>
-            </div>
-          </div>
-
-          <!-- 업로드한 사람 -->
-          <div class="side-card">
-            <div class="side-title">업로드한 사람</div>
-            <div class="uploader">
-              <div class="uploader-avatar">{{ detail.uploader.initials }}</div>
-              <div class="uploader-meta">
-                <div class="uploader-name">{{ detail.uploader.name }}</div>
-                <div class="uploader-email">{{ detail.uploader.email }}</div>
-                <div class="uploader-sub">
-                  총 {{ formatNumber(detail.uploader.totalScenarios) }}개의
-                  시나리오
+              <div class="stat-row">
+                <div class="stat-left">
+                  <div
+                    class="flex items-center gap-lg text-[#4a5565] text-[14px]"
+                  >
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="16"
+                      height="16"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="2"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      class="lucide lucide-heart"
+                      aria-hidden="true"
+                    >
+                      <path
+                        d="M2 9.5a5.5 5.5 0 0 1 9.591-3.676.56.56 0 0 0 .818 0A5.49 5.49 0 0 1 22 9.5c0 2.29-1.5 4-3 5.5l-5.492 5.313a2 2 0 0 1-3 .019L5 15c-1.5-1.5-3-3.2-3-5.5"
+                      />
+                    </svg>
+                    <span class="stat-text">좋아요</span>
+                  </div>
+                </div>
+                <div class="stat-value">
+                  {{ formatNumber(detail.stats.likes) }}
                 </div>
               </div>
             </div>
-          </div>
-        </aside>
-      </div>
-    </main>
+
+            <!-- 태그 -->
+            <div class="side-card">
+              <div class="side-title">태그</div>
+              <div class="tags">
+                <span v-for="t in detail.tags" :key="t" class="tag">{{ t }}</span>
+              </div>
+            </div>
+
+            <!-- 파일 정보 -->
+            <div class="side-card">
+              <div class="side-title">파일 정보</div>
+              <div class="info-row">
+                <span class="info-key">형식</span><span class="info-val">{{ detail.file.format }}</span>
+              </div>
+              <div class="info-row">
+                <span class="info-key">버전</span><span class="info-val">{{ detail.file.version }}</span>
+              </div>
+              <div class="info-row">
+                <span class="info-key">파일 크기</span><span class="info-val">{{ detail.file.size }}</span>
+              </div>
+            </div>
+
+            <!-- 업로드한 사람 -->
+            <div class="side-card">
+              <div class="side-title">업로드한 사람</div>
+              <div class="uploader">
+                <div class="uploader-avatar">{{ detail.uploader.initials }}</div>
+                <div class="uploader-meta">
+                  <div class="uploader-name">{{ detail.uploader.name }}</div>
+                  <div class="uploader-email">{{ detail.uploader.email }}</div>
+                  <div class="uploader-sub">
+                    총 {{ formatNumber(detail.uploader.totalScenarios) }}개의
+                    시나리오
+                  </div>
+                </div>
+              </div>
+            </div>
+          </aside>
+        </div>
+      </main>
+    </div>
   </div>
 </template>
 
@@ -394,7 +384,7 @@ definePageMeta({ layout: false }); // 기본 레이아웃(상단 헤더 포함) 
 const { logout } = useAuth();
 const { isLoggedIn, userName } = useHeaderState();
 const userInitial = computed(() =>
-  (userName.value?.trim()?.[0] ?? "U").toUpperCase()
+  (userName.value?.trim()?.[0] ?? "U").toUpperCase(),
 );
 const { openLogin } = useAuthModal();
 
@@ -423,7 +413,7 @@ const {
   data: detail,
   pending,
   error,
-  refresh,
+
 } = await useFetch<ScenarioDetail>(() => `/api/scenarios/${id.value}`, {
   key: () => `scenario:${id.value}`,
   watch: [id],
