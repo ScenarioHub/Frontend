@@ -64,7 +64,7 @@ export default defineEventHandler(() => {
       description:
         "어린이 보호구역에서 다양한 돌발 상황(도로 횡단, 차 사이에서 등장 등)을 포함한 시나리오입니다.",
       createdAt: "2024-09-15T07:45:00Z",
-      tags: ["어린이", "안전", "센서"],
+      tags: ["어린이", "안전", "센서", "ㅁㄴㅇ", "ㅁㄴㅇ", "ㅁㄴㅇ", "ㅁㄴㅇ", "ㅁㄴㅇ", "ㅁㄴㅇ"],
       uploader: { name: "최동욱", initials: "CD" },
       stats: { downloads: 2341, views: 6789, likes: 178 },
       bookmarked: true,
@@ -113,7 +113,7 @@ export default defineEventHandler(() => {
 
   const list: ScenarioItem[] = [];
 
-  for (let i = 0; i < 18; i++) {
+  for (let i = 0; i < 100; i++) {
     const src = base[i % base.length];
 
     list.push({

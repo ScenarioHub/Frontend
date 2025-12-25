@@ -364,7 +364,6 @@
                 <div class="uploader-avatar">{{ detail.uploader.initials }}</div>
                 <div class="uploader-meta">
                   <div class="uploader-name">{{ detail.uploader.name }}</div>
-                  <div class="uploader-email">{{ detail.uploader.email }}</div>
                   <div class="uploader-sub">
                     총 {{ formatNumber(detail.uploader.totalScenarios) }}개의
                     시나리오
@@ -380,6 +379,8 @@
 </template>
 
 <script setup lang="ts">
+import type { ScenarioDetail } from "~/types/scenario";
+
 definePageMeta({ layout: false }); // 기본 레이아웃(상단 헤더 포함) 비활성화 [web:73]
 const { logout } = useAuth();
 const { isLoggedIn, userName } = useHeaderState();
@@ -387,23 +388,6 @@ const userInitial = computed(() =>
   (userName.value?.trim()?.[0] ?? "U").toUpperCase(),
 );
 const { openLogin } = useAuthModal();
-
-type ScenarioDetail = {
-  id: string;
-  title: string;
-  createdAt: string;
-  description: string;
-  code: string;
-  tags: string[];
-  stats: { downloads: number; views: number; likes: number };
-  file: { format: string; version: string; size: string };
-  uploader: {
-    name: string;
-    email: string;
-    initials: string;
-    totalScenarios: number;
-  };
-};
 
 const route = useRoute();
 const id = computed(() => String(route.params.id));

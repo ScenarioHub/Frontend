@@ -39,7 +39,7 @@
           </button>
         </div>
 
-        <div class="toolbar-right">
+        <!-- <div class="toolbar-right">
           <button type="button" class="toolbar-filter">
             <svg
               xmlns="http://www.w3.org/2000/svg"
@@ -60,7 +60,7 @@
             </svg>
             필터
           </button>
-        </div>
+        </div> -->
       </section>
 
       <!-- 카드 그리드 -->
@@ -92,14 +92,41 @@
           </p>
 
           <!-- 태그 -->
-          <div class="card-tags">
-            <span
-              v-for="tag in item.tags"
-              :key="tag"
-              class="tag-badge"
-            >
-              {{ tag }}
-            </span>
+          <div class="card-tags-wrapper">
+            <div class="card-tags-wrapper-wrapper">
+              <button
+                v-if="tagOverflowMap[item.id]"
+                type="button"
+                class="tags-arrow tags-arrow-left"
+                aria-label="이전 태그 보기"
+                @click="scrollTagsLeft($event)"
+              >
+                ‹
+              </button>
+
+              <div
+                ref="tagContainers"
+                class="card-tags"
+              >
+                <span
+                  v-for="tag in item.tags"
+                  :key="tag"
+                  class="tag-badge"
+                >
+                  {{ tag }}
+                </span>
+              </div>
+
+              <button
+                v-if="tagOverflowMap[item.id]"
+                type="button"
+                class="tags-arrow tags-arrow-right"
+                aria-label="다음 태그 보기"
+                @click="scrollTagsRight($event)"
+              >
+                ›
+              </button>
+            </div>
           </div>
 
           <!-- 하단 통계 + 액션 -->
@@ -200,8 +227,8 @@
               <!-- 하트 버튼 -->
               <button
                 type="button"
-                :class="[item.bookmarked ? 'btn-like--active' : 'btn-like']"
-                :aria-pressed="item.bookmarked ? 'true' : 'false'"
+                :class="[item.isBookmarked ? 'btn-like--active' : 'btn-like']"
+                :aria-pressed="item.isBookmarked ? 'true' : 'false'"
                 @click="toggleBookmark(item)"
               >
                 <svg
@@ -216,7 +243,7 @@
                   stroke-linejoin="round"
                   :class="[
                     'lucide lucide-heart',
-                    item.bookmarked ? 'fill-red-500' : '',
+                    item.isBookmarked ? 'fill-red-500' : '',
                   ]"
                   aria-hidden="true"
                 >
@@ -269,16 +296,28 @@
           이전
         </button>
 
-        <button
-          v-for="p in totalPages"
-          :key="p"
-          type="button"
-          class="pagination-page"
-          :class="{ 'pagination-page--active': p === page }"
-          @click="goPage(p)"
-        >
-          {{ p }}
-        </button>
+        <!-- 여기부터 수정 -->
+        <template v-for="p in visiblePages" :key="p + ''">
+          <!-- 숫자 버튼 -->
+          <button
+            v-if="p !== '...'"
+            type="button"
+            class="pagination-page"
+            :class="{ 'pagination-page--active': p === page }"
+            @click="goPage(p as number)"
+          >
+            {{ p }}
+          </button>
+
+          <!-- ... 표시 -->
+          <span
+            v-else
+            class="pagination-ellipsis"
+          >
+            ...
+          </span>
+        </template>
+        <!-- 여기까지 -->
 
         <button
           type="button"
@@ -294,23 +333,7 @@
 </template>
 
 <script setup lang="ts">
-type ScenarioItem = {
-  id: string;
-  title: string;
-  description: string;
-  createdAt: string;
-  tags: string[];
-  uploader: {
-    name: string;
-    initials: string;
-  };
-  stats: {
-    downloads: number;
-    views: number;
-    likes: number;
-  };
-  bookmarked: boolean;
-};
+import type { ScenarioItem } from "~/types/scenario";
 
 // 서버에서 더미 데이터(추후 실제 데이터) 가져오기
 const { data } = await useFetch<{ items: ScenarioItem[] }>("/api/explore");
@@ -328,7 +351,7 @@ const filteredAndSorted = computed(() => {
   let list = [...allItems.value];
 
   if (onlyBookmarked.value) {
-    list = list.filter((item) => item.bookmarked);
+    list = list.filter((item) => item.isBookmarked);
   }
 
   if (sort.value === "latest") {
@@ -353,7 +376,37 @@ const pagedItems = computed(() => {
   const start = (page.value - 1) * pageSize;
   return filteredAndSorted.value.slice(start, start + pageSize);
 });
+const visiblePages = computed(() => {
+  const total = totalPages.value;
+  const current = page.value;
+  const delta = 2; // 현재 페이지 기준 좌우 몇 개까지 보여줄지
 
+  const pages: (number | string)[] = [];
+
+  // 항상 1페이지 버튼은 노출
+  pages.push(1);
+
+  const start = Math.max(2, current - delta);
+  const end = Math.min(total - 1, current + delta);
+
+  if (start > 2) {
+    pages.push("...");
+  }
+
+  for (let p = start; p <= end; p++) {
+    pages.push(p);
+  }
+
+  if (end < total - 1) {
+    pages.push("...");
+  }
+
+  if (total > 1) {
+    pages.push(total);
+  }
+
+  return pages;
+});
 // 페이지 이동
 function goPage(p: number) {
   if (p >= 1 && p <= totalPages.value) {
@@ -374,7 +427,9 @@ function onView(item: ScenarioItem) {
 }
 
 function toggleBookmark(item: ScenarioItem) {
-  item.bookmarked = !item.bookmarked;
+  // To-Do : 로그인 안한 상태면 로그인 시도하게 하기.
+
+  item.isBookmarked = !item.isBookmarked;
 }
 
 function onDownload(item: ScenarioItem) {
@@ -392,6 +447,70 @@ function formatDate(iso: string) {
   const m = String(d.getMonth() + 1).padStart(2, "0");
   const day = String(d.getDate()).padStart(2, "0");
   return `${d.getFullYear()}.${m}.${day}`;
+}
+
+const tagOverflowMap = ref<Record<string, boolean>>({});
+const tagContainers = ref<HTMLElement[]>([]);
+
+onMounted(() => {
+  nextTick(() => {
+    const map: Record<string, boolean> = {};
+
+    // pagedItems.value 순서대로 DOM이 들어온다고 가정
+    pagedItems.value.forEach((item, index) => {
+      const el = tagContainers.value[index];
+      if (!el) return;
+      const isOverflow = el.scrollWidth > el.clientWidth;
+      map[item.id] = isOverflow;
+    });
+
+    tagOverflowMap.value = map;
+  });
+});
+
+function recomputeTagOverflow() {
+  const map: Record<string, boolean> = {};
+
+  pagedItems.value.forEach((item, index) => {
+    const el = tagContainers.value[index];
+    if (!el) return;
+    const isOverflow = el.scrollWidth > el.clientWidth;
+    map[item.id] = isOverflow;
+  });
+
+  tagOverflowMap.value = map;
+}
+
+watch(
+  () => [data.value, pagedItems.value],
+  () => nextTick(recomputeTagOverflow),
+  { deep: true },
+);
+
+const TAG_SCROLL_AMOUNT = 240;
+
+function scrollTagsFromEvent(e: MouseEvent, direction: "left" | "right") {
+  const button = e.currentTarget as HTMLElement | null;
+  if (!button) return;
+
+  // 화살표 바로 다음 형제/이전 형제 중 .card-tags 찾기
+  const parent = button.parentElement;
+  if (!parent) return;
+
+  const tags
+    = (parent.querySelector(".card-tags") as HTMLElement | null) ?? null;
+  if (!tags) return;
+
+  const delta = direction === "left" ? -TAG_SCROLL_AMOUNT : TAG_SCROLL_AMOUNT;
+  tags.scrollBy({ left: delta, behavior: "smooth" });
+}
+
+function scrollTagsLeft(e: MouseEvent) {
+  scrollTagsFromEvent(e, "left");
+}
+
+function scrollTagsRight(e: MouseEvent) {
+  scrollTagsFromEvent(e, "right");
 }
 </script>
 
@@ -416,19 +535,19 @@ function formatDate(iso: string) {
 }
 .hero-eyebrow {
   margin: 0 0 8px;
-  font-size: 13px;
+  font-size: 14px;
   font-weight: 600;
   color: #64748b;
 }
 .hero-title {
   margin: 0 0 8px;
-  font-size: 24px;
+  font-size: 32px;
   letter-spacing: -0.4px;
 }
 .hero-sub {
   margin: 0;
   color: #6b7280;
-  font-size: 13px;
+  font-size: 16px;
 }
 
 /* Toolbar */
@@ -447,7 +566,6 @@ function formatDate(iso: string) {
 .toolbar-right {
   flex-shrink: 0;
 }
-
 .toolbar-chip {
   padding: 6px 12px;
   border-radius: 999px;
@@ -540,25 +658,86 @@ function formatDate(iso: string) {
   max-height: calc(1.5em * 3);
 }
 
+.card-tags-wrapper-wrapper{
+  position: relative;
+  width: 100%;
+}
+
+.card-tags-wrapper {
+  position: relative;
+  width: 100%;
+  /* 태그 높이만큼만 차지하도록 필요시 높이 조정 가능 */
+}
 /* Tags */
 .card-tags {
   display: flex;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
+  justify-content: flex-start; /* 왼쪽 정렬 */
+  align-items: center;
   gap: 6px;
+  overflow-x: auto;
+  overflow-y: hidden;
+  max-width: 100%;
+  scroll-behavior: smooth;
 }
+.card-tags::-webkit-scrollbar {
+  display: none;
+}
+.card-tags::-webkit-scrollbar-thumb {
+  background: rgba(148, 163, 184, 0.7);
+  border-radius: 999px;
+}
+.card-tags::-webkit-scrollbar-track {
+  background: transparent;
+}
+.card-tags.is-dragging {
+  cursor: grabbing;
+}
+.card-tags {
+  -ms-overflow-style: none;  /* IE/Edge */
+  scrollbar-width: none;     /* Firefox */
+}
+
 .tag-badge {
   display: inline-flex;
   align-items: center;
   justify-content: center;
   border-radius: 999px;
   border: 1px solid transparent;
-  padding: 4px 8px;
+  padding: 4px 10px;
   font-size: 11px;
   font-weight: 600;
   background: #dbeafe;
   color: #1d4ed8;
-  transition: background-color 0.12s ease;
+  white-space: nowrap;
+  flex: 0 0 auto;
 }
+.tags-arrow {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 20px;
+  height: 24px;
+  border-radius: 999px;
+  border: none;
+  background: rgba(148, 163, 184, 0.85);
+  color: #ffffff;
+  font-size: 14px;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 1;
+}
+
+.tags-arrow-left { left: 0; }
+.tags-arrow-right { right: 0; }
+
+/* 카드 호버 시에만 보이게 */
+.card:hover .tags-arrow {
+  display: flex;
+}
+
 .tag-badge:hover {
   background: #bfdbfe;
 }
@@ -708,6 +887,11 @@ function formatDate(iso: string) {
 .pagination-page--active {
   background: #155dfc;
   color: #fff;
+}
+.pagination-ellipsis {
+  padding: 0 4px;
+  font-size: 12px;
+  color: #9ca3af;
 }
 
 /* Responsive */

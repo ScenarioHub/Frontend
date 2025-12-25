@@ -132,19 +132,15 @@
 </template>
 
 <script setup lang="ts">
+import type { MyScenarioItem } from "~/types/scenario";
+
 definePageMeta({
   middleware: ["auth"],
 });
-type Scenario = {
-  id: string;
-  title: string;
-  summary: string;
-  createdAt: string; // ISO string
-  downloadCount: number;
-};
+
 const { isLoggedIn } = useHeaderState();
 
-const { data, pending, error } = await useFetch<Scenario[]>(
+const { data, pending, error } = await useFetch<MyScenarioItem[]>(
   "/api/my-scenarios",
   {
     immediate: isLoggedIn.value === true,
@@ -154,7 +150,7 @@ const { data, pending, error } = await useFetch<Scenario[]>(
 const scenarios = computed(() => data.value ?? []);
 
 const isDeleteOpen = ref(false);
-const deletingItem = ref<Scenario | null>(null);
+const deletingItem = ref<MyScenarioItem | null>(null);
 const deleting = ref(false);
 
 watch(
@@ -168,12 +164,12 @@ watch(
   { immediate: true },
 );
 
-function onView(item: Scenario) {
+function onView(item: MyScenarioItem) {
   // 추후 게시물 페이지도 더미 데이터 기반: /community/:id 같은 형태로 이동
   return navigateTo(`/scenarios/${item.id}`); // programmatic navigation [web:37]
 }
 
-function openDeleteModal(item: Scenario) {
+function openDeleteModal(item: MyScenarioItem) {
   deletingItem.value = item;
   isDeleteOpen.value = true;
 }

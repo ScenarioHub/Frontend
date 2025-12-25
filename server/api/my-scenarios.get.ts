@@ -1,4 +1,6 @@
-export default defineEventHandler(() => {
+import type { MyScenarioItem } from "~/types/scenario";
+
+export default defineEventHandler((): MyScenarioItem[] => {
   return [
     {
       id: "s1",
