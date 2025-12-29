@@ -138,7 +138,7 @@ definePageMeta({
   middleware: ["auth"],
 });
 
-const { isLoggedIn } = useHeaderState();
+const { isLoggedIn } = useAuthState();
 
 const { data, pending, error } = await useFetch<MyScenarioItem[]>(
   "/api/my-scenarios",

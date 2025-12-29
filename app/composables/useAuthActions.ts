@@ -1,5 +1,5 @@
 export const useAuthActions = () => {
-  const { q, isLoggedIn, userName } = useHeaderState();
+  const { searchQuery: q, isLoggedIn, userName } = useAuthState();
   const { close } = useAuthModal();
 
   function applyLogin(payload: { userName?: string }) {

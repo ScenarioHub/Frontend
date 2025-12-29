@@ -1,5 +1,5 @@
 <script setup lang="ts">
-const { q, isLoggedIn, userName } = useHeaderState();
+const { searchQuery: q, isLoggedIn, userName } = useAuthState();
 const { openLogin } = useAuthModal();
 </script>
 

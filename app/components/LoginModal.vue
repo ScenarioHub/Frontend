@@ -47,6 +47,7 @@
 
 <script setup lang="ts">
 import { ref } from "vue";
+import { useAuth } from "~/composables/useAuth";
 
 const emit = defineEmits<{
   (e: "close"): void;
@@ -56,11 +57,10 @@ const emit = defineEmits<{
 
 const email = ref("");
 const password = ref("");
+const { login, googleLogin } = useAuth();
 
 async function onLogin() {
-  // TODO: 서버 붙이면 여기 활성화
-  // await $fetch("/api/auth/login", { method: "POST", body: { email: email.value, password: password.value } });
-
+  login();
   // 임시: 로그인 성공 처리
   emit("logged-in", {
     userName: email.value ? email.value.split("@")[0] : "U",
@@ -68,8 +68,9 @@ async function onLogin() {
 }
 
 async function onGoogleLogin() {
-  // TODO: OAuth는 백엔드/리다이렉트 필요. 일단 버튼만.
-  // await navigateTo("/api/auth/google"); // 예시
+  googleLogin();
+
+  // 임시: 구글 로그인 성공 처리
   emit("logged-in", { userName: "GoogleUser" });
 }
 </script>

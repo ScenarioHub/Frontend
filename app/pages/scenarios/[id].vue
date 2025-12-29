@@ -229,7 +229,7 @@
                     <path d="m16 18 6-6-6-6" />
                     <path d="m8 6-6 6 6 6" />
                   </svg>
-                  시나리오 코드
+                  시나리오 코드 미리보기
                 </span>
               </div>
 
@@ -383,7 +383,7 @@ import type { ScenarioDetail } from "~/types/scenario";
 
 definePageMeta({ layout: false }); // 기본 레이아웃(상단 헤더 포함) 비활성화 [web:73]
 const { logout } = useAuth();
-const { isLoggedIn, userName } = useHeaderState();
+const { isLoggedIn, userName } = useAuthState();
 const userInitial = computed(() =>
   (userName.value?.trim()?.[0] ?? "U").toUpperCase(),
 );
