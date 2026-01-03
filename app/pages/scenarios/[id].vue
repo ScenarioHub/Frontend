@@ -27,18 +27,22 @@
             </svg>
           </button>
 
-          <div class="title-wrap">
-            <h1 class="title">{{ detail?.title ?? "-" }}</h1>
+          <!-- detail이 있을 때만 렌더링 -->
+          <div v-if="detail" class="title-wrap">
+            <h1 class="title">{{ detail.title || "-" }}</h1>
             <div class="sub">
               <span class="avatar">{{
-                (detail?.uploader.initials ?? "-").slice(0, 1)
+                (detail.uploader?.initials ?? "U").slice(0, 1)
               }}</span>
-              <span class="sub-text">{{ detail?.uploader.name ?? "-" }}</span>
+              <span class="sub-text">{{ detail.uploader?.name ?? "-" }}</span>
               <span class="dot">•</span>
-              <span class="sub-text">{{
-                detail ? formatDate(detail.createdAt) : "-"
-              }}</span>
+              <span class="sub-text">{{ formatDate(detail.createdAt) }}</span>
             </div>
+          </div>
+
+          <!-- 로딩 중일 때 스켈레톤 (선택) -->
+          <div v-else class="title-wrap">
+            <h1 class="title">...</h1>
           </div>
         </div>
 
@@ -269,7 +273,7 @@
                   </div>
                 </div>
                 <div class="stat-value">
-                  {{ formatNumber(detail.stats.downloads) }}
+                  {{ formatNumber(detail.stats?.downloads ?? 0) }}
                 </div>
               </div>
 
@@ -300,7 +304,7 @@
                   </div>
                 </div>
                 <div class="stat-value">
-                  {{ formatNumber(detail.stats.views) }}
+                  {{ formatNumber(detail.stats?.views ?? 0) }}
                 </div>
               </div>
 
@@ -330,7 +334,7 @@
                   </div>
                 </div>
                 <div class="stat-value">
-                  {{ formatNumber(detail.stats.likes) }}
+                  {{ formatNumber(detail.stats?.likes ?? 0) }}
                 </div>
               </div>
             </div>
@@ -339,7 +343,7 @@
             <div class="side-card">
               <div class="side-title">태그</div>
               <div class="tags">
-                <span v-for="t in detail.tags" :key="t" class="tag">{{ t }}</span>
+                <span v-for="t in (detail.tags ?? [])" :key="t" class="tag">{{ t }}</span>
               </div>
             </div>
 
@@ -347,13 +351,13 @@
             <div class="side-card">
               <div class="side-title">파일 정보</div>
               <div class="info-row">
-                <span class="info-key">형식</span><span class="info-val">{{ detail.file.format }}</span>
+                <span class="info-key">형식</span><span class="info-val">{{ detail.file?.format ?? '-' }}</span>
               </div>
               <div class="info-row">
-                <span class="info-key">버전</span><span class="info-val">{{ detail.file.version }}</span>
+                <span class="info-key">버전</span><span class="info-val">{{ detail.file?.version ?? '-' }}</span>
               </div>
               <div class="info-row">
-                <span class="info-key">파일 크기</span><span class="info-val">{{ detail.file.size }}</span>
+                <span class="info-key">파일 크기</span><span class="info-val">{{ detail.file?.size ?? '-' }}</span>
               </div>
             </div>
 
@@ -361,11 +365,11 @@
             <div class="side-card">
               <div class="side-title">업로드한 사람</div>
               <div class="uploader">
-                <div class="uploader-avatar">{{ detail.uploader.initials }}</div>
+                <div class="uploader-avatar">{{ detail.uploader?.initials ?? 'U' }}</div>
                 <div class="uploader-meta">
-                  <div class="uploader-name">{{ detail.uploader.name }}</div>
+                  <div class="uploader-name">{{ detail.uploader?.name ?? '알 수 없음' }}</div>
                   <div class="uploader-sub">
-                    총 {{ formatNumber(detail.uploader.totalScenarios) }}개의
+                    총 {{ formatNumber(detail.uploader?.totalScenarios ?? 0) }}개의
                     시나리오
                   </div>
                 </div>
@@ -384,22 +388,23 @@ import type { ScenarioDetail } from "~/types/scenario";
 definePageMeta({ layout: false }); // 기본 레이아웃(상단 헤더 포함) 비활성화 [web:73]
 const { logout } = useAuth();
 const { isLoggedIn, userName } = useAuthState();
+const { openLogin } = useAuthModal();
+
 const userInitial = computed(() =>
   (userName.value?.trim()?.[0] ?? "U").toUpperCase(),
 );
-const { openLogin } = useAuthModal();
 
 const route = useRoute();
 const id = computed(() => String(route.params.id));
 
-// 서버 연동 형태: /api/scenarios/:id 로부터 상세 데이터 수신 (지금은 더미 API로) [web:80]
+// 서버 연동 형태: /api/scenarios/:id 로부터 상세 데이터 수신
 const {
   data: detail,
   pending,
   error,
 
 } = await useFetch<ScenarioDetail>(() => `/api/scenarios/${id.value}`, {
-  key: () => `scenario:${id.value}`,
+  key: `scenario-${id.value}`,
   watch: [id],
 });
 
@@ -435,9 +440,15 @@ function onPlayVideo() {
   console.log("play video");
 }
 
-function formatDate(iso: string) {
-  const d = new Date(iso);
-  return `${d.getFullYear()}.${d.getMonth() + 1}.${d.getDate()}`;
+function formatDate(iso: string | undefined) {
+  if (!iso) return "-";
+  try {
+    const d = new Date(iso);
+    if (isNaN(d.getTime())) return "-";
+    return `${d.getFullYear()}.${d.getMonth() + 1}.${d.getDate()}`;
+  } catch {
+    return "-";
+  }
 }
 
 function formatNumber(n: number) {

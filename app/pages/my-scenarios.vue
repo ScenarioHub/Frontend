@@ -141,7 +141,7 @@ definePageMeta({
 const { isLoggedIn } = useAuthState();
 
 const { data, pending, error } = await useFetch<MyScenarioItem[]>(
-  "/api/my-scenarios",
+  "/api/scenarios/my-scenarios",
   {
     immediate: isLoggedIn.value === true,
   },

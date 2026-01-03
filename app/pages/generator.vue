@@ -21,7 +21,7 @@
         <span class="step-arrow">→</span>
         <div class="step" :class="{ 'is-active': currentStep === 3 }">
           <span class="step-num">3</span>
-          <span class="step-text">3단계: 실행 완료</span>
+          <span class="step-text">3단계: 생성 완료</span>
         </div>
       </div>
     </div>
@@ -43,10 +43,10 @@
           />
 
           <button
-            class="btn-primary"
+            :class="uiState === 'done' ? 'btn-reset' : 'btn-primary'"
             @click="uiState === 'done' ? onReset() : onGenerate()"
           >
-            {{ uiState === "done" ? "초기화" : "시나리오 생성하기" }}
+            {{ uiState === "done" ? "초기화 (새로 만들기)" : "시나리오 생성하기" }}
           </button>
         </article>
 
@@ -105,30 +105,57 @@
             </template>
           </div>
           <div class="sim-actions">
-            <button
-              class="btn btn-green"
-              :disabled="currentStep !== 3"
-              @click="onDownloadXosc"
-            >
-              <svg
-                class="icon"
-                xmlns="http://www.w3.org/2000/svg"
-                width="24"
-                height="24"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                aria-hidden="true"
+            <div class="btn-row">
+              <!-- 추가된 업로드 버튼 -->
+              <button
+                class="btn btn-blue"
+                :disabled="currentStep !== 3"
+                @click="onGoToUploadForm"
               >
-                <path d="M12 15V3" />
-                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
-                <path d="m7 10 5 5 5-5" />
-              </svg>
-              <span class="btn-text">시나리오 파일 다운로드 (.xosc)</span>
-            </button>
+                <svg
+                  class="icon"
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="24"
+                  height="24"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                >
+                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                  <polyline points="17 8 12 3 7 8" />
+                  <line x1="12" y1="3" x2="12" y2="15" />
+                </svg>
+                <span class="btn-text">커뮤니티 공유하기</span>
+              </button>
+
+              <!-- 기존 다운로드 버튼 -->
+              <button
+                class="btn btn-green"
+                :disabled="currentStep !== 3"
+                @click="onDownloadXosc"
+              >
+                <svg
+                  class="icon"
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="24"
+                  height="24"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                >
+                  <path d="M12 15V3" />
+                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                  <path d="m7 10 5 5 5-5" />
+                </svg>
+                <span class="btn-text">다운로드 (.xosc)</span>
+              </button>
+            </div>
           </div>
         </article>
       </section>
@@ -256,6 +283,8 @@ SSE에서 stream_ended 수신하면 UI를 3단계 완료로 바꾸고, 라이브
 import { useEventSource } from "@vueuse/core"; // SSE [web:1076]
 import { computed, onBeforeUnmount, ref, watch } from "vue";
 
+import { useRouter } from "vue-router";
+
 type UiState = "idle" | "running" | "done" | "error";
 type ProgressEvent = {
   percent: number;
@@ -277,7 +306,23 @@ const statusLines = ref<string[]>([]);
 const statusText = ref("AI가 시나리오를 분석하고 있습니다");
 const videoUrl = ref<string | null>(null);
 
-const isProgressModalOpen = computed(() => uiState.value === "running");
+const isProgressModalOpen = computed(() => uiState.value === "running"); // [web:router_push]
+
+// ... 기존 import 및 상태 변수들 ...
+
+const router = useRouter();
+
+// "업로드" 버튼 클릭 핸들러 (이름 변경: onTriggerUpload -> onGoToUploadForm)
+function onGoToUploadForm() {
+  if (currentStep.value !== 3 || !jobId.value) return;
+  // jobId는 시나리오 생성 완료 시 서버에서 받은 PK(id)라고 가정
+
+  // ID만 쿼리 스트링으로 전달 (예: /upload?scenarioId=105)
+  router.push({
+    path: "/upload",
+    query: { scenarioId: jobId.value },
+  });
+}
 
 // ===== 임시 오버레이 모달(5초짜리)용 =====
 const isProgressOpen = ref(false);
@@ -550,6 +595,25 @@ function onReset() {
   color: #fff;
   font-weight: 900;
   font-size: 16px;
+  transition: all 0.2s; /* 부드러운 색 전환 효과 추가 */
+}
+
+/* 새로 추가: 초기화 버튼 스타일 (회색/은색) */
+.btn-reset {
+  width: 100%;
+  margin-top: 16px;
+  height: 54px;
+  border-radius: 14px;
+  cursor: pointer;
+  background: #7c3aed;     /* 배경 흰색 */
+  color: #fff;       /* 글자 회색 */
+  font-weight: 800;
+  font-size: 16px;
+  transition: all 0.2s;
+}
+
+.btn-reset:hover {
+  background: #6d28d9;  /* 마우스 올리면 연한 회색 */
 }
 
 .sim-box {
@@ -732,5 +796,48 @@ function onReset() {
   background: linear-gradient(90deg, #111827, #2f6dff);
   width: 0%;
   transition: width 0.1s linear;
+}
+/* 버튼들을 가로로 배치하기 위한 래퍼 */
+.btn-row {
+  display: flex;
+  gap: 12px;
+  width: 100%;
+}
+
+/* Flex 컨테이너 안에서 버튼들이 균등한 너비를 가지도록 설정 */
+.btn-row .btn {
+    min-width: 0;
+}
+
+/* 업로드 버튼용 다크 스타일 (기존 테마와 어울리게) */
+.btn-blue {
+  background: #2f6dff; /* slate-700 */
+  color: #fff;
+}
+.btn-blue:hover {
+  background: #1d4ed8; /* slate-800 */
+}
+
+/* 모바일 대응: 화면이 좁을 때는 위아래로 배치 */
+@media (max-width: 600px) {
+  .btn-row {
+    flex-direction: column;
+  }
+  /* 모바일에서는 다시 꽉 차게 변경 */
+  .btn-row .btn:first-child,
+  .btn-row .btn:last-child {
+    flex: 1 1 auto;
+    width: 100%;
+  }
+}
+
+/* 커뮤니티 공유하기 버튼 (첫 번째 버튼) - 70% */
+.btn-row .btn:first-child {
+  flex: 7; /* 70% 비율 */
+}
+
+/* 다운로드 버튼 (두 번째 버튼) - 30% */
+.btn-row .btn:last-child {
+  flex: 3; /* 30% 비율 */
 }
 </style>

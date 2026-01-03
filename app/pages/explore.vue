@@ -336,7 +336,7 @@
 import type { ScenarioItem } from "~/types/scenario";
 
 // 서버에서 더미 데이터(추후 실제 데이터) 가져오기
-const { data } = await useFetch<{ items: ScenarioItem[] }>("/api/explore");
+const { data } = await useFetch<{ items: ScenarioItem[] }>("/api/scenarios/explore");
 
 // null 방어
 const allItems = computed(() => data.value?.items ?? []);
