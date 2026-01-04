@@ -43,14 +43,14 @@ export type MyScenarioItem = { // 내 시나리오 목록
   downloadCount: number;
 };
 
-export type PaginatedResponse<T> = {
+export type PaginatedResponse<T> = { // 페이지화
   items: T[]; // 실제 데이터 리스트
   total: number; // 전체 개수
   page?: number; // (선택) 현재 페이지
   pageSize?: number; // (선택) 페이지당 개수
 };
 
-export type MyProfile = {
+export type MyProfile = { // 내 아이디 정보
   id: string;
   email: string;
   name: string;
@@ -59,7 +59,7 @@ export type MyProfile = {
   joinedAt: string; // 가입일 (ISO String)
 };
 
-export type ScenarioUploadForm = {
+export type ScenarioUploadForm = { // 시나리오 업로드시 사용 자료구조
   scenarioId?: string; // 수정 시 존재, 신규 생성 시 없음
   title: string; // 게시글 제목
   description: string; // 게시글 설명

@@ -101,15 +101,18 @@ async function onSubmit() {
   try {
     isLoading.value = true;
 
-    // 1. FormData 생성 (파일 전송 필수)
+    // 1. FormData 생성
     const formData = new FormData();
     formData.append("title", form.value.title);
     formData.append("description", form.value.description);
-    // 배열은 JSON 문자열로 변환하거나, 백엔드 처리 방식에 따라 반복해서 append
-    formData.append("tags", JSON.stringify(form.value.tags));
 
-    // 만약 수정 모드라면 ID도 함께 전송
+    // [수정 1] 태그를 JSON 배열이 아닌 CSV(콤마로 구분된 문자열)로 변환
+    // 예: ["어린이", "안전"] -> "어린이,안전"
+    formData.append("tags", form.value.tags.join(","));
+
     if (form.value.scenarioId) {
+      // API 명세에 id 필드명이 명시되지 않았으나, 보통 수정 시 필요하므로 유지하거나 명세에 맞게 조정 필요
+      // 명세에 없다면 쿼리 파라미터나 다른 방식으로 보낼 수도 있음. 일단 유지.
       formData.append("id", form.value.scenarioId);
     }
 
@@ -117,18 +120,31 @@ async function onSubmit() {
       formData.append("file", form.value.file);
     }
 
-    // 2. 서버로 POST 요청 (upload.post.ts 호출)
-    // Nuxt 3에서는 FormData를 body에 넣으면 자동으로 'multipart/form-data'로 처리됩니다.
-    const res = await $fetch<{ id: number | string }>("/api/scenarios/upload", {
+    // 2. 서버로 POST 요청
+    // [수정 2] 응답 타입 정의 수정 (API 명세에 맞춤)
+    interface UploadResponse {
+      status: number;
+      message: {
+        postId: string | number;
+        scenarioId: string | number;
+        uploaderId: string | number;
+        tags: string[];
+      };
+    }
+
+    const res = await $fetch<UploadResponse>("/api/scenarios/upload", {
       method: "POST",
       body: formData,
     });
 
-    console.log("업로드 성공, ID:", res.id);
-    alert("성공적으로 업로드되었습니다!");
-
-    // 3. 상세 페이지로 이동 (예: /scenarios/123)
-    router.push(`/scenarios/${res.id}`);
+    // [수정 3] 응답 처리 로직 변경 (res.id -> res.message.postId)
+    if (res.status === 201) {
+      console.log("업로드 성공, ID:", res.message.postId);
+      alert("성공적으로 업로드되었습니다!");
+      router.push(`/scenarios/${res.message.postId}`);
+    } else {
+      throw new Error("업로드 상태 코드가 201이 아닙니다.");
+    }
   } catch (e) {
     console.error("업로드 실패:", e);
     alert("업로드 중 오류가 발생했습니다.");
