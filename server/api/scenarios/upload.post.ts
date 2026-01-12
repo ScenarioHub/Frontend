@@ -10,6 +10,7 @@ interface ApiError {
 }
 
 export default defineEventHandler(async (event) => {
+  const config = useRuntimeConfig();
   try {
     // 1. 프론트엔드로부터 받은 Multipart 데이터 읽기
     const body = await readMultipartFormData(event);
@@ -61,11 +62,10 @@ export default defineEventHandler(async (event) => {
     formData.append("file", fileBlob, fileField.filename);
 
     // 4. 실제 외부 서버로 전송
-    const externalResponse = await $fetch("http://gamdasal.iptime.org:7778/api/upload/post/", {
+    const externalResponse = await $fetch(`${config.apiBase}/api/upload/post/`, {
       method: "POST",
       body: formData,
     });
-
     // 5. 응답 반환
     return externalResponse;
   } catch (error: unknown) {

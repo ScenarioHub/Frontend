@@ -17,11 +17,10 @@ interface ApiResponse {
 
 export default defineEventHandler(async (event): Promise<ScenarioDetail> => {
   const id = event.context.params?.id || "";
-
+  const config = useRuntimeConfig(event);
   try {
-    // 1. 재활용한 타입으로 API 호출
     const response = await $fetch<ApiResponse>(
-      `http://gamdasal.iptime.org:7778/api/scenario-detail/${id}/`,
+      `${config.apiBase}/api/scenario-detail/${id}/`,
     );
 
     const data = response.message;
