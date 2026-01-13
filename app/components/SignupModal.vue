@@ -70,6 +70,9 @@
 
 <script setup lang="ts">
 import { computed, ref } from "vue";
+import { useAuth } from "~/composables/useAuth";
+
+const { register } = useAuth();
 
 const emit = defineEmits<{
   (e: "close"): void;
@@ -89,15 +92,11 @@ const canSubmit = computed(() => {
 });
 
 async function onSignup() {
-  // TODO: 서버 붙이면 여기 활성화
-  // await $fetch("/api/auth/signup", { method: "POST", body: { name: name.value, email: email.value, password: password.value } });
-
-  // 임시: 가입 성공 -> 로그인된 상태로 전환
+  register();
   emit("signed-up", { userName: name.value || "U" });
 }
 
 async function onGoogleSignup() {
-  // TODO: OAuth 회원가입 플로우
   emit("signed-up", { userName: "GoogleUser" });
 }
 </script>

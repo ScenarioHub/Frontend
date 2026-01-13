@@ -27,7 +27,7 @@ export default defineEventHandler(async (event) => {
   try {
     // 2. 외부 서버로 요청 (.env에 설정된 주소 사용)
     const response = await $fetch<ExternalApiResponse>(
-      `${config.apiBase}/api/posts/`,
+      `${config.apiBase}/api/scenarios/explore/`,
     );
 
     const externalItems = response.data || [];

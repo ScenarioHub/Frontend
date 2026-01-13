@@ -12,11 +12,16 @@ export const useAuth = () => {
     // await $fetch("/api/auth/login", { method: "POST", body: { email: email.value, password: password.value } });
   }
 
-  async function loginWithGoogle(){
-      // TODO: OAuth는 백엔드/리다이렉트 필요. 일단 버튼만.
+  async function loginWithGoogle() {
+    // TODO: OAuth는 백엔드/리다이렉트 필요. 일단 버튼만.
   // await navigateTo("/api/auth/google"); // 예시
   }
 
+  async function register() {
+    // TODO: 뭐시기
+  // await $fetch("/api/auth/register", { method: "POST", body: { email: email.value, password: password.value, name: name.value, } });
 
-  return { logout, login, googleLogin: loginWithGoogle };
+  }
+
+  return { logout, login, googleLogin: loginWithGoogle, register };
 };
