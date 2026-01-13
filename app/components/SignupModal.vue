@@ -77,7 +77,7 @@ const { register } = useAuth();
 const emit = defineEmits<{
   (e: "close"): void;
   (e: "switch-to-login"): void;
-  (e: "signed-up", payload: { userName?: string }): void;
+  (e: "signed-up"): void;
 }>();
 
 const name = ref("");
@@ -92,12 +92,17 @@ const canSubmit = computed(() => {
 });
 
 async function onSignup() {
-  register();
-  emit("signed-up", { userName: name.value || "U" });
+  try {
+    await register({ email: email.value, password: password.value, name: name.value });
+    emit("close");
+  } catch (error) {
+    console.error("onSignup Error", error);
+    throw error;
+  }
 }
 
 async function onGoogleSignup() {
-  emit("signed-up", { userName: "GoogleUser" });
+  emit("signed-up");
 }
 </script>
 

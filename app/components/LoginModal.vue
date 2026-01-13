@@ -23,6 +23,9 @@
       placeholder="비밀번호를 입력하세요"
     >
 
+    <!-- 아이디 또는 비밀번과 틀렸습니다. css ㄱㄱ -->
+    <p v-if="errorMessage" class="error">{{ errorMessage }}</p>
+
     <button class="primary" type="button" @click="onLogin">로그인</button>
 
     <div class="divider">
@@ -52,26 +55,29 @@ import { useAuth } from "~/composables/useAuth";
 const emit = defineEmits<{
   (e: "close"): void;
   (e: "switch-to-signup"): void;
-  (e: "logged-in", payload: { userName?: string }): void;
+  (e: "logged-in"): void;
 }>();
 
 const email = ref("");
 const password = ref("");
+const errorMessage = ref("");
 const { login, googleLogin } = useAuth();
-
 async function onLogin() {
-  login();
-  // 임시: 로그인 성공 처리
-  emit("logged-in", {
-    userName: email.value ? email.value.split("@")[0] : "U",
-  });
+  try {
+    errorMessage.value = "";
+    await login({ email: email.value, password: password.value });
+    emit("close"); // 모달 닫기
+    emit("logged-in");
+  } catch {
+    errorMessage.value = "아이디 또는 비밀번호가 틀렸습니다.";
+  }
 }
 
 async function onGoogleLogin() {
   googleLogin();
 
   // 임시: 구글 로그인 성공 처리
-  emit("logged-in", { userName: "GoogleUser" });
+  emit("logged-in");
 }
 </script>
 

@@ -3,13 +3,13 @@
     <LoginModal
       v-if="mode === 'login'"
       @close="close"
-      @logged-in="applyLogin"
+      @logged-in="handleLoginSuccess"
       @switch-to-signup="openSignup"
     />
     <SignupModal
       v-else
       @close="close"
-      @signed-up="applySignedUp"
+      @signed-up="handleSignUpSuccess"
       @switch-to-login="openLogin"
     />
   </div>
@@ -20,7 +20,7 @@ import LoginModal from "~/components/LoginModal.vue";
 import SignupModal from "~/components/SignupModal.vue";
 
 const { isOpen, mode, close, openLogin, openSignup } = useAuthModal();
-const { applyLogin, applySignedUp } = useAuthActions();
+const { handleLoginSuccess, handleSignUpSuccess } = useAuthActions();
 </script>
 
 <style scoped>

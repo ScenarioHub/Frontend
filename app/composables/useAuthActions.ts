@@ -2,15 +2,11 @@ export const useAuthActions = () => {
   const { searchQuery: q, isLoggedIn, userName } = useAuthState();
   const { close } = useAuthModal();
 
-  function applyLogin(payload: { userName?: string }) {
-    isLoggedIn.value = true;
-    userName.value = payload.userName ?? "U";
+  function handleLoginSuccess() {
     close();
   }
 
-  function applySignedUp(payload: { userName?: string }) {
-    isLoggedIn.value = true;
-    userName.value = payload.userName ?? "U";
+  function handleSignUpSuccess() {
     close();
   }
 
@@ -20,5 +16,5 @@ export const useAuthActions = () => {
     q.value = null;
   }
 
-  return { applyLogin, applySignedUp, logout };
+  return { handleLoginSuccess, handleSignUpSuccess, logout };
 };
