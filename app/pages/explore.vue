@@ -433,9 +433,23 @@ function toggleBookmark(item: ScenarioItem) {
 }
 
 function onDownload(item: ScenarioItem) {
+  if (!item.id) return;
+
   console.log("download scenario", item.id);
-  // 실제 서버 연동 시:
-  // await $fetch(`/nuxt-api/scenarios/${item.id}/download`, { method: "POST" })
+  const downloadUrl = `/nuxt-api/scenarios/${item.id}/download`;
+
+  // 1. 숨겨진 iframe 생성
+  const iframe = document.createElement("iframe");
+  iframe.style.display = "none";
+  iframe.src = downloadUrl; // 다운로드 요청 시작
+
+  // 2. DOM에 추가
+  document.body.appendChild(iframe);
+
+  // 3. 청소 (30초 후 제거)
+  setTimeout(() => {
+    document.body.removeChild(iframe);
+  }, 30000);
 }
 
 function formatNumber(n: number) {
@@ -667,6 +681,7 @@ function scrollTagsRight(e: MouseEvent) {
   position: relative;
   width: 100%;
   /* 태그 높이만큼만 차지하도록 필요시 높이 조정 가능 */
+  min-height: 27px;
 }
 /* Tags */
 .card-tags {

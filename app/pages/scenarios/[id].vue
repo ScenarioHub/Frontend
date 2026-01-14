@@ -49,7 +49,7 @@
         <!-- 우상단 버튼들 -->
         <div class="topbar-actions">
           <button
-            class="bg-white border-2 border-gray-200 hover:border-[#155dfc] text-[#0a0a0a] rounded-lg h-10 px-4 flex items-center gap-2 text-[14px]"
+            class="cursor-pointer bg-white border-2 border-gray-200 hover:border-[#155dfc] text-[#0a0a0a] rounded-lg h-10 px-4 flex items-center gap-2 text-[14px]"
             type="button"
             @click="onShare"
           >
@@ -76,7 +76,7 @@
           </button>
 
           <button
-            class="justify-center whitespace-nowrap font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none py-2 has-[>svg]:px-3 bg-[#155dfc] hover:bg-[#1447e6] text-white rounded-lg h-10 px-4 flex items-center gap-2 text-[14px]"
+            class="cursor-pointer justify-center whitespace-nowrap font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none py-2 has-[>svg]:px-3 bg-[#155dfc] hover:bg-[#1447e6] text-white rounded-lg h-10 px-4 flex items-center gap-2 text-[14px]"
             type="button"
             @click="onDownload"
           >
@@ -115,7 +115,7 @@
               stroke-width="2"
               stroke-linecap="round"
               stroke-linejoin="round"
-              class="lucide lucide-heart text-[#0a0a0a]"
+              class="cursor-pointer lucide lucide-heart text-[#0a0a0a]"
               aria-hidden="true"
             >
               <path
@@ -430,11 +430,6 @@ async function onShare() {
   }
 }
 
-function onDownload() {
-  // TODO: 서버에서 파일 다운로드 URL 받아서 이동/스트리밍
-  console.log("download");
-}
-
 function onPlayVideo() {
   // TODO: 영상 URL 연동
   console.log("play video");
@@ -454,6 +449,23 @@ function formatDate(iso: string | undefined) {
 function formatNumber(n: number) {
   return new Intl.NumberFormat("en-US").format(n);
 }
+
+const onDownload = () => {
+  if (!id.value) return;
+
+  const downloadUrl = `/nuxt-api/scenarios/${id.value}/download`;
+
+  // 화면에 안 보이게, iframe 생성
+  const iframe = document.createElement("iframe");
+  iframe.style.display = "none";
+  iframe.src = downloadUrl; // 여기에 URL을 넣으면 즉시 요청이 시작됨
+  document.body.appendChild(iframe);
+
+  // iframe 30초 뒤 삭제
+  setTimeout(() => {
+    document.body.removeChild(iframe);
+  }, 30000);
+};
 </script>
 
 <style scoped>
