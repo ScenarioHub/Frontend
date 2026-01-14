@@ -46,7 +46,7 @@
     </div>
 
     <div class="right">
-      <div class="search">
+      <div v-if="false" class="search">
         <span class="search-icon" aria-hidden="true">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
             <path

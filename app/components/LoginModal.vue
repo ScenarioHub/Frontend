@@ -6,35 +6,35 @@
 
     <h2 class="title">로그인</h2>
     <p class="subtitle">Scenario Hub에 오신 것을 환영합니다</p>
+    <form @submit.prevent="onLogin">
+      <label class="label">이메일</label>
+      <input
+        v-model="email"
+        class="input"
+        type="email"
+        placeholder="example@email.com"
+      >
 
-    <label class="label">이메일</label>
-    <input
-      v-model="email"
-      class="input"
-      type="email"
-      placeholder="example@email.com"
-    >
+      <label class="label">비밀번호</label>
+      <input
+        v-model="password"
+        class="input"
+        type="password"
+        placeholder="비밀번호를 입력하세요"
+      >
 
-    <label class="label">비밀번호</label>
-    <input
-      v-model="password"
-      class="input"
-      type="password"
-      placeholder="비밀번호를 입력하세요"
-    >
+      <!-- 아이디 또는 비밀번과 틀렸습니다. -->
+      <p v-if="errorMessage" class="error">{{ errorMessage }}</p>
 
-    <!-- 아이디 또는 비밀번과 틀렸습니다. css ㄱㄱ -->
-    <p v-if="errorMessage" class="error">{{ errorMessage }}</p>
-
-    <button class="primary" type="button" @click="onLogin">로그인</button>
-
-    <div class="divider">
+      <button class="primary" type="submit" @click="onLogin">로그인</button>
+    </form>
+    <div v-if="false" class="divider">
       <span class="line" />
       <span class="or">또는</span>
       <span class="line" />
     </div>
 
-    <button class="social" type="button" @click="onGoogleLogin">
+    <button v-if="false" class="social" type="button" @click="onGoogleLogin">
       <span class="g">G</span>
       <span>Google로 계속</span>
     </button>
@@ -209,5 +209,26 @@ async function onGoogleLogin() {
   font-weight: 900;
   cursor: pointer;
   padding: 0 2px;
+}
+
+/* 전체 에러 메시지 스타일 */
+.error {
+  margin: 12px 0 0;          /* 위쪽 여백 */
+  padding: 10px 12px;        /* 내부 여백 */
+  border-radius: 8px;        /* 둥근 모서리 */
+  background-color: #fef2f2; /* 연한 빨간 배경 */
+  color: #ef4444;            /* 진한 빨간 글씨 */
+  font-size: 13px;           /* 적당한 크기 */
+  font-weight: 600;          /* 약간 굵게 */
+  border: 1px solid #fee2e2; /* 테두리도 살짝 */
+  text-align: center;        /* 가운데 정렬 */
+
+  /* 애니메이션 (선택사항: 부드럽게 나타나기) */
+  animation: fadeIn 0.2s ease-in-out;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(-2px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 </style>

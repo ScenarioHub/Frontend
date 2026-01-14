@@ -100,7 +100,7 @@
             다운로드
           </button>
           <button
-            class="border-2 bg-white border-gray-200 hover:border-[#fb2c36] rounded-lg size-10 flex items-center justify-center"
+            class="cursor-pointer border-2 bg-white border-gray-200 hover:border-[#fb2c36] rounded-lg size-10 flex items-center justify-center"
             type="button"
             aria-label="좋아요"
             @click="toggleLike"
@@ -115,7 +115,7 @@
               stroke-width="2"
               stroke-linecap="round"
               stroke-linejoin="round"
-              class="cursor-pointer lucide lucide-heart text-[#0a0a0a]"
+              class="lucide lucide-heart text-[#0a0a0a]"
               aria-hidden="true"
             >
               <path

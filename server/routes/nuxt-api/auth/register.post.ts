@@ -56,15 +56,20 @@ export default defineEventHandler(async (event) => {
     // 외부 API가 200이면 그대로 리턴
     return externalResponse;
   } catch (error: unknown) {
-    console.error("회원가입 API 연동 실패:", error);
+    const err = error as ApiError; // 타입 단언을 any로 임시 변경
 
-    // 에러 타입 단언 및 Nuxt 에러 객체 생성
-    const err = error as ApiError; // $fetch 에러 객체 접근을 위해 any 사용
+    // [추가] 외부 서버가 준 에러 상세 메시지 출력
+    console.log("================");
+    console.error("❌ 회원가입 API 연동 실패:", {
+      statusCode: err.statusCode,
+      statusMessage: err.statusMessage,
+      data: err.data, // 외부 서버의 상세 에러 메시지 (예: "이미 존재하는 이메일")
+    });
 
     throw createError({
-      statusCode: 500,
-      statusMessage: err.statusMessage || "외부 서버 업로드 중 오류 발생",
-      data: err.data || err.message, // 상세 에러 메시지 포함
+      statusCode: err.statusCode || 500,
+      statusMessage: err.statusMessage || "회원가입 중 오류 발생",
+      data: err.data,
     });
   }
 });

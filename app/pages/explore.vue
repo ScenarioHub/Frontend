@@ -778,6 +778,7 @@ function scrollTagsRight(e: MouseEvent) {
 
 /* Buttons */
 .btn-view {
+  cursor: pointer;
   inline-size: auto;
   display: inline-flex;
   align-items: center;
@@ -803,6 +804,7 @@ function scrollTagsRight(e: MouseEvent) {
 /* Heart button (기본 / active) */
 .btn-like,
 .btn-like--active {
+  cursor: pointer;
   inline-size: auto;
   display: inline-flex;
   align-items: center;
@@ -836,6 +838,7 @@ function scrollTagsRight(e: MouseEvent) {
 
 /* Download button */
 .btn-download {
+  cursor: pointer;
   inline-size: auto;
   display: inline-flex;
   align-items: center;

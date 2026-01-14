@@ -20,7 +20,7 @@ export const useAuth = () => {
 
   async function register(payload: { email: string; password: string; name: string }) {
     try {
-      const response = await $fetch<ApiResponse>("/api/auth/register/", {
+      const response = await $fetch<ApiResponse>("/nuxt-api/auth/register/", {
         method: "POST",
         body: payload,
       });

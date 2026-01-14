@@ -7,54 +7,60 @@
     <h2 class="title">회원가입</h2>
     <p class="subtitle">Scenario Hub에 참여하세요</p>
 
-    <label class="label">이름</label>
-    <input
-      v-model="name"
-      class="input"
-      type="text"
-      placeholder="이름을 입력하세요"
-    >
+    <form @submit.prevent="onSignup">
+      <label class="label">이름</label>
+      <input
+        v-model="name"
+        class="input"
+        type="text"
+        placeholder="이름을 입력하세요"
+      >
 
-    <label class="label">이메일</label>
-    <input
-      v-model="email"
-      class="input"
-      type="email"
-      placeholder="example@email.com"
-    >
+      <label class="label">이메일</label>
+      <input
+        v-model="email"
+        class="input"
+        :class="{ 'input-error': emailError }"
+        type="email"
+        placeholder="example@email.com"
+        autofocus
+        @input="emailError = ''"
+      >
+      <!-- [추가] 이메일 중복 에러 메시지 표시 -->
+      <p v-if="emailError" class="field-error">{{ emailError }}</p>
 
-    <label class="label">비밀번호</label>
-    <input
-      v-model="password"
-      class="input"
-      type="password"
-      placeholder="비밀번호를 입력하세요 (8자 이상)"
-    >
+      <label class="label">비밀번호</label>
+      <input
+        v-model="password"
+        class="input"
+        type="password"
+        placeholder="비밀번호를 입력하세요 (8자 이상)"
+      >
 
-    <label class="label">비밀번호 확인</label>
-    <input
-      v-model="password2"
-      class="input"
-      type="password"
-      placeholder="비밀번호를 다시 입력하세요"
-    >
-
-    <button
-      class="primary"
-      type="button"
-      :disabled="!canSubmit"
-      @click="onSignup"
-    >
-      회원가입
-    </button>
-
-    <div class="divider">
+      <label class="label">비밀번호 확인</label>
+      <input
+        v-model="password2"
+        class="input"
+        type="password"
+        placeholder="비밀번호를 다시 입력하세요"
+      >
+      <p v-if="errorMessage" class="error">{{ errorMessage }}</p>
+      <button
+        class="primary"
+        type="submit"
+        :disabled="!canSubmit"
+        @click="onSignup"
+      >
+        회원가입
+      </button>
+    </form>
+    <div v-if="false" class="divider">
       <span class="line" />
       <span class="or">또는</span>
       <span class="line" />
     </div>
 
-    <button class="social" type="button" @click="onGoogleSignup">
+    <button v-if="false" class="social" type="button" @click="onGoogleSignup">
       <span class="g">G</span>
       <span>Google로 계속</span>
     </button>
@@ -84,20 +90,53 @@ const name = ref("");
 const email = ref("");
 const password = ref("");
 const password2 = ref("");
+const errorMessage = ref("");
+const emailError = ref(""); // [추가] 이메일 전용 에러 메시지
 
 const canSubmit = computed(() => {
   if (!name.value || !email.value) return false;
   if (password.value.length < 8) return false;
-  return password.value === password2.value;
+  return true;
 });
+interface ApiError {
+  statusCode?: number;
+  statusMessage?: string;
+  message?: string;
+  data?: {
+    data?: {
+      status?: number;
+      message?: string;
+    };
+  };
+}
 
 async function onSignup() {
+  errorMessage.value = "";
+  emailError.value = "";
+
+  if (password.value !== password2.value) {
+    errorMessage.value = "비밀번호가 일치하지 않습니다.";
+    return;
+  }
+  if (password.value.length < 8) {
+    errorMessage.value = "비밀번호는 8자 이상이어야 합니다.";
+    return;
+  }
+
   try {
     await register({ email: email.value, password: password.value, name: name.value });
     emit("close");
   } catch (error) {
-    console.error("onSignup Error", error);
-    throw error;
+    const err = error as ApiError;
+
+    const errNum = err.statusCode as number;
+    const errDataMessage = err.data?.data?.message;
+
+    if (errNum == 400 && (errDataMessage && errDataMessage.includes("이미 존재"))) {
+      emailError.value = errDataMessage;
+    } else {
+      errorMessage.value = errDataMessage || "회원가입 중 오류가 발생했습니다.";
+    }
   }
 }
 
@@ -240,5 +279,38 @@ async function onGoogleSignup() {
   font-weight: 900;
   cursor: pointer;
   padding: 0 2px;
+}
+
+.input-error {
+  border-color: #ef4444 !important;
+  background-color: #fef2f2 !important;
+}
+
+/* [추가] 필드별 에러 메시지 (작고 빨간 글씨) */
+.field-error {
+  margin: 4px 0 0;
+  font-size: 12px;
+  color: #ef4444; /* 빨간색 */
+  font-weight: 600;
+}
+/* 전체 에러 메시지 스타일 */
+.error {
+  margin: 12px 0 0;          /* 위쪽 여백 */
+  padding: 10px 12px;        /* 내부 여백 */
+  border-radius: 8px;        /* 둥근 모서리 */
+  background-color: #fef2f2; /* 연한 빨간 배경 */
+  color: #ef4444;            /* 진한 빨간 글씨 */
+  font-size: 13px;           /* 적당한 크기 */
+  font-weight: 600;          /* 약간 굵게 */
+  border: 1px solid #fee2e2; /* 테두리도 살짝 */
+  text-align: center;        /* 가운데 정렬 */
+
+  /* 애니메이션 (선택사항: 부드럽게 나타나기) */
+  animation: fadeIn 0.2s ease-in-out;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(-2px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 </style>
