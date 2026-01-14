@@ -452,19 +452,8 @@ function formatNumber(n: number) {
 
 const onDownload = () => {
   if (!id.value) return;
-
   const downloadUrl = `/nuxt-api/scenarios/${id.value}/download`;
-
-  // 화면에 안 보이게, iframe 생성
-  const iframe = document.createElement("iframe");
-  iframe.style.display = "none";
-  iframe.src = downloadUrl; // 여기에 URL을 넣으면 즉시 요청이 시작됨
-  document.body.appendChild(iframe);
-
-  // iframe 30초 뒤 삭제
-  setTimeout(() => {
-    document.body.removeChild(iframe);
-  }, 30000);
+  window.location.href = downloadUrl;
 };
 </script>
 
