@@ -50,7 +50,7 @@ export const useAuth = () => {
 
   async function login(payload: { email: string; password: string }) {
     try {
-      const res = await $fetch<ApiResponse>("/api/auth/login/", {
+      const res = await $fetch<ApiResponse>("/nuxt-api/auth/login/", {
         method: "POST",
         body: payload,
       });

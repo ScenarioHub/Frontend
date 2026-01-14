@@ -141,7 +141,7 @@ definePageMeta({
 const { isLoggedIn } = useAuthState();
 
 const { data, pending, error } = await useFetch<MyScenarioItem[]>(
-  "/api/scenarios/my-scenarios",
+  "/nuxt-api/scenarios/my-scenarios",
   {
     immediate: isLoggedIn.value === true,
   },
@@ -189,7 +189,7 @@ async function confirmDelete() {
   );
 
   // 실제 서버 연동 시엔 아래처럼 바꾸면 됨:
-  // await $fetch(`/api/my-scenarios/${deletingItem.value.id}`, { method: "DELETE" })
+  // await $fetch(`/nuxt-api/my-scenarios/${deletingItem.value.id}`, { method: "DELETE" })
   // await refresh()
 
   deleting.value = false;

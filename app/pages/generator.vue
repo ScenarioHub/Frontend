@@ -352,7 +352,7 @@ async function onGenerate() {
   videoUrl.value = null;
 
   // // ✅ 서버 만들면 여기 추가 (jobId 발급)
-  // const res = await $fetch<{ jobId: string }>("/api/scenario/generate", {
+  // const res = await $fetch<{ jobId: string }>("/nuxt-api/scenario/generate", {
   //   method: "POST",
   //   body: { prompt: prompt.value },
   // })
@@ -387,7 +387,7 @@ function startMockProgress() {
 // ===== SSE(나중에 쓸 코드) =====
 const sseUrl = computed(() =>
   jobId.value
-    ? `/api/scenario/progress?jobId=${encodeURIComponent(jobId.value)}`
+    ? `/nuxt-api/scenario/progress?jobId=${encodeURIComponent(jobId.value)}`
     : undefined,
 );
 

@@ -13,7 +13,7 @@ export default defineNuxtConfig({
   ],
   runtimeConfig: {
     // 서버에서만 접근(비공개)
-    apiBase: process.env.API_BASE || "http://scenariohub.iptime.org",
+    apiBase: process.env.API_BASE,
   },
   compatibilityDate: "2025-07-15",
   vite: {

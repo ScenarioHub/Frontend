@@ -132,7 +132,7 @@ async function onSubmit() {
       };
     }
 
-    const res = await $fetch<UploadResponse>("/api/scenarios/upload", {
+    const res = await $fetch<UploadResponse>("/nuxt-api/scenarios/upload", {
       method: "POST",
       body: formData,
     });

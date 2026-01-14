@@ -190,7 +190,7 @@ type Stats = {
   totalDownloads: number;
 };
 
-const { data } = await useFetch<Stats>("/api/stats");
+const { data } = await useFetch<Stats>("/nuxt-api/stats");
 
 const sharedScenariosText = computed(() =>
   data.value?.sharedScenarios != null

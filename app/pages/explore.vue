@@ -336,11 +336,7 @@
 import type { ScenarioItem } from "~/types/scenario";
 
 // 서버에서 더미 데이터(추후 실제 데이터) 가져오기
-const { data } = await useFetch<{ items: ScenarioItem[] }>("/api/scenarios/explore",
-// , {
-  // lazy: true,
-  // server: false,}
-);
+const { data } = await useFetch<{ items: ScenarioItem[] }>("/nuxt-api/scenarios/explore");
 
 // null 방어
 const allItems = computed(() => data.value?.items ?? []);
@@ -439,7 +435,7 @@ function toggleBookmark(item: ScenarioItem) {
 function onDownload(item: ScenarioItem) {
   console.log("download scenario", item.id);
   // 실제 서버 연동 시:
-  // await $fetch(`/api/scenarios/${item.id}/download`, { method: "POST" })
+  // await $fetch(`/nuxt-api/scenarios/${item.id}/download`, { method: "POST" })
 }
 
 function formatNumber(n: number) {

@@ -397,13 +397,13 @@ const userInitial = computed(() =>
 const route = useRoute();
 const id = computed(() => String(route.params.id));
 
-// 서버 연동 형태: /api/scenarios/:id 로부터 상세 데이터 수신
+// 서버 연동 형태: /nuxt-api/scenarios/:id 로부터 상세 데이터 수신
 const {
   data: detail,
   pending,
   error,
 
-} = await useFetch<ScenarioDetail>(() => `/api/scenarios/${id.value}`, {
+} = await useFetch<ScenarioDetail>(() => `/nuxt-api/scenarios/${id.value}`, {
   key: `scenario-${id.value}`,
   watch: [id],
 });
