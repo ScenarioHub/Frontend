@@ -15,6 +15,9 @@ export default defineNuxtConfig({
     // 서버에서만 접근(비공개)
     apiBase: process.env.API_BASE,
   },
+  experimental: {
+    appManifest: false,
+  },
   compatibilityDate: "2025-07-15",
   vite: {
     plugins: [

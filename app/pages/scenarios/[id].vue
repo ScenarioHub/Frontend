@@ -177,33 +177,14 @@
           <section class="left">
             <!-- 시뮬레이션 영상 자리(더미) -->
             <div class="video-card">
-              <button
-                class="video-play"
-                type="button"
-                aria-label="시뮬레이션 재생"
-                @click="onPlayVideo"
+              <video
+                controls
+                preload="metadata"
+                class="simulation-player"
+                :src="videoSrc"
               >
-                <div class="play-circle">
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    width="26"
-                    height="26"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    stroke-width="2"
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    aria-hidden="true"
-                  >
-                    <polygon points="6 3 20 12 6 21 6 3" />
-                  </svg>
-                </div>
-                <div class="video-text">
-                  <div class="video-title">시뮬레이션 영상</div>
-                  <div class="video-sub">클릭하여 시뮬레이션 재생</div>
-                </div>
-              </button>
+                브라우저가 비디오 태그를 지원하지 않습니다.
+              </video>
             </div>
 
             <!-- 설명 -->
@@ -430,10 +411,10 @@ async function onShare() {
   }
 }
 
-function onPlayVideo() {
-  // TODO: 영상 URL 연동
-  console.log("play video");
-}
+const videoSrc = computed(() => {
+  if (!id.value) return "";
+  return `/nuxt-api/scenarios/${id.value}/video`;
+});
 
 function formatDate(iso: string | undefined) {
   if (!iso) return "-";
@@ -566,40 +547,21 @@ const onDownload = () => {
   background: #fff;
   border: 1px solid rgba(15, 23, 42, 0.1);
   border-radius: 16px;
-  padding: 18px;
   height: 320px;
-  display: grid;
-  place-items: center;
+
+  /* 여기부터 수정됨 */
+  padding: 0;       /* 내부 여백 제거 */
+  display: flex;    /* 비디오 정렬 */
+  overflow: hidden; /* 둥근 모서리 밖으로 영상 튀어나감 방지 */
+  background: #000; /* 영상 로딩 전 배경 검정색 */
 }
 
-.video-play {
-  border: 0;
-  background: transparent;
-  cursor: pointer;
-  display: grid;
-  place-items: center;
-  gap: 10px;
-  text-align: center;
-  color: #64748b;
-}
-
-.play-circle {
-  width: 64px;
-  height: 64px;
-  border-radius: 999px;
-  background: #155dfc;
-  color: #fff;
-  display: grid;
-  place-items: center;
-  box-shadow: 0 12px 28px rgba(21, 93, 252, 0.25);
-}
-
-.video-title {
-  font-weight: 800;
-  color: #0f172a;
-}
-.video-sub {
-  font-size: 12px;
+/* 새로 추가: 비디오 태그 스타일 */
+.simulation-player {
+  width: 100%;
+  height: 100%;
+  object-fit: contain; /* 영상 비율 유지하며 카드 안에 맞춤 */
+  outline: none;
 }
 
 .panel {
