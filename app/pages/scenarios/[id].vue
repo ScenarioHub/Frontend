@@ -384,8 +384,8 @@ const {
   pending,
   error,
 
-} = await useFetch<ScenarioDetail>(() => `/nuxt-api/scenarios/${id.value}`, {
-  key: `scenario-${id.value}`,
+} = await useFetch<ScenarioDetail>(() => `/nuxt-api/scenarios/${id.value}/detail`, {
+  key: `scenario-${id.value}-detail`,
   watch: [id],
 });
 

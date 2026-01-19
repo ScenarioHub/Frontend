@@ -20,7 +20,7 @@ export default defineEventHandler(async (event): Promise<ScenarioDetail> => {
   const config = useRuntimeConfig(event);
   try {
     const response = await $fetch<ApiResponse>(
-      `${config.apiBase}/api/scenario-detail/${id}/`,
+      `${config.apiBase}/api/scenarios/${id}/details/`,
     );
 
     const data = response.message;
