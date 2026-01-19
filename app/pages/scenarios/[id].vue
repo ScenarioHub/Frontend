@@ -394,8 +394,19 @@ async function onLogoutClick() {
 }
 
 function goBack() {
-  // "방금 있었던 곳" = 브라우저 히스토리 back
-  if (import.meta.client) history.back();
+  if (!import.meta.client) return;
+
+  // Vue Router가 관리하는 직전 경로 정보 가져오기
+  const previousPath = window.history.state?.back;
+
+  // 1. 이전 페이지 정보가 있고 (null이 아님)
+  // 2. 그 경로가 문자열이며
+  // 3. '/my-scenarios'가 포함되어 있다면 -> 뒤로가기
+  if (previousPath && typeof previousPath === "string" && previousPath.includes("/my-scenarios")) {
+    history.back();
+  } else {
+    navigateTo("/explore");
+  }
 }
 
 function toggleLike() {

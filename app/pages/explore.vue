@@ -286,7 +286,7 @@
       </section>
 
       <!-- 페이지네이션 -->
-      <nav v-if="totalPages > 1" class="pagination" aria-label="페이지 네비게이션">
+      <nav class="pagination" aria-label="페이지 네비게이션">
         <button
           type="button"
           class="pagination-btn"
