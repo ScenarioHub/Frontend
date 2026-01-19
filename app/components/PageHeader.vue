@@ -31,7 +31,7 @@
       <nav class="menu">
         <NuxtLink to="/explore" class="menu-item">탐색</NuxtLink>
         <!-- is-active 클래스에 넣으면 굵게 -->
-        <NuxtLink to="#" class="menu-item">문서</NuxtLink>
+        <NuxtLink to="/document" class="menu-item">문서</NuxtLink>
         <!-- <NuxtLink
           v-if="isLoggedIn === true"
           to="#"
