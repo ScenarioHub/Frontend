@@ -98,6 +98,7 @@
         </button>
 
         <button
+          v-if="false"
           class="icon-btn"
           aria-label="알림"
           @click="$emit('notifications')"

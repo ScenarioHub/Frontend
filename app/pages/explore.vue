@@ -335,38 +335,50 @@
 <script setup lang="ts">
 import type { ScenarioItem } from "~/types/scenario";
 
-// 1. 로그인 상태 가져오기 (헤더나 전역 상태 관리 모듈에서)
-// 실제 사용 중인 useAuth나 useAuthState 경로에 맞춰주세요.
-const { isLoggedIn } = useAuthState(); //  또는 useAuthState()
+// 로그인 상태 가져오기
+const { isLoggedIn } = useAuthState();
+const { openLogin } = useAuthModal(); // 모달 제어 함수
 
-// 2. 데이터 가져오기 (refresh 함수 구조분해 할당 필수)
-const { data, refresh } = await useFetch<{ items: ScenarioItem[] }>("/nuxt-api/scenarios/explore");
+// 서버 데이터 가져오기
+const { data: serverData, refresh } = await useFetch<{ items: ScenarioItem[] }>("/nuxt-api/scenarios/explore");
 
-// 3. 로그인/로그아웃 감지하여 데이터 새로고침
-// isLoggedIn 값이 바뀌면(로그인↔로그아웃) 자동으로 refresh() 실행
+// UI 전용 반응형 상태 (ref) 생성
+// useFetch의 data를 직접 쓰지 않고, uiItems로 옮겨 담아서 반응성을 100% 보장함
+const uiItems = ref<ScenarioItem[]>([]);
+
+// 서버 데이터가 로드되거나 변경되면 uiItems에 동기화
+watch(
+  serverData,
+  (newData) => {
+    if (newData?.items) {
+      // 새로운 배열로 교체 (반응성 초기화)
+      uiItems.value = [...newData.items];
+    }
+  },
+  { immediate: true, deep: true },
+);
+
 watch(isLoggedIn, async () => {
   await refresh();
 });
 
-// --- 아래는 기존 로직과 동일 ---
+// --- 정렬/필터/페이지네이션 로직 ---
 
-// null 방어
-const allItems = computed(() => data.value?.items ?? []);
-
-// 정렬/필터/페이지네이션 로직은 그대로 사용
 const sort = ref<"popular" | "latest">("popular");
 const onlyBookmarked = ref(false);
 const pageSize = 12;
 const page = ref(1);
 
 const filteredAndSorted = computed(() => {
-  let list = [...allItems.value];
+  // [변경] allItems 대신 uiItems 사용
+  let list = [...uiItems.value];
 
-  // 즐겨찾기 필터 (로그인 상태에서만 유의미하겠지만 로직은 유지)
+  // 즐겨찾기 필터
   if (onlyBookmarked.value) {
     list = list.filter((item) => item.isBookmarked);
   }
 
+  // 정렬 로직
   if (sort.value === "latest") {
     list.sort(
       (a, b) =>
@@ -396,32 +408,25 @@ const visiblePages = computed(() => {
   const delta = 2;
 
   const pages: (number | string)[] = [];
-
   pages.push(1);
 
   const start = Math.max(2, current - delta);
   const end = Math.min(total - 1, current + delta);
 
-  if (start > 2) {
-    pages.push("...");
-  }
+  if (start > 2) pages.push("...");
 
   for (let p = start; p <= end; p++) {
     pages.push(p);
   }
 
-  if (end < total - 1) {
-    pages.push("...");
-  }
-
-  if (total > 1) {
-    pages.push(total);
-  }
+  if (end < total - 1) pages.push("...");
+  if (total > 1) pages.push(total);
 
   return pages;
 });
 
-// 페이지 이동
+// --- 액션 함수들 ---
+
 function goPage(p: number) {
   if (p >= 1 && p <= totalPages.value) {
     page.value = p;
@@ -435,14 +440,11 @@ function goNext() {
   goPage(page.value + 1);
 }
 
-// 액션들
 function onView(item: ScenarioItem) {
   navigateTo(`/scenarios/${item.id}`);
 }
 
-// 북마크 토글: 로그인 안 되어 있으면 로그인 모달 띄우기 등 추가 처리 필요
-const { openLogin } = useAuthModal(); // 로그인 모달 제어 (필요시 추가)
-
+// [핵심 수정] 북마크 토글 함수
 function toggleBookmark(item: ScenarioItem) {
   // 1. 비로그인 시 로그인 유도
   if (!isLoggedIn.value) {
@@ -450,14 +452,16 @@ function toggleBookmark(item: ScenarioItem) {
     return;
   }
 
-  if (!data.value || !data.value.items) return;
+  // 2. uiItems(반응형 원본)에서 해당 아이템 찾기
+  // 이제 serverData가 아니라 uiItems를 조작하므로 화면 즉시 갱신 보장
+  const targetItem = uiItems.value.find((i) => i.id === item.id);
 
-  const targetItem = data.value.items.find((i) => i.id === item.id);
-
-  // find로 찾은 객체(targetItem)가 존재할 때만 수정
   if (targetItem) {
     targetItem.isBookmarked = !targetItem.isBookmarked;
   }
+
+  // TODO: 실제 서버 API 호출
+  // $fetch(...)
 }
 
 function onDownload(item: ScenarioItem) {
@@ -469,13 +473,14 @@ function onDownload(item: ScenarioItem) {
   const iframe = document.createElement("iframe");
   iframe.style.display = "none";
   iframe.src = downloadUrl;
-
   document.body.appendChild(iframe);
 
   setTimeout(() => {
     document.body.removeChild(iframe);
   }, 30000);
 }
+
+// --- 유틸리티 및 태그 스크롤 ---
 
 function formatNumber(n: number) {
   return new Intl.NumberFormat("en-US").format(n);
@@ -499,19 +504,17 @@ onMounted(() => {
 
 function recomputeTagOverflow() {
   const map: Record<string, boolean> = {};
-
   pagedItems.value.forEach((item, index) => {
     const el = tagContainers.value[index];
     if (!el) return;
     const isOverflow = el.scrollWidth > el.clientWidth;
     map[item.id] = isOverflow;
   });
-
   tagOverflowMap.value = map;
 }
 
 watch(
-  () => [data.value, pagedItems.value],
+  () => [uiItems.value, pagedItems.value], // 감지 대상도 uiItems로 변경
   () => nextTick(recomputeTagOverflow),
   { deep: true },
 );
@@ -521,14 +524,10 @@ const TAG_SCROLL_AMOUNT = 240;
 function scrollTagsFromEvent(e: MouseEvent, direction: "left" | "right") {
   const button = e.currentTarget as HTMLElement | null;
   if (!button) return;
-
   const parent = button.parentElement;
   if (!parent) return;
-
-  const tags
-    = (parent.querySelector(".card-tags") as HTMLElement | null) ?? null;
+  const tags = (parent.querySelector(".card-tags") as HTMLElement | null) ?? null;
   if (!tags) return;
-
   const delta = direction === "left" ? -TAG_SCROLL_AMOUNT : TAG_SCROLL_AMOUNT;
   tags.scrollBy({ left: delta, behavior: "smooth" });
 }
@@ -536,7 +535,6 @@ function scrollTagsFromEvent(e: MouseEvent, direction: "left" | "right") {
 function scrollTagsLeft(e: MouseEvent) {
   scrollTagsFromEvent(e, "left");
 }
-
 function scrollTagsRight(e: MouseEvent) {
   scrollTagsFromEvent(e, "right");
 }
@@ -843,11 +841,10 @@ function scrollTagsRight(e: MouseEvent) {
 }
 .btn-like--active {
   border-color: #ef4444;
-  background: #fee2e2;
   color: #dc2626;
 }
 .btn-like--active:hover {
-  background: #fecaca;
+  background: #fee2e2;
 }
 
 /* Download button */
