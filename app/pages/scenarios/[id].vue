@@ -632,7 +632,7 @@ const onDownload = () => {
 .video-card {
   background: #000;
   border-radius: 16px;
-  height: 320px;
+  border: 4px #000 solid;
   overflow: hidden;
   display: flex;
 }
