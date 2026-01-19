@@ -335,8 +335,20 @@
 <script setup lang="ts">
 import type { ScenarioItem } from "~/types/scenario";
 
-// 서버에서 더미 데이터(추후 실제 데이터) 가져오기
-const { data } = await useFetch<{ items: ScenarioItem[] }>("/nuxt-api/scenarios/explore");
+// 1. 로그인 상태 가져오기 (헤더나 전역 상태 관리 모듈에서)
+// 실제 사용 중인 useAuth나 useAuthState 경로에 맞춰주세요.
+const { isLoggedIn } = useAuthState(); //  또는 useAuthState()
+
+// 2. 데이터 가져오기 (refresh 함수 구조분해 할당 필수)
+const { data, refresh } = await useFetch<{ items: ScenarioItem[] }>("/nuxt-api/scenarios/explore");
+
+// 3. 로그인/로그아웃 감지하여 데이터 새로고침
+// isLoggedIn 값이 바뀌면(로그인↔로그아웃) 자동으로 refresh() 실행
+watch(isLoggedIn, async () => {
+  await refresh();
+});
+
+// --- 아래는 기존 로직과 동일 ---
 
 // null 방어
 const allItems = computed(() => data.value?.items ?? []);
@@ -350,6 +362,7 @@ const page = ref(1);
 const filteredAndSorted = computed(() => {
   let list = [...allItems.value];
 
+  // 즐겨찾기 필터 (로그인 상태에서만 유의미하겠지만 로직은 유지)
   if (onlyBookmarked.value) {
     list = list.filter((item) => item.isBookmarked);
   }
@@ -376,14 +389,14 @@ const pagedItems = computed(() => {
   const start = (page.value - 1) * pageSize;
   return filteredAndSorted.value.slice(start, start + pageSize);
 });
+
 const visiblePages = computed(() => {
   const total = totalPages.value;
   const current = page.value;
-  const delta = 2; // 현재 페이지 기준 좌우 몇 개까지 보여줄지
+  const delta = 2;
 
   const pages: (number | string)[] = [];
 
-  // 항상 1페이지 버튼은 노출
   pages.push(1);
 
   const start = Math.max(2, current - delta);
@@ -407,6 +420,7 @@ const visiblePages = computed(() => {
 
   return pages;
 });
+
 // 페이지 이동
 function goPage(p: number) {
   if (p >= 1 && p <= totalPages.value) {
@@ -426,10 +440,24 @@ function onView(item: ScenarioItem) {
   navigateTo(`/scenarios/${item.id}`);
 }
 
-function toggleBookmark(item: ScenarioItem) {
-  // To-Do : 로그인 안한 상태면 로그인 시도하게 하기.
+// 북마크 토글: 로그인 안 되어 있으면 로그인 모달 띄우기 등 추가 처리 필요
+const { openLogin } = useAuthModal(); // 로그인 모달 제어 (필요시 추가)
 
-  item.isBookmarked = !item.isBookmarked;
+function toggleBookmark(item: ScenarioItem) {
+  // 1. 비로그인 시 로그인 유도
+  if (!isLoggedIn.value) {
+    openLogin();
+    return;
+  }
+
+  if (!data.value || !data.value.items) return;
+
+  const targetItem = data.value.items.find((i) => i.id === item.id);
+
+  // find로 찾은 객체(targetItem)가 존재할 때만 수정
+  if (targetItem) {
+    targetItem.isBookmarked = !targetItem.isBookmarked;
+  }
 }
 
 function onDownload(item: ScenarioItem) {
@@ -438,15 +466,12 @@ function onDownload(item: ScenarioItem) {
   console.log("download scenario", item.id);
   const downloadUrl = `/nuxt-api/scenarios/${item.id}/download`;
 
-  // 1. 숨겨진 iframe 생성
   const iframe = document.createElement("iframe");
   iframe.style.display = "none";
-  iframe.src = downloadUrl; // 다운로드 요청 시작
+  iframe.src = downloadUrl;
 
-  // 2. DOM에 추가
   document.body.appendChild(iframe);
 
-  // 3. 청소 (30초 후 제거)
   setTimeout(() => {
     document.body.removeChild(iframe);
   }, 30000);
@@ -468,17 +493,7 @@ const tagContainers = ref<HTMLElement[]>([]);
 
 onMounted(() => {
   nextTick(() => {
-    const map: Record<string, boolean> = {};
-
-    // pagedItems.value 순서대로 DOM이 들어온다고 가정
-    pagedItems.value.forEach((item, index) => {
-      const el = tagContainers.value[index];
-      if (!el) return;
-      const isOverflow = el.scrollWidth > el.clientWidth;
-      map[item.id] = isOverflow;
-    });
-
-    tagOverflowMap.value = map;
+    recomputeTagOverflow();
   });
 });
 
@@ -507,7 +522,6 @@ function scrollTagsFromEvent(e: MouseEvent, direction: "left" | "right") {
   const button = e.currentTarget as HTMLElement | null;
   if (!button) return;
 
-  // 화살표 바로 다음 형제/이전 형제 중 .card-tags 찾기
   const parent = button.parentElement;
   if (!parent) return;
 

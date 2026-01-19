@@ -103,7 +103,7 @@
             class="cursor-pointer border-2 bg-white border-gray-200 hover:border-[#fb2c36] rounded-lg size-10 flex items-center justify-center"
             type="button"
             aria-label="좋아요"
-            @click="toggleLike"
+            @click="toggleBookmark"
           >
             <svg
               xmlns="http://www.w3.org/2000/svg"
@@ -383,7 +383,7 @@ const {
   data: detail,
   pending,
   error,
-
+  refresh,
 } = await useFetch<ScenarioDetail>(() => `/nuxt-api/scenarios/${id.value}/detail`, {
   key: `scenario-${id.value}-detail`,
   watch: [id],
@@ -409,7 +409,15 @@ function goBack() {
   }
 }
 
-function toggleLike() {
+watch(isLoggedIn, async () => {
+  await refresh();
+});
+
+function toggleBookmark() {
+  if (!isLoggedIn.value) {
+    openLogin();
+    return;
+  }
   // TODO: 서버 연동으로 좋아요 토글 (현재는 콘솔)
   console.log("like toggle");
 }

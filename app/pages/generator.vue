@@ -40,6 +40,7 @@
             v-model="prompt"
             class="textarea"
             placeholder="예: 차량이 좌회전 중 보행자를 만나는 상황"
+            :disabled="uiState === 'done' || uiState === 'running'"
           />
 
           <button
@@ -285,6 +286,9 @@ import { computed, onBeforeUnmount, ref, watch } from "vue";
 
 import { useRouter } from "vue-router";
 
+const { openLogin } = useAuthModal();
+const { isLoggedIn } = useAuthState();
+
 type UiState = "idle" | "running" | "done" | "error";
 type ProgressEvent = {
   percent: number;
@@ -314,8 +318,13 @@ const router = useRouter();
 
 // "업로드" 버튼 클릭 핸들러 (이름 변경: onTriggerUpload -> onGoToUploadForm)
 function onGoToUploadForm() {
-  if (currentStep.value !== 3 || !jobId.value) return;
+  // if (currentStep.value !== 3 || !jobId.value) return;
   // jobId는 시나리오 생성 완료 시 서버에서 받은 PK(id)라고 가정
+
+  if (!isLoggedIn.value) {
+    openLogin();
+    return;
+  }
 
   // ID만 쿼리 스트링으로 전달 (예: /upload?scenarioId=105)
   router.push({
@@ -387,7 +396,7 @@ function startMockProgress() {
 // ===== SSE(나중에 쓸 코드) =====
 const sseUrl = computed(() =>
   jobId.value
-    ? `/nuxt-api/scenario/progress?jobId=${encodeURIComponent(jobId.value)}`
+    ? `/nuxt-api/scenarios/progress?jobId=${encodeURIComponent(jobId.value)}`
     : undefined,
 );
 
@@ -582,6 +591,12 @@ function onReset() {
 }
 .textarea:focus {
   box-shadow: 0 0 0 3px rgba(47, 109, 255, 0.12);
+}
+.textarea:disabled {
+  background: #f1f5f9; /* 연한 회색 배경 */
+  color: #64748b;      /* 흐릿한 글자색 */
+  cursor: not-allowed;
+  border-color: rgba(15, 23, 42, 0.1);
 }
 
 .btn-primary {

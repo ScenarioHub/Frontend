@@ -21,30 +21,33 @@ const isDragOver = ref(false);
 const isLoading = ref(false);
 const fileInputRef = ref<HTMLInputElement | null>(null);
 
-// 태그 관련 설정
 const MAX_TAGS = 5;
 
-// 초기 데이터 로드 (ID가 있을 경우)
-onMounted(async () => {
+async function loadScenarioData(id: string) {
+  if (!id) return;
+  try {
+    isLoading.value = true;
+    form.value.scenarioId = id;
+
+    // 데이터가 존재하면 (upload에서 넘어왔으면), 일부 입력칸 잠그기?
+
+    // 실제 API 연동 시 아래 주석 해제 및 fetch 로직 적용
+    // const data = await $fetch(`/api/scenarios/${id}`);
+    // form.value.title = data.title || "";
+    // form.value.description = data.description || "";
+    // form.value.tags = data.tags || [];
+
+    console.log(`ID ${id}에 대한 시나리오 정보를 불러왔습니다.`);
+  } catch (e) {
+    console.error("데이터 로드 실패", e);
+  } finally {
+    isLoading.value = false;
+  }
+};
+onMounted(() => {
   const id = route.query.scenarioId as string;
   if (id) {
-    try {
-      isLoading.value = true;
-      form.value.scenarioId = id;
-
-      // 실제 API 연동 시 아래 주석 해제 및 fetch 로직 적용
-      // const data = await $fetch(`/api/scenarios/${id}`);
-      // form.value.title = data.title || "";
-      // form.value.description = data.description || "";
-      // form.value.tags = data.tags || [];
-
-      // (테스트용 가짜 데이터)
-      console.log(`ID ${id}에 대한 시나리오 정보를 불러왔습니다.`);
-    } catch (e) {
-      console.error("데이터 로드 실패", e);
-    } finally {
-      isLoading.value = false;
-    }
+    loadScenarioData(id);
   }
 });
 
