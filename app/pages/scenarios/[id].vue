@@ -404,10 +404,46 @@ function goBack() {
 }
 
 async function onShare() {
-  const url = import.meta.client ? window.location.href : "";
-  if (import.meta.client && navigator.clipboard) {
-    await navigator.clipboard.writeText(url);
-    alert("링크가 복사되었습니다.");
+  // SSR 환경이면 실행 안 함
+  if (!import.meta.client) return;
+
+  const url = window.location.href;
+
+  // 1. 최신 방식 (HTTPS 또는 Localhost) 시도
+  if (navigator.clipboard && window.isSecureContext) {
+    try {
+      await navigator.clipboard.writeText(url);
+      alert("링크가 복사되었습니다.");
+      return; // 성공하면 여기서 종료
+    } catch (err) {
+      console.error("Clipboard API 실패, 폴백 시도:", err);
+    }
+  }
+
+  // 2. 구형 방식 (HTTP 호환) - 폴백
+  try {
+    const textArea = document.createElement("textarea");
+    textArea.value = url;
+
+    // 화면 밖으로 숨김 (안 보이지만 존재하게)
+    textArea.style.position = "fixed";
+    textArea.style.left = "-9999px";
+
+    document.body.appendChild(textArea);
+    textArea.focus();
+    textArea.select();
+
+    const successful = document.execCommand("copy");
+    document.body.removeChild(textArea);
+
+    if (successful) {
+      alert("링크가 복사되었습니다.");
+    } else {
+      throw new Error("execCommand 실패");
+    }
+  } catch (err) {
+    alert("브라우저 보안 설정으로 인해 복사할 수 없습니다.\n수동으로 주소를 복사해주세요.");
+    console.error(err);
   }
 }
 
