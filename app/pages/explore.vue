@@ -290,7 +290,7 @@
         <button
           type="button"
           class="pagination-btn"
-          :disabled="page === 1"
+          :disabled="currentPage === 1"
           @click="goPrev"
         >
           이전
@@ -303,7 +303,7 @@
             v-if="p !== '...'"
             type="button"
             class="pagination-page"
-            :class="{ 'pagination-page--active': p === page }"
+            :class="{ 'pagination-page--active': p === currentPage }"
             @click="goPage(p as number)"
           >
             {{ p }}
@@ -322,7 +322,7 @@
         <button
           type="button"
           class="pagination-btn"
-          :disabled="page === totalPages"
+          :disabled="currentPage === totalPages"
           @click="goNext"
         >
           다음
@@ -335,18 +335,22 @@
 <script setup lang="ts">
 import type { ScenarioItem } from "~/types/scenario";
 
-// 로그인 상태 가져오기
+const sort = ref<"popular" | "latest">("popular");
+const onlyBookmarked = ref(false);
+const pageSize = 12;
+const currentPage = ref(1);
+
 const { isLoggedIn } = useAuthState();
-const { openLogin } = useAuthModal(); // 모달 제어 함수
+const { openLogin } = useAuthModal();
 
-// 서버 데이터 가져오기
-const { data: serverData, refresh } = await useFetch<{ items: ScenarioItem[] }>("/nuxt-api/scenarios/explore");
+const { data: serverData, refresh } = await useFetch<{ items: ScenarioItem[] }>("/nuxt-api/scenarios/explore", {
+  query: {
+    page: currentPage,
+  },
+});
 
-// UI 전용 반응형 상태 (ref) 생성
-// useFetch의 data를 직접 쓰지 않고, uiItems로 옮겨 담아서 반응성을 100% 보장함
 const uiItems = ref<ScenarioItem[]>([]);
 
-// 서버 데이터가 로드되거나 변경되면 uiItems에 동기화
 watch(
   serverData,
   (newData) => {
@@ -361,13 +365,6 @@ watch(
 watch(isLoggedIn, async () => {
   await refresh();
 });
-
-// --- 정렬/필터/페이지네이션 로직 ---
-
-const sort = ref<"popular" | "latest">("popular");
-const onlyBookmarked = ref(false);
-const pageSize = 12;
-const page = ref(1);
 
 const filteredAndSorted = computed(() => {
   // [변경] allItems 대신 uiItems 사용
@@ -398,13 +395,13 @@ const totalPages = computed(() =>
 );
 
 const pagedItems = computed(() => {
-  const start = (page.value - 1) * pageSize;
+  const start = (currentPage.value - 1) * pageSize;
   return filteredAndSorted.value.slice(start, start + pageSize);
 });
 
 const visiblePages = computed(() => {
   const total = totalPages.value;
-  const current = page.value;
+  const current = currentPage.value;
   const delta = 2;
 
   const pages: (number | string)[] = [];
@@ -429,15 +426,15 @@ const visiblePages = computed(() => {
 
 function goPage(p: number) {
   if (p >= 1 && p <= totalPages.value) {
-    page.value = p;
+    currentPage.value = p;
     window.scrollTo({ top: 0, behavior: "smooth" });
   }
 }
 function goPrev() {
-  goPage(page.value - 1);
+  goPage(currentPage.value - 1);
 }
 function goNext() {
-  goPage(page.value + 1);
+  goPage(currentPage.value + 1);
 }
 
 function onView(item: ScenarioItem) {
