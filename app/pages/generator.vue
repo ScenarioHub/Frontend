@@ -998,7 +998,7 @@ function onReset() {
   font-size: 14px;
   color: #475569;
   line-height: 1.5;
-  min-height: 3em;
+  min-height: 1.5em;
   max-width: 90%;
   padding: 0 4px;
   align-self: center;
