@@ -42,7 +42,47 @@
             placeholder="예: 차량이 좌회전 중 보행자를 만나는 상황"
             :disabled="uiState === 'done' || uiState === 'running'"
           />
+          <div
+            class="map-slider-section"
+            :class="{ 'is-disabled': uiState === 'done' || uiState === 'running' }"
+          >
+            <p class="panel-sub">맵 선택 (프리뷰)</p>
 
+            <swiper
+              :slides-per-view="1"
+              :space-between="15"
+              :loop="true"
+              :pagination="{ clickable: true }"
+              :navigation="true"
+              :modules
+              class="mySwiper"
+            >
+              <swiper-slide v-for="map in maps" :key="map.id">
+                <!-- 슬라이드 전체 컨테이너 -->
+                <div class="slide-container">
+                  <!-- 1. 이미지 박스 (여기에 제목과 화살표가 들어감) -->
+                  <div class="image-box">
+                    <img
+                      :src="map.imageUrl || 'https://via.placeholder.com/600x300/e2e8f0/1e293b?text=Map+Preview'"
+                      alt="Map Preview"
+                      class="slide-img"
+                    >
+
+                    <!-- 2. 맵 이름 (좌측 상단 오버레이) -->
+                    <div class="map-name-badge">
+                      {{ map.name }}
+                    </div>
+                  </div>
+
+                  <!-- 3. 맵 설명 (박스 아래) -->
+                  <div class="map-description">
+                    {{ map.description }}
+                  </div>
+                </div>
+              </swiper-slide>
+            </swiper>
+            <div v-if="uiState === 'done' || uiState === 'running'" class="disabled-overlay" />
+          </div>
           <button
             :class="uiState === 'done' ? 'btn-reset' : 'btn-primary'"
             @click="uiState === 'done' ? onReset() : onGenerate()"
@@ -284,7 +324,15 @@ SSE에서 stream_ended 수신하면 UI를 3단계 완료로 바꾸고, 라이브
 import { useEventSource } from "@vueuse/core"; // SSE [web:1076]
 import { computed, onBeforeUnmount, ref, watch } from "vue";
 
-import { useRouter } from "vue-router";
+import { useRouter } from "vue-router"; // [web:router_push]
+
+import "swiper/css";
+import "swiper/css/navigation";
+import "swiper/css/pagination";
+import { Navigation, Pagination } from "swiper/modules";
+import { Swiper, SwiperSlide } from "swiper/vue";
+
+const modules = [Pagination, Navigation];
 
 const { openLogin } = useAuthModal();
 const { isLoggedIn } = useAuthState();
@@ -310,11 +358,38 @@ const statusLines = ref<string[]>([]);
 const statusText = ref("AI가 시나리오를 분석하고 있습니다");
 const videoUrl = ref<string | null>(null);
 
-const isProgressModalOpen = computed(() => uiState.value === "running"); // [web:router_push]
-
-// ... 기존 import 및 상태 변수들 ...
+const isProgressModalOpen = computed(() => uiState.value === "running");
 
 const router = useRouter();
+
+interface MapItem {
+  id: number;
+  name: string;
+  description: string;
+  imageUrl?: string;
+}
+const maps = ref<MapItem[]>([]);
+
+onMounted(() => {
+  fetchMaps();
+});
+
+async function fetchMaps() {
+  try {
+    const data = await $fetch<MapItem[]>("/nuxt-api/maps/list");
+
+    if (data && Array.isArray(data)) {
+      maps.value = data.map((item) => ({
+        id: item.id,
+        name: item.name,
+        description: item.description,
+        imageUrl: `/nuxt-api/maps/preview?id=${item.id}`,
+      }));
+    }
+  } catch (err) {
+    console.error("fetchMaps 에러:", err);
+  }
+}
 
 // "업로드" 버튼 클릭 핸들러 (이름 변경: onTriggerUpload -> onGoToUploadForm)
 function onGoToUploadForm() {
@@ -535,7 +610,7 @@ function onReset() {
   display: flex;
   flex-direction: column;
   /* 오른쪽 패널과 비슷한 높이를 원하면 최소 높이도 줄 수 있음 */
-  min-height: 520px;
+  min-height: 600px;
 }
 
 .panel-head {
@@ -580,7 +655,7 @@ function onReset() {
 
 .textarea {
   width: 100%;
-  height: 240px;
+  height: 180px;
   border-radius: 14px;
   border: 2px solid rgba(47, 109, 255, 0.35);
   padding: 14px;
@@ -588,6 +663,7 @@ function onReset() {
   resize: none;
   font-size: 14px;
   background: #fff;
+  margin-bottom: 20px;
 }
 .textarea:focus {
   box-shadow: 0 0 0 3px rgba(47, 109, 255, 0.12);
@@ -812,25 +888,23 @@ function onReset() {
   width: 0%;
   transition: width 0.1s linear;
 }
-/* 버튼들을 가로로 배치하기 위한 래퍼 */
+
 .btn-row {
   display: flex;
   gap: 12px;
   width: 100%;
 }
 
-/* Flex 컨테이너 안에서 버튼들이 균등한 너비를 가지도록 설정 */
 .btn-row .btn {
     min-width: 0;
 }
 
-/* 업로드 버튼용 다크 스타일 (기존 테마와 어울리게) */
 .btn-blue {
-  background: #2f6dff; /* slate-700 */
+  background: #2f6dff;
   color: #fff;
 }
 .btn-blue:hover {
-  background: #1d4ed8; /* slate-800 */
+  background: #1d4ed8;
 }
 
 /* 모바일 대응: 화면이 좁을 때는 위아래로 배치 */
@@ -838,7 +912,6 @@ function onReset() {
   .btn-row {
     flex-direction: column;
   }
-  /* 모바일에서는 다시 꽉 차게 변경 */
   .btn-row .btn:first-child,
   .btn-row .btn:last-child {
     flex: 1 1 auto;
@@ -846,13 +919,145 @@ function onReset() {
   }
 }
 
-/* 커뮤니티 공유하기 버튼 (첫 번째 버튼) - 70% */
 .btn-row .btn:first-child {
-  flex: 7; /* 70% 비율 */
+  flex: 7;
 }
 
-/* 다운로드 버튼 (두 번째 버튼) - 30% */
 .btn-row .btn:last-child {
-  flex: 3; /* 30% 비율 */
+  flex: 3;
+}
+.panel-input {
+  min-height: 600px;
+  max-width: 100%;
+  overflow: hidden;
+}
+
+.map-slider-section {
+  width: 100%;
+  margin-bottom: 20px;
+  position: relative;
+}
+
+.map-slider-section.is-disabled {
+  opacity: 0.6;
+  pointer-events: none;
+  filter: grayscale(0.5);
+}
+.disabled-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 50;
+  background: transparent;
+  cursor: not-allowed;
+  pointer-events: auto;
+}
+.mySwiper {
+  width: 100%;
+  overflow: visible;
+}
+
+.slide-container {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.image-box {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  background: #e2e8f0;
+  border-radius: 14px;
+  overflow: hidden;
+  border: 1px solid rgba(15, 23, 42, 0.1);
+}
+
+.slide-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.3s ease;
+}
+
+.map-name-badge {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  background: rgba(136, 134, 134, 0.85);
+  color: #fff;
+  padding: 6px 12px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 700;
+  backdrop-filter: blur(4px);
+  z-index: 10;
+}
+
+.map-description {
+  font-size: 14px;
+  color: #475569;
+  line-height: 1.5;
+  min-height: 3em;
+  max-width: 90%;
+  padding: 0 4px;
+  align-self: center;
+  font-weight: 500;
+  word-break: keep-all;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+:deep(.swiper-button-prev),
+:deep(.swiper-button-next) {
+    width: 40px;
+    height: 40px;
+    background-color: rgba(0, 0, 0, 0);
+    border-radius: 50%; /* 원형 */
+    color: #2f6dff; /* 화살표 색상 */
+    transition: all 0.2s ease;
+
+    top: 40%;
+    transform: translateY(-50%);
+    margin: 0;
+    z-index: 20;
+}
+
+:deep(.swiper-button-prev) {
+  left: 12px;
+}
+
+:deep(.swiper-button-next) {
+  right: 12px;
+}
+
+:deep(.swiper-button-prev:after),
+:deep(.swiper-button-next:after) {
+  font-size: 18px;
+  font-weight: 900;
+}
+
+:deep(.swiper-button-prev:hover),
+:deep(.swiper-button-next:hover) {
+  transform: translateY(-50%) scale(1.15); /* 살짝 커짐 */
+}
+
+/* 페이지네이션 (점) 위치 */
+:deep(.swiper-pagination) {
+  bottom: 64px;
+}
+
+:deep(.swiper-pagination-bullet) {
+  background: #ffffff;
+  opacity: 0.8;
+}
+
+:deep(.swiper-pagination-bullet-active) {
+  background: #2f6dff;
+  opacity: 1;
 }
 </style>
