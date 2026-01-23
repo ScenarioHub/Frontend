@@ -1,18 +1,9 @@
-// server/api/scenarios/upload.post.ts
 import { createError, defineEventHandler, readMultipartFormData } from "h3";
-
-// 에러 객체에 대한 인터페이스 정의 (타입 안전성 확보)
-interface ApiError {
-  statusCode?: number;
-  statusMessage?: string;
-  message?: string;
-  data?: unknown;
-}
+import type { ApiError } from "~/types";
 
 export default defineEventHandler(async (event) => {
   const config = useRuntimeConfig();
   try {
-    // 1. 프론트엔드로부터 받은 Multipart 데이터 읽기
     const body = await readMultipartFormData(event);
 
     if (!body) {
@@ -61,23 +52,21 @@ export default defineEventHandler(async (event) => {
 
     formData.append("file", fileBlob, fileField.filename);
 
-    // 4. 실제 외부 서버로 전송
     const externalResponse = await $fetch(`${config.apiBase}/api/upload/post/`, {
       method: "POST",
       body: formData,
     });
-    // 5. 응답 반환
+    console.log("upload.post.ts", externalResponse);
     return externalResponse;
   } catch (error: unknown) {
-    // [수정 포인트 2] error: any 대신 unknown 사용 후 타입 좁히기
     console.error("외부 API 연동 실패:", error);
 
-    const err = error as ApiError; // 타입 단언
+    const err = error as ApiError;
 
     throw createError({
       statusCode: 500,
       statusMessage: err.statusMessage || "외부 서버 업로드 중 오류 발생",
-      data: err.data || err.message, // 상세 에러 메시지 포함
+      data: err.data || err.message,
     });
   }
 });

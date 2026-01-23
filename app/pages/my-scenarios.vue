@@ -132,7 +132,7 @@
 </template>
 
 <script setup lang="ts">
-import type { MyScenarioItem } from "~/types/scenario";
+import type { MyScenarioItem } from "@/types";
 
 definePageMeta({
   middleware: ["auth"],

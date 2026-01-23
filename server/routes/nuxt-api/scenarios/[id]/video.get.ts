@@ -1,11 +1,5 @@
+import type { ApiError } from "@/types";
 import { defineEventHandler, getHeader, getRouterParam, sendStream, setResponseHeaders, setResponseStatus } from "h3";
-
-interface ApiError {
-  statusCode?: number;
-  statusMessage?: string;
-  message?: string;
-  data?: unknown;
-}
 
 export default defineEventHandler(async (event) => {
   const config = useRuntimeConfig(event);

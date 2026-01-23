@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { onMounted, ref } from "vue";
 import { useRoute, useRouter } from "vue-router";
-
+import type { ApiResponse, UploadResponse } from "~/types";
 // 라우터 및 상태 관리
 const route = useRoute();
 const router = useRouter();
@@ -123,28 +123,16 @@ async function onSubmit() {
       formData.append("file", form.value.file);
     }
 
-    // 2. 서버로 POST 요청
-    // [수정 2] 응답 타입 정의 수정 (API 명세에 맞춤)
-    interface UploadResponse {
-      status: number;
-      message: {
-        postId: string | number;
-        scenarioId: string | number;
-        uploaderId: string | number;
-        tags: string[];
-      };
-    }
-
-    const res = await $fetch<UploadResponse>("/nuxt-api/scenarios/upload", {
+    const res = await $fetch<ApiResponse<UploadResponse>>("/nuxt-api/scenarios/upload", {
       method: "POST",
       body: formData,
     });
 
     // [수정 3] 응답 처리 로직 변경 (res.id -> res.message.postId)
     if (res.status === 201) {
-      console.log("업로드 성공, ID:", res.message.postId);
+      console.log("업로드 성공, ID:", res.message?.postId);
       alert("성공적으로 업로드되었습니다!");
-      router.push(`/scenarios/${res.message.postId}`);
+      router.push(`/scenarios/${res.message?.postId}`);
     } else {
       throw new Error("업로드 상태 코드가 201이 아닙니다.");
     }

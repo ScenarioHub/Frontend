@@ -30,7 +30,7 @@
             <h1 class="title">{{ detail.title || "..." }}</h1>
             <div class="sub">
               <span class="avatar">{{
-                (detail.uploader?.initials ?? "U").slice(0, 1)
+                (detail.uploader?.name[0] ?? "U").slice(0, 1)
               }}</span>
               <span class="sub-text">{{ detail.uploader?.name ?? "-" }}</span>
               <span class="dot">•</span>
@@ -296,10 +296,10 @@
                 <span class="info-key">형식</span><span class="info-val">{{ detail.file?.format ?? '-' }}</span>
               </div>
               <div class="info-row">
-                <span class="info-key">버전</span><span class="info-val">{{ detail.file?.version ?? '-' }}</span>
+                <span class="info-key">버전</span><span class="info-val"> v{{ detail.file?.version ?? '-' }}</span>
               </div>
               <div class="info-row">
-                <span class="info-key">파일 크기</span><span class="info-val">{{ detail.file?.size ?? '-' }}</span>
+                <span class="info-key">파일 크기</span><span class="info-val">{{ detail.file?.size ?? '-' }} KB</span>
               </div>
             </div>
 
@@ -307,7 +307,7 @@
             <div class="side-card">
               <div class="side-title">업로드한 사람</div>
               <div class="uploader">
-                <div class="uploader-avatar">{{ detail.uploader?.initials ?? 'U' }}</div>
+                <div class="uploader-avatar">{{ detail.uploader?.name[0] ?? 'U' }}</div>
                 <div class="uploader-meta">
                   <div class="uploader-name">{{ detail.uploader?.name ?? '알 수 없음' }}</div>
                   <div class="uploader-sub">
@@ -324,7 +324,7 @@
 </template>
 
 <script setup lang="ts">
-import type { ScenarioDetail } from "~/types/scenario";
+import type { ScenarioDetail } from "@/types";
 
 definePageMeta({ layout: false });
 
@@ -337,15 +337,15 @@ const id = computed(() => String(route.params.id));
 
 // 1. [초기값]
 const DEFAULT_DETAIL: ScenarioDetail = {
-  id: "",
+  id: 0,
   title: "",
   description: "",
   createdAt: "",
   code: "",
   stats: { downloads: 0, views: 0, likes: 0 },
   tags: [],
-  uploader: { name: "", initials: "U", totalScenarios: 0 },
-  file: { format: "", version: "", size: "" },
+  uploader: { name: "", id: 0, totalScenarios: 0 },
+  file: { format: "", version: "", size: 0 },
   isBookmarked: false, // 기본값 false 확인
 };
 

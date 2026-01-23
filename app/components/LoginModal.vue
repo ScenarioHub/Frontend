@@ -26,7 +26,7 @@
       <!-- 아이디 또는 비밀번과 틀렸습니다. -->
       <p v-if="errorMessage" class="error">{{ errorMessage }}</p>
 
-      <button class="primary" type="submit" @click="onLogin">로그인</button>
+      <button class="primary" type="submit">로그인</button>
     </form>
     <div v-if="false" class="divider">
       <span class="line" />

@@ -1,22 +1,7 @@
 import { createError, defineEventHandler, readBody } from "h3";
+import type { ApiError, ApiResponse, LoginResponseData } from "~/types";
 
-// 에러 객체 인터페이스
-interface ApiError {
-  statusCode?: number;
-  statusMessage?: string;
-  message?: string;
-  data?: unknown;
-}
-
-// 백엔드 로그인 성공 응답 구조 (예시)
 // 실제 백엔드 응답에 맞춰 수정하세요. (토큰, 유저 정보 등)
-interface LoginResponse {
-  status: number;
-  message: {
-    access: string;
-    refresh: string;
-  };
-}
 
 export default defineEventHandler(async (event) => {
   const config = useRuntimeConfig();
@@ -40,7 +25,7 @@ export default defineEventHandler(async (event) => {
     }
 
     // 2. 외부 백엔드 API로 로그인 요청 전송
-    const externalResponse = await $fetch<LoginResponse>(
+    const loginResponse = await $fetch<ApiResponse<LoginResponseData>>(
       `${config.apiBase}/api/auth/login/`,
       {
         method: "POST",
@@ -51,7 +36,7 @@ export default defineEventHandler(async (event) => {
       });
 
     // 3. 성공 응답 반환 (200 OK)
-    return externalResponse;
+    return loginResponse;
   } catch (error: unknown) {
     console.error("로그인 API 연동 실패:", error);
 

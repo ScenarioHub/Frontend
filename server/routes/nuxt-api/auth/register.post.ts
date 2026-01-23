@@ -1,22 +1,5 @@
 import { createError, defineEventHandler, readBody } from "h3";
-
-// 에러 객체 인터페이스 (upload.post.ts와 통일)
-interface ApiError {
-  statusCode?: number;
-  statusMessage?: string;
-  message?: string;
-  data?: unknown;
-}
-
-// 응답 데이터 인터페이스
-interface RegisterResponse {
-  status: number;
-  message: {
-    id: string;
-    email: string;
-    initials: string;
-  } | string;
-}
+import type { ApiError, ApiResponse, User } from "~/types";
 
 export default defineEventHandler(async (event) => {
   const config = useRuntimeConfig();
@@ -41,7 +24,7 @@ export default defineEventHandler(async (event) => {
     }
 
     // 2. 외부 백엔드 API로 전송 (JSON)
-    const externalResponse = await $fetch<RegisterResponse>(`${config.apiBase}/api/auth/register/`, {
+    const registerResponse = await $fetch<ApiResponse<User>>(`${config.apiBase}/api/auth/register/`, {
       method: "POST",
       body: {
         email,
@@ -52,13 +35,10 @@ export default defineEventHandler(async (event) => {
       // headers: { 'Authorization': ... }
     });
 
-    // 3. 성공 응답 반환 (200 OK)
-    // 외부 API가 200이면 그대로 리턴
-    return externalResponse;
+    return registerResponse;
   } catch (error: unknown) {
-    const err = error as ApiError; // 타입 단언을 any로 임시 변경
+    const err = error as ApiError;
 
-    // [추가] 외부 서버가 준 에러 상세 메시지 출력
     console.log("================");
     console.error("❌ 회원가입 API 연동 실패:", {
       statusCode: err.statusCode,

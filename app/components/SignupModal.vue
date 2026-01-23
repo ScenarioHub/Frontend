@@ -49,7 +49,6 @@
         class="primary"
         type="submit"
         :disabled="!canSubmit"
-        @click="onSignup"
       >
         회원가입
       </button>
@@ -77,6 +76,7 @@
 <script setup lang="ts">
 import { computed, ref } from "vue";
 import { useAuth } from "~/composables/useAuth";
+import type { ApiError, Data } from "~/types";
 
 const { register } = useAuth();
 
@@ -98,17 +98,6 @@ const canSubmit = computed(() => {
   if (password.value.length < 8) return false;
   return true;
 });
-interface ApiError {
-  statusCode?: number;
-  statusMessage?: string;
-  message?: string;
-  data?: {
-    data?: {
-      status?: number;
-      message?: string;
-    };
-  };
-}
 
 async function onSignup() {
   errorMessage.value = "";
@@ -127,10 +116,11 @@ async function onSignup() {
     await register({ email: email.value, password: password.value, name: name.value });
     emit("close");
   } catch (error) {
-    const err = error as ApiError;
+    const err = error as ApiError<Data>;
 
     const errNum = err.statusCode as number;
     const errDataMessage = err.data?.data?.message;
+    console.error(`SignupModal.vue ${errNum}, ${errDataMessage}`);
 
     if (errNum == 400 && (errDataMessage && errDataMessage.includes("이미 존재"))) {
       emailError.value = errDataMessage;

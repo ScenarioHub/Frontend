@@ -51,11 +51,13 @@
             <swiper
               :slides-per-view="1"
               :space-between="15"
-              :loop="true"
+              :loop="isLoopEnabled"
               :pagination="{ clickable: true }"
               :navigation="true"
               :modules
               class="mySwiper"
+              @swiper="onSwiper"
+              @slide-change="onSlideChange"
             >
               <swiper-slide v-for="map in maps" :key="map.id">
                 <!-- 슬라이드 전체 컨테이너 -->
@@ -326,11 +328,13 @@ import { computed, onBeforeUnmount, ref, watch } from "vue";
 
 import { useRouter } from "vue-router"; // [web:router_push]
 
+import type SwiperType from "swiper";
 import "swiper/css";
 import "swiper/css/navigation";
 import "swiper/css/pagination";
 import { Navigation, Pagination } from "swiper/modules";
 import { Swiper, SwiperSlide } from "swiper/vue";
+import type { MapItem } from "~/types";
 
 const modules = [Pagination, Navigation];
 
@@ -357,17 +361,15 @@ const progress = ref(0);
 const statusLines = ref<string[]>([]);
 const statusText = ref("AI가 시나리오를 분석하고 있습니다");
 const videoUrl = ref<string | null>(null);
+const resultScenarioId = ref<number | null>(null);
+resultScenarioId.value = 1; // eslint 오류 방지용 코드 : 나중에 밑에서 선언하면 삭제 할 코드임========================================
 
 const isProgressModalOpen = computed(() => uiState.value === "running");
-
+const selectedMapId = ref<number | null>(null);
 const router = useRouter();
 
-interface MapItem {
-  id: number;
-  name: string;
-  description: string;
-  imageUrl?: string;
-}
+const isLoopEnabled = computed(() => maps.value.length > 1);
+
 const maps = ref<MapItem[]>([]);
 
 onMounted(() => {
@@ -391,7 +393,20 @@ async function fetchMaps() {
   }
 }
 
-// "업로드" 버튼 클릭 핸들러 (이름 변경: onTriggerUpload -> onGoToUploadForm)
+const onSwiper = (swiper: SwiperType) => {
+  if (maps.value.length > 0) {
+    const map = maps.value[swiper.realIndex];
+    if (map) {
+      selectedMapId.value = map.id;
+    }
+  }
+};
+const onSlideChange = (swiper: SwiperType) => {
+  const index = swiper.realIndex;
+  if (maps.value[index]) {
+    selectedMapId.value = maps.value[index].id;
+  }
+};
 function onGoToUploadForm() {
   // if (currentStep.value !== 3 || !jobId.value) return;
   // jobId는 시나리오 생성 완료 시 서버에서 받은 PK(id)라고 가정
@@ -438,9 +453,13 @@ async function onGenerate() {
   // // ✅ 서버 만들면 여기 추가 (jobId 발급)
   // const res = await $fetch<{ jobId: string }>("/nuxt-api/scenario/generate", {
   //   method: "POST",
-  //   body: { prompt: prompt.value },
+  //   body: {
+  //     prompt: prompt.value,
+  //     mapId: selectedMapId.value
+  //   },
   // })
   // jobId.value = res.jobId
+  // resultScenarioId = res.scenarioId
 
   // (개발 중 mock 돌릴 거면 아래를 조건부로만 실행)
   startMockProgress();

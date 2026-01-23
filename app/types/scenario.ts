@@ -1,65 +1,54 @@
-// /types/scenario.ts
-export type ScenarioBase = {
-  id: string;
+export interface ScenarioBase {
+  id: number;
   title: string;
   createdAt: string;
   tags: string[];
-  stats: {
-    downloads: number;
-    views: number;
-    likes: number;
-  };
-  uploader: {
-    name: string;
-    initials: string;
-  };
+  stats: PostStats;
+  uploader: Uploader;
   isBookmarked: boolean;
 };
 
-export type ScenarioItem = ScenarioBase & { // 시나리오 공유 허브 화면, 각 아이템
+export interface ScenarioItem extends ScenarioBase { // 시나리오 공유 게시물 화면, 각 아이템
   description: string;
 };
 
-export type ScenarioDetail = Omit<ScenarioBase, "uploader"> & { // 시나리오 상세보기 화면
-  description: string;
+export interface ScenarioDetail extends Omit<ScenarioItem, "uploader"> { // 시나리오 상세보기 화면
   code: string;
-  file: {
-    format: string;
-    version: string;
-    size: string;
-  };
+  file: FileInfo;
   uploader: {
     name: string;
-    initials: string;
-    totalScenarios: number; // 업로더의 사니리오 총 업로드 개수
+    id: number;
+    totalScenarios: number; // 업로드한 사니리오
   };
 };
 
-export type MyScenarioItem = { // 내 시나리오 목록
+export interface MyScenarioItem { // 내 시나리오 목록
   id: string;
   title: string;
   summary: string;
-  createdAt: string; // ISO string
+  createdAt: string;
   downloadCount: number;
 };
 
-export type PaginatedResponse<T> = { // 페이지화
-  items: T[]; // 실제 데이터 리스트
-  total: number; // 전체 개수
-  page?: number; // (선택) 현재 페이지
-  pageSize?: number; // (선택) 페이지당 개수
-};
-
-export type MyProfile = { // 내 아이디 정보
-  id: string;
-  email: string;
+export interface Uploader { // 업로더
   name: string;
-  initials: string;
-  postCount: number; // 내가 올린 게시물 수
-  joinedAt: string; // 가입일 (ISO String)
+  id: number;
+}
+
+export interface FileInfo {
+  format: string;
+  version: string;
+  size: number;
+}
+
+export interface PostStats {
+  downloads: number;
+  views: number;
+  likes: number;
 };
 
-export type ScenarioUploadForm = { // 시나리오 업로드시 사용 자료구조
+// upload 에서 쓰는 것들
+export interface ScenarioUploadForm { // 시나리오 업로드시 사용 자료구조
   scenarioId?: string; // 수정 시 존재, 신규 생성 시 없음
   title: string; // 게시글 제목
   description: string; // 게시글 설명
@@ -70,3 +59,22 @@ export type ScenarioUploadForm = { // 시나리오 업로드시 사용 자료구
   videoUrl?: string; // 시뮬레이션 결과 영상 URL
   tempId?: string; // 생성 단계에서 임시 저장된 시나리오 ID가 있다면
 };
+
+// explore 에서 쓰는 것들
+export interface PaginatedResponse<T> { // 페이지화
+  items: T[]; // 실제 데이터 리스트
+  total: number; // 전체 개수
+  page?: number; // (선택) 현재 페이지
+  pageSize?: number; // (선택) 페이지당 개수
+};
+
+export interface PostItem extends PostStats {
+  id: number;
+  title: string;
+  description: string;
+  createdAt: string;
+  uploader_name: string;
+  uploader_id: number;
+  tags: string; // "tag1,tag2" 형태의 문자열
+  isBookmarked: boolean;
+}

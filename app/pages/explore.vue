@@ -73,7 +73,7 @@
           <!-- 상단 정보 -->
           <header class="card-header">
             <div class="card-avatar">
-              {{ item.uploader.initials }}
+              {{ item.uploader.id }}
             </div>
 
             <div class="card-header-text">
@@ -333,7 +333,7 @@
 </template>
 
 <script setup lang="ts">
-import type { ScenarioItem } from "~/types/scenario";
+import type { ScenarioItem } from "~/types";
 
 const sort = ref<"popular" | "latest">("popular");
 const onlyBookmarked = ref(false);
@@ -355,7 +355,6 @@ watch(
   serverData,
   (newData) => {
     if (newData?.items) {
-      // 새로운 배열로 교체 (반응성 초기화)
       uiItems.value = [...newData.items];
     }
   },
@@ -395,8 +394,7 @@ const totalPages = computed(() =>
 );
 
 const pagedItems = computed(() => {
-  const start = (currentPage.value - 1) * pageSize;
-  return filteredAndSorted.value.slice(start, start + pageSize);
+  return filteredAndSorted.value;
 });
 
 const visiblePages = computed(() => {
