@@ -3,13 +3,11 @@
     <LoginModal
       v-if="mode === 'login'"
       @close="close"
-      @logged-in="handleLoginSuccess"
       @switch-to-signup="openSignup"
     />
     <SignupModal
       v-else
       @close="close"
-      @signed-up="handleSignUpSuccess"
       @switch-to-login="openLogin"
     />
   </div>
@@ -20,7 +18,6 @@ import LoginModal from "~/components/LoginModal.vue";
 import SignupModal from "~/components/SignupModal.vue";
 
 const { isOpen, mode, close, openLogin, openSignup } = useAuthModal();
-const { handleLoginSuccess, handleSignUpSuccess } = useAuthActions();
 
 const isMouseDownOnBackdrop = ref(false);
 

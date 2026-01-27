@@ -1,12 +1,18 @@
+import { getCookie } from "#imports";
 import type { ApiResponse, ScenarioDetail } from "@/types";
 
 export default defineEventHandler(async (event): Promise<ScenarioDetail> => {
   const id = event.context.params?.id || "";
   const config = useRuntimeConfig(event);
-
+  const token = getCookie(event, "auth:token");
   try {
     const response = await $fetch<ApiResponse<ScenarioDetail>>(
       `${config.apiBase}/api/scenarios/${id}/details/`,
+      {
+        headers: {
+          ...(token && { Authorization: `Bearer ${token}` }),
+        },
+      },
     );
 
     const data = response.message;

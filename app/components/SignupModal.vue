@@ -59,10 +59,10 @@
       <span class="line" />
     </div>
 
-    <button v-if="false" class="social" type="button" @click="onGoogleSignup">
+    <!-- <button v-if="false" class="social" type="button" @click="onGoogleSignup">
       <span class="g">G</span>
       <span>Google로 계속</span>
-    </button>
+    </button> -->
 
     <p class="foot">
       이미 계정이 있으신가요?
@@ -83,7 +83,7 @@ const { register } = useAuth();
 const emit = defineEmits<{
   (e: "close"): void;
   (e: "switch-to-login"): void;
-  (e: "signed-up"): void;
+  // (e: "signed-up"): void;
 }>();
 
 const name = ref("");
@@ -130,9 +130,9 @@ async function onSignup() {
   }
 }
 
-async function onGoogleSignup() {
-  emit("signed-up");
-}
+// async function onGoogleSignup() {
+//   emit("signed-up");
+// }
 </script>
 
 <style scoped>

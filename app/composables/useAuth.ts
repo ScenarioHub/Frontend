@@ -1,7 +1,7 @@
 import type { ApiResponse, LoginResponseData, User } from "~/types";
 
 export const useAuth = () => {
-  const { searchQuery: q, isLoggedIn, userName } = useAuthState();
+  const { searchQuery: q, userName, token } = useAuthState();
 
   async function register(payload: { email: string; password: string; name: string }) {
     try {
@@ -10,11 +10,7 @@ export const useAuth = () => {
         body: payload,
       });
       console.log("회원가입 성공:", response);
-
-      // 회원가입 후 바로 로그인
-      isLoggedIn.value = true;
-      userName.value = payload.name;
-      return response;
+      await login({ email: payload.email, password: payload.password });
     } catch (error) {
       console.error("Register Failed inside useAuth:", error);
 
@@ -25,8 +21,8 @@ export const useAuth = () => {
   }
 
   async function logout() {
-    isLoggedIn.value = null; // 쿠키 삭제
     userName.value = null; // 쿠키 삭제
+    token.value = null;
     q.value = null; // 쿠키 삭제
   }
 
@@ -37,8 +33,7 @@ export const useAuth = () => {
         body: payload,
       });
       console.log("로그인 성공 in useAuth.ts:", res);
-
-      isLoggedIn.value = true;
+      token.value = res.message?.access as string | null;
       userName.value = res.message?.user.name || "사용자";
     } catch (error) {
       console.error("Login Failed:", error);

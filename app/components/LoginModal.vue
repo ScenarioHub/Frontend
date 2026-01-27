@@ -34,10 +34,10 @@
       <span class="line" />
     </div>
 
-    <button v-if="false" class="social" type="button" @click="onGoogleLogin">
+    <!-- <button v-if="false" class="social" type="button" @click="onGoogleLogin">
       <span class="g">G</span>
       <span>Google로 계속</span>
-    </button>
+    </button> -->
 
     <p class="foot">
       계정이 없으신가요?
@@ -55,30 +55,28 @@ import { useAuth } from "~/composables/useAuth";
 const emit = defineEmits<{
   (e: "close"): void;
   (e: "switch-to-signup"): void;
-  (e: "logged-in"): void;
 }>();
 
 const email = ref("");
 const password = ref("");
 const errorMessage = ref("");
-const { login, googleLogin } = useAuth();
+const { login } = useAuth();
 async function onLogin() {
   try {
     errorMessage.value = "";
     await login({ email: email.value, password: password.value });
     emit("close"); // 모달 닫기
-    emit("logged-in");
   } catch {
     errorMessage.value = "아이디 또는 비밀번호가 틀렸습니다.";
   }
 }
 
-async function onGoogleLogin() {
-  googleLogin();
+// async function onGoogleLogin() {
+//   googleLogin();
 
-  // 임시: 구글 로그인 성공 처리
-  emit("logged-in");
-}
+//   // 임시: 구글 로그인 성공 처리
+//   emit("logged-in");
+// }
 </script>
 
 <style scoped>

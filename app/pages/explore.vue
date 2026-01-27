@@ -38,6 +38,7 @@
             과거
           </button>
           <button
+            v-if="isLoggedIn===true"
             type="button"
             class="toolbar-chip"
             :class="{ 'toolbar-chip--active': onlyBookmarked }"
@@ -351,7 +352,7 @@ const onlyBookmarked = ref(false);
 const currentPage = ref(1);
 const totalPages = ref(1);
 
-const { isLoggedIn } = useAuthState();
+const { isLoggedIn, token } = useAuthState();
 const { openLogin } = useAuthModal();
 
 const tagOverflowMap = ref<Record<string, boolean>>({});
@@ -361,6 +362,10 @@ const { data: serverData, refresh } = await useFetch<Post>("/nuxt-api/scenarios/
   query: {
     page: currentPage,
     sort: sort,
+    bookmarked: onlyBookmarked,
+  },
+  headers: {
+    ...(token.value && { Authorization: `Bearer ${token.value}` }),
   },
 });
 
@@ -453,15 +458,7 @@ function toggleBookmark(item: ScenarioItem) {
     openLogin();
     return;
   }
-
-  // 2. uiItems(반응형 원본)에서 해당 아이템 찾기
-  // 이제 serverData가 아니라 uiItems를 조작하므로 화면 즉시 갱신 보장
-  const targetItem = uiItems.value.find((i) => i.id === item.id);
-
-  if (targetItem) {
-    targetItem.isBookmarked = !targetItem.isBookmarked;
-  }
-
+  console.log(item);
   // TODO: 실제 서버 API 호출
   // $fetch(...)
 }

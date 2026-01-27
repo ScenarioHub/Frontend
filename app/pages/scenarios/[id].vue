@@ -324,16 +324,18 @@
 </template>
 
 <script setup lang="ts">
-import type { ScenarioDetail } from "@/types";
+import type { Like, ScenarioDetail } from "@/types";
 
 definePageMeta({ layout: false });
 
 const { logout } = useAuth();
-const { isLoggedIn, userName } = useAuthState();
+const { isLoggedIn, userName, token } = useAuthState();
 const { openLogin } = useAuthModal();
 
 const route = useRoute();
 const id = computed(() => String(route.params.id));
+
+const isLiked = ref(false);
 
 // 1. [초기값]
 const DEFAULT_DETAIL: ScenarioDetail = {
@@ -345,7 +347,7 @@ const DEFAULT_DETAIL: ScenarioDetail = {
   stats: { downloads: 0, views: 0, likes: 0 },
   tags: [],
   uploader: { name: "", uploader_id: 0, email: "", totalScenarios: 0 },
-  file: { format: "", version: "", size: "KB" },
+  file: { format: "", version: "", size: "" },
   isBookmarked: false, // 기본값 false 확인
 };
 
@@ -354,13 +356,17 @@ const detail = ref<ScenarioDetail>({ ...DEFAULT_DETAIL });
 
 // 3. 서버 데이터 가져오기
 const { data: serverData, pending, error, refresh } = await useFetch<ScenarioDetail>(
-  () => `/nuxt-api/scenarios/${id.value}/detail`,
-  {
+  () => `/nuxt-api/scenarios/${id.value}/detail`, {
     key: `scenario-${id.value}-detail`,
     watch: [id],
   },
 );
 
+const { data: likeData } = await useFetch<Like>(
+  () => `/nuxt-api/scenarios/${id.value}/detail`, {
+
+  },
+);
 // 4. [동기화]
 watchEffect(() => {
   if (serverData.value) {
@@ -371,6 +377,10 @@ watchEffect(() => {
 watch(isLoggedIn, async () => {
   await refresh();
 });
+function a() {
+  checkMyLikeStatus();
+  console.log(likeData.value);
+}
 
 // 5. [액션] 좋아요 토글
 function toggleBookmark() {
@@ -383,6 +393,25 @@ function toggleBookmark() {
 }
 
 // --- 유틸리티 함수 (전체 구현 포함) ---
+const checkMyLikeStatus = async () => {
+  if (!isLoggedIn.value || !token.value) {
+    isLiked.value = false;
+    return;
+    console.log(a());
+  }
+
+  try {
+    // GET 요청으로 내 좋아요 여부 확인 (API가 있다고 가정)
+    // 만약 별도 API가 없고 detail 정보에 'isLiked' 필드가 포함되어 온다면 이 요청은 필요 없습니다.
+    const res = await $fetch<{ liked: boolean }>(`/nuxt-api/scenarios/${id.value}/like/status`, {
+      headers: { Authorization: `Bearer ${token.value}` },
+    });
+    isLiked.value = res.liked;
+  } catch (e) {
+    console.error("좋아요 상태 확인 실패", e);
+    isLiked.value = false;
+  }
+};
 
 const userInitial = computed(() =>
   (userName.value?.trim()?.[0] ?? "U").toUpperCase(),

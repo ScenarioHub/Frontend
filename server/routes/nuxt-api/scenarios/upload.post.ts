@@ -1,10 +1,11 @@
-import { createError, defineEventHandler, readMultipartFormData } from "h3";
+import { createError, defineEventHandler, getCookie, readMultipartFormData } from "h3";
 import type { ApiError } from "~/types";
 
 export default defineEventHandler(async (event) => {
   const config = useRuntimeConfig();
   try {
     const body = await readMultipartFormData(event);
+    const token = getCookie(event, "auth:token");
 
     if (!body) {
       throw createError({ statusCode: 500, statusMessage: "요청 본문이 비어있습니다." });
@@ -55,8 +56,10 @@ export default defineEventHandler(async (event) => {
     const externalResponse = await $fetch(`${config.apiBase}/api/upload/post/`, {
       method: "POST",
       body: formData,
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
     });
-    console.log("upload.post.ts", externalResponse);
     return externalResponse;
   } catch (error: unknown) {
     console.error("외부 API 연동 실패:", error);

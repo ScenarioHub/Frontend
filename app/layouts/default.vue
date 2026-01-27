@@ -1,5 +1,5 @@
 <script setup lang="ts">
-const { searchQuery: q, isLoggedIn, userName } = useAuthState();
+const { searchQuery: q, userName } = useAuthState();
 const { openLogin } = useAuthModal();
 </script>
 
@@ -7,7 +7,6 @@ const { openLogin } = useAuthModal();
   <div class="page">
     <PageHeader
       :model-value="q ?? ''"
-      :is-logged-in="isLoggedIn === true"
       :user-name="userName ?? ''"
       @update:model-value="q = $event"
       @login="openLogin"

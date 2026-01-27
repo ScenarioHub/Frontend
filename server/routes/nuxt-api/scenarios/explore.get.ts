@@ -4,9 +4,13 @@ import type { ApiResponse, Post, ScenarioItem } from "~/types";
 export default defineEventHandler(async (event) => {
   const config = useRuntimeConfig(event);
   const query = getQuery(event);
+
   const page = Number(query.page) || 1;
-  const page_size = 12;
+  const bookmarked = query.bookmarked || false;
+  // const page_size = 12;
   const sortString = String(query.sort) || "popular";
+  const token = getHeader(event, "authorization");
+
   try {
     const response = await $fetch<ApiResponse<Post>>(
       `${config.apiBase}/api/scenarios/explore`,
@@ -14,8 +18,12 @@ export default defineEventHandler(async (event) => {
         method: "get",
         query: {
           page: page,
-          page_size: page_size,
+          // page_size: page_size,
+          bookmarked: bookmarked,
           sort: sortString,
+        },
+        headers: {
+          ...(token && { Authorization: token }), // 그대로 전달
         },
       },
     );

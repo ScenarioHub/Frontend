@@ -96,7 +96,7 @@
           업로드
         </button>
 
-        <button
+        <!-- <button
           v-if="false"
           class="icon-btn"
           aria-label="알림"
@@ -116,11 +116,60 @@
               stroke-linecap="round"
             />
           </svg>
-        </button>
+        </button> -->
 
-        <button class="avatar" aria-label="사용자 메뉴" @click="onLogout()">
-          <span class="avatar-text">{{ userInitial }}</span>
-        </button>
+        <!-- [수정] 아바타 드롭다운 메뉴 (Headless UI Menu) -->
+        <Menu as="div" class="relative inline-block text-left">
+          <!-- 메뉴 버튼 (아바타) -->
+          <MenuButton class="avatar" aria-label="사용자 메뉴">
+            <span class="avatar-text">{{ userInitial }}</span>
+          </MenuButton>
+
+          <!-- 드롭다운 패널 -->
+          <transition
+            enter-active-class="transition ease-out duration-100"
+            enter-from-class="transform opacity-0 scale-95"
+            enter-to-class="transform opacity-100 scale-100"
+            leave-active-class="transition ease-in duration-75"
+            leave-from-class="transform opacity-100 scale-100"
+            leave-to-class="transform opacity-0 scale-95"
+          >
+            <MenuItems class="absolute right-0 mt-2 w-56 origin-top-right rounded-md bg-white shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none z-50">
+              <!-- 사용자 정보 (헤더) -->
+              <div class="px-4 py-3 border-b border-gray-100">
+                <p class="text-sm font-bold text-gray-900">{{ userName || '사용자' }}</p>
+                <p class="text-xs text-gray-500 truncate">로그인된 계정</p>
+              </div>
+
+              <!-- 메뉴 항목들 -->
+              <div class="py-1">
+                <MenuItem v-slot="{ active }">
+                  <NuxtLink to="/my-scenarios" :class="[active ? 'bg-gray-100 text-gray-900' : 'text-gray-700', 'block px-4 py-2 text-sm']">
+                    내 시나리오
+                  </NuxtLink>
+                </MenuItem>
+                <MenuItem v-slot="{ active }">
+                  <a href="#" :class="[active ? 'bg-gray-100 text-gray-900' : 'text-gray-700', 'block px-4 py-2 text-sm']">
+                    설정
+                  </a>
+                </MenuItem>
+              </div>
+
+              <!-- 로그아웃 버튼 -->
+              <div class="py-1 border-t border-gray-100">
+                <MenuItem v-slot="{ active }">
+                  <button
+                    type="button"
+                    :class="[active ? 'bg-gray-100 text-red-600' : 'text-red-600', 'block w-full text-left px-4 py-2 text-sm']"
+                    @click="onLogout"
+                  >
+                    로그아웃
+                  </button>
+                </MenuItem>
+              </div>
+            </MenuItems>
+          </transition>
+        </Menu>
       </template>
 
       <!-- 비로그인 -->
@@ -152,25 +201,25 @@
 </template>
 
 <script setup lang="ts">
+import { Menu, MenuButton, MenuItem, MenuItems } from "@headlessui/vue";
 import { computed } from "vue";
 import { useAuth } from "~/composables/useAuth";
+
+const { isLoggedIn } = useAuthState();
 
 const props = withDefaults(
   defineProps<{
     modelValue?: string;
-    isLoggedIn?: boolean;
     userName?: string;
   }>(),
   {
     modelValue: "",
-    isLoggedIn: false,
     userName: "",
   },
 );
 
 const emit = defineEmits<{
   (e: "update:modelValue", value: string): void;
-  (e: "notifications"): void;
   // (e: "profile"): void;
   (e: "login"): void;
 }>();
