@@ -19,6 +19,7 @@ export default defineEventHandler(async (event) => {
         },
       },
     );
+
     const externalItems = response.message?.posts || [];
 
     const totalPages = response.message?.totalPages as number;

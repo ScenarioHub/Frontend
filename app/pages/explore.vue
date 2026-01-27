@@ -354,6 +354,9 @@ const totalPages = ref(1);
 const { isLoggedIn } = useAuthState();
 const { openLogin } = useAuthModal();
 
+const tagOverflowMap = ref<Record<string, boolean>>({});
+const tagContainers = ref<HTMLElement[]>([]);
+
 const { data: serverData, refresh } = await useFetch<Post>("/nuxt-api/scenarios/explore", {
   query: {
     page: currentPage,
@@ -362,6 +365,12 @@ const { data: serverData, refresh } = await useFetch<Post>("/nuxt-api/scenarios/
 });
 
 const uiItems = ref<ScenarioItem[]>([]);
+
+onMounted(() => {
+  nextTick(() => {
+    recomputeTagOverflow();
+  });
+});
 
 watch(
   serverData,
@@ -387,6 +396,12 @@ watch(
 watch(isLoggedIn, async () => {
   await refresh();
 });
+
+watch(
+  () => [uiItems.value], // 감지 대상도 uiItems로 변경
+  () => nextTick(recomputeTagOverflow),
+  { deep: true },
+);
 
 const visiblePages = computed(() => {
   const total = totalPages.value;
@@ -414,7 +429,7 @@ const visiblePages = computed(() => {
 // --- 액션 함수들 ---
 
 function goPage(p: number) {
-  if (p >= 1 && p <= totalPages.value) {
+  if (1 <= p && p <= totalPages.value) {
     currentPage.value = p;
     window.scrollTo({ top: 0, behavior: "smooth" });
   }
@@ -422,6 +437,7 @@ function goPage(p: number) {
 function goPrev() {
   goPage(currentPage.value - 1);
 }
+
 function goNext() {
   goPage(currentPage.value + 1);
 }
@@ -466,8 +482,6 @@ function onDownload(item: ScenarioItem) {
   }, 30000);
 }
 
-// --- 유틸리티 및 태그 스크롤 ---
-
 function formatNumber(n: number) {
   return new Intl.NumberFormat("en-US").format(n);
 }
@@ -479,15 +493,6 @@ function formatDate(iso: string) {
   return `${d.getFullYear()}.${m}.${day}`;
 }
 
-const tagOverflowMap = ref<Record<string, boolean>>({});
-const tagContainers = ref<HTMLElement[]>([]);
-
-onMounted(() => {
-  nextTick(() => {
-    recomputeTagOverflow();
-  });
-});
-
 function recomputeTagOverflow() {
   const map: Record<string, boolean> = {};
   uiItems.value.forEach((item, index) => {
@@ -498,12 +503,6 @@ function recomputeTagOverflow() {
   });
   tagOverflowMap.value = map;
 }
-
-watch(
-  () => [uiItems.value], // 감지 대상도 uiItems로 변경
-  () => nextTick(recomputeTagOverflow),
-  { deep: true },
-);
 
 const TAG_SCROLL_AMOUNT = 240;
 
