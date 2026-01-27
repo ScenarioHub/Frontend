@@ -32,6 +32,14 @@
           <button
             type="button"
             class="toolbar-chip"
+            :class="{ 'toolbar-chip--active': sort === 'oldest' }"
+            @click="sort = 'oldest'"
+          >
+            과거
+          </button>
+          <button
+            type="button"
+            class="toolbar-chip"
             :class="{ 'toolbar-chip--active': onlyBookmarked }"
             @click="onlyBookmarked = !onlyBookmarked"
           >
@@ -66,20 +74,20 @@
       <!-- 카드 그리드 -->
       <section class="grid">
         <article
-          v-for="item in pagedItems"
+          v-for="item in uiItems"
           :key="item.id"
           class="card bg-card text-card-foreground flex flex-col gap-6 rounded-xl p-6 border-2 border-gray-200 hover:border-blue-300 hover:shadow-lg transition-all"
         >
           <!-- 상단 정보 -->
           <header class="card-header">
             <div class="card-avatar">
-              {{ item.uploader_info.uploader_id }}
+              {{ item.uploader.name[0] }}
             </div>
 
             <div class="card-header-text">
               <h2 class="card-title">{{ item.title }}</h2>
               <p class="card-meta">
-                {{ item.uploader_info.uploader_name }}
+                {{ item.uploader.name }}
                 <span class="card-dot">•</span>
                 {{ formatDate(item.createdAt) }}
               </p>
@@ -333,19 +341,23 @@
 </template>
 
 <script setup lang="ts">
-import type { ScenarioItem } from "~/types";
+import type { Post, ScenarioItem } from "~/types";
 
-const sort = ref<"popular" | "latest">("popular");
+const sort = ref<"popular" | "latest" | "oldest">("popular");
+const validSorts = ["popular", "latest", "oldest"];
+
 const onlyBookmarked = ref(false);
-const pageSize = 12;
+// const pageSize = 12;
 const currentPage = ref(1);
+const totalPages = ref(1);
 
 const { isLoggedIn } = useAuthState();
 const { openLogin } = useAuthModal();
 
-const { data: serverData, refresh } = await useFetch<{ items: ScenarioItem[] }>("/nuxt-api/scenarios/explore", {
+const { data: serverData, refresh } = await useFetch<Post>("/nuxt-api/scenarios/explore", {
   query: {
     page: currentPage,
+    sort: sort,
   },
 });
 
@@ -354,8 +366,19 @@ const uiItems = ref<ScenarioItem[]>([]);
 watch(
   serverData,
   (newData) => {
-    if (newData?.items) {
-      uiItems.value = [...newData.items];
+    if (newData?.posts) {
+      uiItems.value = newData?.posts || [];
+    }
+    if (newData?.currentPage) {
+      currentPage.value = newData?.currentPage;
+    }
+    if (validSorts.includes(newData?.sort as string)) {
+      sort.value = newData?.sort as "popular" | "latest" | "oldest";
+    } else {
+      sort.value = "popular";
+    }
+    if (newData?.totalPages) {
+      totalPages.value = newData?.totalPages;
     }
   },
   { immediate: true, deep: true },
@@ -363,38 +386,6 @@ watch(
 
 watch(isLoggedIn, async () => {
   await refresh();
-});
-
-const filteredAndSorted = computed(() => {
-  // [변경] allItems 대신 uiItems 사용
-  let list = [...uiItems.value];
-
-  // 즐겨찾기 필터
-  if (onlyBookmarked.value) {
-    list = list.filter((item) => item.isBookmarked);
-  }
-
-  // 정렬 로직
-  if (sort.value === "latest") {
-    list.sort(
-      (a, b) =>
-        new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
-    );
-  } else {
-    const score = (x: ScenarioItem) =>
-      x.stats.downloads * 3 + x.stats.likes;
-    list.sort((a, b) => score(b) - score(a));
-  }
-
-  return list;
-});
-
-const totalPages = computed(() =>
-  Math.max(1, Math.ceil(filteredAndSorted.value.length / pageSize)),
-);
-
-const pagedItems = computed(() => {
-  return filteredAndSorted.value;
 });
 
 const visiblePages = computed(() => {
@@ -499,7 +490,7 @@ onMounted(() => {
 
 function recomputeTagOverflow() {
   const map: Record<string, boolean> = {};
-  pagedItems.value.forEach((item, index) => {
+  uiItems.value.forEach((item, index) => {
     const el = tagContainers.value[index];
     if (!el) return;
     const isOverflow = el.scrollWidth > el.clientWidth;
@@ -509,7 +500,7 @@ function recomputeTagOverflow() {
 }
 
 watch(
-  () => [uiItems.value, pagedItems.value], // 감지 대상도 uiItems로 변경
+  () => [uiItems.value], // 감지 대상도 uiItems로 변경
   () => nextTick(recomputeTagOverflow),
   { deep: true },
 );

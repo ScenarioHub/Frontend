@@ -4,7 +4,7 @@ export interface ScenarioBase {
   createdAt: string;
   tags: string[];
   stats: PostStats;
-  uploader_info: Uploader;
+  uploader: Uploader;
   isBookmarked: boolean;
 };
 
@@ -12,7 +12,7 @@ export interface ScenarioItem extends ScenarioBase { // 시나리오 공유 게�
   description: string;
 };
 
-export interface ScenarioDetail extends Omit<ScenarioItem, "uploader_info"> { // 시나리오 상세보기 화면
+export interface ScenarioDetail extends Omit<ScenarioItem, "uploader"> { // 시나리오 상세보기 화면
   code: string;
   file: FileInfo;
 
@@ -34,7 +34,7 @@ export interface MyScenarioItem { // 내 시나리오 목록
 };
 
 export interface Uploader { // 업로더
-  uploader_name: string;
+  name: string;
   uploader_id: number;
 }
 
@@ -71,13 +71,10 @@ export interface PaginatedResponse<T> { // 페이지화
   pageSize?: number; // (선택) 페이지당 개수
 };
 
-// export interface PostItem extends PostStats {
-//   id: number;
-//   title: string;
-//   description: string;
-//   createdAt: string;
-//   uploader_name: string;
-//   uploader_id: number;
-//   tags: string[];
-//   isBookmarked: boolean;
-// }
+export interface Post {
+  posts: ScenarioItem[];
+  totalPages: number;
+  currentPage: number;
+  // totalCount: number;
+  sort: string;
+}
