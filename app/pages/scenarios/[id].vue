@@ -299,7 +299,7 @@
                 <span class="info-key">버전</span><span class="info-val"> v{{ detail.file?.version ?? '-' }}</span>
               </div>
               <div class="info-row">
-                <span class="info-key">파일 크기</span><span class="info-val">{{ detail.file?.size ?? '-' }} KB</span>
+                <span class="info-key">파일 크기</span><span class="info-val">{{ detail.file?.size ?? '-' }}</span>
               </div>
             </div>
 
@@ -344,8 +344,8 @@ const DEFAULT_DETAIL: ScenarioDetail = {
   code: "",
   stats: { downloads: 0, views: 0, likes: 0 },
   tags: [],
-  uploader: { name: "", id: 0, totalScenarios: 0 },
-  file: { format: "", version: "", size: 0 },
+  uploader: { name: "", uploader_id: 0, email: "", totalScenarios: 0 },
+  file: { format: "", version: "", size: "KB" },
   isBookmarked: false, // 기본값 false 확인
 };
 

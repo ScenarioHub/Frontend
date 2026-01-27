@@ -1,5 +1,5 @@
 import { defineEventHandler } from "h3";
-import type { ApiResponse, PostItem, ScenarioItem } from "~/types";
+import type { ApiResponse, ScenarioItem } from "~/types";
 
 export default defineEventHandler(async (event) => {
   const config = useRuntimeConfig(event);
@@ -7,7 +7,7 @@ export default defineEventHandler(async (event) => {
   const page = Number(query.page) || 1;
   const page_size = 12;
   try {
-    const response = await $fetch<ApiResponse<PostItem[]>>(
+    const response = await $fetch<ApiResponse<ScenarioItem[]>>(
       `${config.apiBase}/api/scenarios/explore/`,
       {
         method: "get",
@@ -20,11 +20,6 @@ export default defineEventHandler(async (event) => {
     const externalItems = response.message || [];
 
     const mappedItems: ScenarioItem[] = externalItems.map((item) => {
-      // 태그 문자열 처리 ("55,555" -> ["55", "555"])
-      const tagList = item.tags && item.tags.trim() !== ""
-        ? item.tags.split(",").map((t) => t.trim())
-        : [];
-
       return {
         id: item.id,
         title: item.title,
@@ -32,17 +27,17 @@ export default defineEventHandler(async (event) => {
         createdAt: item.createdAt,
 
         stats: {
-          downloads: item.downloads ?? 0,
-          views: item.views ?? 0,
-          likes: item.likes ?? 0,
+          downloads: item.stats.downloads ?? 0,
+          views: item.stats.views ?? 0,
+          likes: item.stats.likes ?? 0,
         },
 
-        uploader: {
-          name: item.uploader_name ?? "Unknown",
-          id: item.uploader_id ?? 0,
+        uploader_info: {
+          uploader_name: item.uploader_info.uploader_name ?? "Unknown",
+          uploader_id: item.uploader_info.uploader_id ?? 0,
         },
 
-        tags: tagList,
+        tags: item.tags,
         isBookmarked: item.isBookmarked ?? false,
       };
     });

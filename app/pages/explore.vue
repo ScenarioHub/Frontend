@@ -73,13 +73,13 @@
           <!-- 상단 정보 -->
           <header class="card-header">
             <div class="card-avatar">
-              {{ item.uploader.id }}
+              {{ item.uploader_info.uploader_id }}
             </div>
 
             <div class="card-header-text">
               <h2 class="card-title">{{ item.title }}</h2>
               <p class="card-meta">
-                {{ item.uploader.name }}
+                {{ item.uploader_info.uploader_name }}
                 <span class="card-dot">•</span>
                 {{ formatDate(item.createdAt) }}
               </p>
