@@ -140,12 +140,9 @@ definePageMeta({
 
 const { isLoggedIn } = useAuthState();
 
-const { data, pending, error } = await useFetch<MyScenarioItem[]>(
-  "/nuxt-api/scenarios/my-scenarios",
-  {
-    immediate: isLoggedIn.value === true,
-  },
-);
+const { data, pending, error } = await useFetch<MyScenarioItem[]>("/nuxt-api/scenarios/my-scenarios", {
+  immediate: isLoggedIn.value === true,
+});
 
 const scenarios = computed(() => data.value ?? []);
 

@@ -11,6 +11,7 @@ export const useAuthState = () => {
   });
 
   const token = useCookie<string | null>("auth:token", {
+    maxAge: 60 * 60, // 1시간 동안 쿠키 유지
     default: () => null,
     watch: true,
     secure: false,
