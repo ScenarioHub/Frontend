@@ -9,7 +9,7 @@ export default defineEventHandler(async (event) => {
   const bookmarked = query.bookmarked || false;
   // const page_size = 12;
   const sortString = String(query.sort) || "popular";
-  const token = getHeader(event, "authorization");
+  const token = getCookie(event, "auth:token");
 
   try {
     const response = await $fetch<ApiResponse<Post>>(
@@ -23,7 +23,7 @@ export default defineEventHandler(async (event) => {
           sort: sortString,
         },
         headers: {
-          ...(token && { Authorization: token }), // 그대로 전달
+          Authorization: `Bearer ${token || ""}`,
         },
       },
     );

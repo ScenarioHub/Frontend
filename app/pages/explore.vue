@@ -342,7 +342,7 @@
 </template>
 
 <script setup lang="ts">
-import type { Post, ScenarioItem } from "~/types";
+import type { ApiResponse, Like, Post, ScenarioItem } from "~/types";
 
 const sort = ref<"popular" | "latest" | "oldest">("popular");
 const validSorts = ["popular", "latest", "oldest"];
@@ -363,9 +363,6 @@ const { data: serverData, refresh } = await useFetch<Post>("/nuxt-api/scenarios/
     page: currentPage,
     sort: sort,
     bookmarked: onlyBookmarked,
-  },
-  headers: {
-    ...(token.value && { Authorization: `Bearer ${token.value}` }),
   },
 });
 
@@ -453,15 +450,31 @@ function onView(item: ScenarioItem) {
 
 // [핵심 수정] 북마크 토글 함수
 function toggleBookmark(item: ScenarioItem) {
-  // 1. 비로그인 시 로그인 유도
   if (!isLoggedIn.value) {
     openLogin();
     return;
   }
-  console.log(item);
-  // TODO: 실제 서버 API 호출
-  // $fetch(...)
+  checkMyLikeStatus(item);
 }
+
+const checkMyLikeStatus = async (item: ScenarioItem) => {
+  if (!isLoggedIn.value || !token.value) {
+    item.isBookmarked = false;
+    return;
+  }
+
+  try {
+    const res = await $fetch<ApiResponse<Like>>(`/nuxt-api/scenarios/${item.id}/like/`, {
+      method: "POST",
+    });
+    if (res.message) {
+      item.isBookmarked = res.message?.liked ? res.message?.liked : false;
+      item.stats.likes = res.message?.likes ? res.message?.likes : 0;
+    }
+  } catch (e) {
+    console.error("좋아요 상태 확인 실패", e);
+  }
+};
 
 function onDownload(item: ScenarioItem) {
   if (!item.id) return;

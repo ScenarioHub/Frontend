@@ -324,7 +324,7 @@
 </template>
 
 <script setup lang="ts">
-import type { Like, ScenarioDetail } from "@/types";
+import type { ApiResponse, Like, ScenarioDetail } from "@/types";
 
 definePageMeta({ layout: false });
 
@@ -334,8 +334,6 @@ const { openLogin } = useAuthModal();
 
 const route = useRoute();
 const id = computed(() => String(route.params.id));
-
-const isLiked = ref(false);
 
 // 1. [초기값]
 const DEFAULT_DETAIL: ScenarioDetail = {
@@ -362,11 +360,6 @@ const { data: serverData, pending, error, refresh } = await useFetch<ScenarioDet
   },
 );
 
-const { data: likeData } = await useFetch<Like>(
-  () => `/nuxt-api/scenarios/${id.value}/detail`, {
-
-  },
-);
 // 4. [동기화]
 watchEffect(() => {
   if (serverData.value) {
@@ -377,10 +370,6 @@ watchEffect(() => {
 watch(isLoggedIn, async () => {
   await refresh();
 });
-function a() {
-  checkMyLikeStatus();
-  console.log(likeData.value);
-}
 
 // 5. [액션] 좋아요 토글
 function toggleBookmark() {
@@ -388,28 +377,26 @@ function toggleBookmark() {
     openLogin();
     return;
   }
-  detail.value.isBookmarked = !detail.value.isBookmarked;
-  // TODO: 실제 서버 API 연동 (POST)
+  checkMyLikeStatus();
 }
 
 // --- 유틸리티 함수 (전체 구현 포함) ---
 const checkMyLikeStatus = async () => {
   if (!isLoggedIn.value || !token.value) {
-    isLiked.value = false;
+    detail.value.isBookmarked = false;
     return;
-    console.log(a());
   }
 
   try {
-    // GET 요청으로 내 좋아요 여부 확인 (API가 있다고 가정)
-    // 만약 별도 API가 없고 detail 정보에 'isLiked' 필드가 포함되어 온다면 이 요청은 필요 없습니다.
-    const res = await $fetch<{ liked: boolean }>(`/nuxt-api/scenarios/${id.value}/like/status`, {
-      headers: { Authorization: `Bearer ${token.value}` },
+    const res = await $fetch<ApiResponse<Like>>(`/nuxt-api/scenarios/${id.value}/like/`, {
+      method: "POST",
     });
-    isLiked.value = res.liked;
+    if (res.message) {
+      detail.value.isBookmarked = res.message?.liked ? res.message?.liked : false;
+      detail.value.stats.likes = res.message?.likes ? res.message?.likes : 0;
+    }
   } catch (e) {
     console.error("좋아요 상태 확인 실패", e);
-    isLiked.value = false;
   }
 };
 
