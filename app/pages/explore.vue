@@ -41,8 +41,8 @@
             v-if="isLoggedIn===true"
             type="button"
             class="toolbar-chip"
-            :class="{ 'toolbar-chip--active': onlyBookmarked }"
-            @click="onlyBookmarked = !onlyBookmarked"
+            :class="{ 'toolbar-chip--active': onlyLiked }"
+            @click="onlyLiked = !onlyLiked"
           >
             즐겨찾기
           </button>
@@ -347,12 +347,12 @@ import type { ApiResponse, Like, Post, ScenarioItem } from "~/types";
 const sort = ref<"popular" | "latest" | "oldest">("popular");
 const validSorts = ["popular", "latest", "oldest"];
 
-const onlyBookmarked = ref(false);
+const onlyLiked = ref(false);
 // const pageSize = 12;
 const currentPage = ref(1);
 const totalPages = ref(1);
 
-const { isLoggedIn, token } = useAuthState();
+const { isLoggedIn, accessToken: token } = useAuthState();
 const { openLogin } = useAuthModal();
 
 const tagOverflowMap = ref<Record<string, boolean>>({});
@@ -362,7 +362,7 @@ const { data: serverData, refresh } = await useFetch<Post>("/nuxt-api/scenarios/
   query: {
     page: currentPage,
     sort: sort,
-    bookmarked: onlyBookmarked,
+    onlyLiked: onlyLiked,
   },
 });
 

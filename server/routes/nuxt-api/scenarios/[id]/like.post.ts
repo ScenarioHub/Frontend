@@ -1,9 +1,10 @@
 import { createError, defineEventHandler, getCookie } from "h3";
-import type { ApiError } from "~/types";
+import type { ApiError, ApiResponse, Like } from "~/types";
+import { fetchWithAuth } from "../../utils/fetchWithAuth";
 
 export default defineEventHandler(async (event) => {
   const config = useRuntimeConfig();
-  const token = getCookie(event, "auth:token");
+  const token = getCookie(event, "auth_access_token");
   const id = getRouterParam(event, "id");
 
   try {
@@ -14,13 +15,14 @@ export default defineEventHandler(async (event) => {
       throw createError({ statusCode: 401, statusMessage: "인증 토큰이 없습니다." });
     }
 
-    const externalResponse = await $fetch(`${config.apiBase}/api/scenarios/${id}/like/`, {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${token}`,
+    const externalResponse = await fetchWithAuth<ApiResponse<Like>>(
+      event,
+      `${config.apiBase}/api/scenarios/${id}/like/`, {
+        method: "POST",
       },
-    });
-
+    );
+    // console.log(`[like.post.ts] ${externalResponse.status}\n${externalResponse.message?.liked}, ${externalResponse.message?.likes}`);
+    // 200 이랑 201 둘다 여기로 됨
     return externalResponse;
   } catch (error: unknown) {
     console.error("외부 API 좋아요 요청 실패:", error);

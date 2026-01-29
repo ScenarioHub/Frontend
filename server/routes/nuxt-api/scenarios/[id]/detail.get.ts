@@ -1,22 +1,18 @@
 import type { ApiResponse, ScenarioDetail } from "@/types";
-import { getCookie } from "h3";
+import { fetchWithAuth } from "../../utils/fetchWithAuth";
 
 export default defineEventHandler(async (event): Promise<ScenarioDetail> => {
   const id = event.context.params?.id || "";
   const config = useRuntimeConfig(event);
-  const token = getCookie(event, "auth:token");
 
   try {
-    const response = await $fetch<ApiResponse<ScenarioDetail>>(
-      `${config.apiBase}/api/scenarios/${id}/details/`,
-      {
-        headers: {
-          ...(token && { Authorization: `Bearer ${token}` }),
-        },
+    const externalResponse = await fetchWithAuth<ApiResponse<ScenarioDetail>>(
+      event,
+      `${config.apiBase}/api/scenarios/${id}/details/`, {
+        method: "GET",
       },
     );
-
-    const data = response.message;
+    const data = externalResponse.message;
 
     if (!data) {
       throw new Error("API 응답에 message 필드가 없습니다.");

@@ -14,3 +14,7 @@ export interface LoginResponseData {
   refresh: string;
   user: User;
 };
+
+export interface RefreshData {
+  access: string;
+}

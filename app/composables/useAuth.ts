@@ -1,15 +1,16 @@
 import type { ApiResponse, LoginResponseData, User } from "~/types";
 
 export const useAuth = () => {
-  const { searchQuery: q, userName, token } = useAuthState();
+  const { searchQuery, userName, accessToken, refreshToken } = useAuthState();
 
   async function register(payload: { email: string; password: string; name: string }) {
     try {
-      const response = await $fetch<ApiResponse<User>>("/nuxt-api/auth/register/", {
+      // const response =
+      await $fetch<ApiResponse<User>>("/nuxt-api/auth/register/", {
         method: "POST",
         body: payload,
       });
-      console.log("회원가입 성공:", response);
+      // console.log("회원가입 성공:", response);
       await login({ email: payload.email, password: payload.password });
     } catch (error) {
       console.error("Register Failed inside useAuth:", error);
@@ -21,9 +22,19 @@ export const useAuth = () => {
   }
 
   async function logout() {
-    userName.value = null; // 쿠키 삭제
-    token.value = null;
-    q.value = null; // 쿠키 삭제
+    try {
+      await $fetch<ApiResponse<string>>("/nuxt-api/auth/logout/", {
+        method: "POST",
+      });
+    } catch (error) {
+      console.error("Logout Failed:", error);
+      throw error;
+    } finally {
+      userName.value = null; // 쿠키 삭제
+      accessToken.value = null;
+      refreshToken.value = null;
+      searchQuery.value = null; // 쿠키 삭제
+    }
   }
 
   async function login(payload: { email: string; password: string }) {
@@ -32,8 +43,9 @@ export const useAuth = () => {
         method: "POST",
         body: payload,
       });
-      console.log("로그인 성공 in useAuth.ts:", res);
-      token.value = res.message?.access as string | null;
+      // console.log("로그인 성공 in useAuth.ts:", res);
+      accessToken.value = res.message?.access as string | null;
+      refreshToken.value = res.message?.refresh as string | null;
       userName.value = res.message?.user.name || "사용자";
     } catch (error) {
       console.error("Login Failed:", error);
@@ -41,9 +53,7 @@ export const useAuth = () => {
     }
   }
 
-  async function loginWithGoogle() {
-  // await navigateTo("/api/auth/google"); // 예시
-  }
 
-  return { logout, login, googleLogin: loginWithGoogle, register, userName };
+
+  return { logout, login, register, userName };
 };

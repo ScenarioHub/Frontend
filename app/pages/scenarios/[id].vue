@@ -89,7 +89,7 @@
             :class="{ 'is-active': detail.isBookmarked }"
             type="button"
             aria-label="좋아요"
-            @click="toggleBookmark"
+            @click="toggleLikeButton"
           >
             <svg
               xmlns="http://www.w3.org/2000/svg"
@@ -329,7 +329,7 @@ import type { ApiResponse, Like, ScenarioDetail } from "@/types";
 definePageMeta({ layout: false });
 
 const { logout } = useAuth();
-const { isLoggedIn, userName, token } = useAuthState();
+const { isLoggedIn, userName, accessToken: token } = useAuthState();
 const { openLogin } = useAuthModal();
 
 const route = useRoute();
@@ -372,7 +372,7 @@ watch(isLoggedIn, async () => {
 });
 
 // 5. [액션] 좋아요 토글
-function toggleBookmark() {
+function toggleLikeButton() {
   if (!isLoggedIn.value) {
     openLogin();
     return;

@@ -141,9 +141,9 @@ definePageMeta({
 const { isLoggedIn } = useAuthState();
 
 const { data, pending, error } = await useFetch<MyScenarioItem[]>("/nuxt-api/scenarios/my-scenarios", {
+  server: false,
   immediate: isLoggedIn.value === true,
 });
-
 const scenarios = computed(() => data.value ?? []);
 
 const isDeleteOpen = ref(false);
@@ -153,9 +153,9 @@ const deleting = ref(false);
 watch(
   () => isLoggedIn.value,
   (v) => {
-    if (v !== true) {
+    if (import.meta.client && v !== true) {
       alert("로그아웃하여 홈으로 이동합니다.");
-      navigateTo("/"); // 로그아웃/세션만료 등 즉시 홈으로 [web:37]
+      navigateTo("/");
     }
   },
   { immediate: true },

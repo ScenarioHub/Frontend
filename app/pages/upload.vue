@@ -2,9 +2,11 @@
 import { onMounted, ref } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import type { ApiResponse, UploadResponse } from "~/types";
+
 // 라우터 및 상태 관리
 const route = useRoute();
 const router = useRouter();
+const { isLoggedIn } = useAuthState();
 
 // 폼 데이터
 const form = ref({
@@ -50,6 +52,17 @@ onMounted(() => {
     loadScenarioData(id);
   }
 });
+
+watch(
+  () => isLoggedIn.value,
+  (v) => {
+    if (import.meta.client && v !== true) {
+      alert("로그아웃하여 홈으로 이동합니다.");
+      navigateTo("/");
+    }
+  },
+  { immediate: true },
+);
 
 // 태그 추가
 function addTag() {

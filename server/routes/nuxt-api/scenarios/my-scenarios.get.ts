@@ -1,21 +1,16 @@
 import { defineEventHandler } from "h3";
 import type { ApiResponse, MyScenarioItem } from "~/types";
+import { fetchWithAuth } from "../utils/fetchWithAuth";
 
 export default defineEventHandler(async (event) => {
   const config = useRuntimeConfig(event);
-  const token = getCookie(event, "auth:token");
-
   try {
-    const res = await $fetch<ApiResponse<MyScenarioItem[]>>(
-      `${config.apiBase}/api/scenarios/myscenario`,
-      {
-        method: "get",
-        headers: {
-          Authorization: `Bearer ${token || ""}`,
-        },
+    const res = await fetchWithAuth<ApiResponse<MyScenarioItem[]>>(
+      event,
+      `${config.apiBase}/api/scenarios/myscenario`, {
+        method: "GET",
       },
     );
-    console.log(res.message);
     return res.message;
   } catch (error) {
     console.error("[My-Scenarios API Error]", error);
