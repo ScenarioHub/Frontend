@@ -44,11 +44,11 @@ export const fetchWithAuth = async <T>(
         }
 
         const cookieOptions = {
-          maxAge: 60 * 60, // 1시간 (useAuthState와 동일)
-          path: "/", // [핵심] 이거 없으면 경로 꼬여서 무한루프 돔
-          secure: false, // useAuthState와 동일
-          sameSite: "lax" as const, // useAuthState와 동일
-          httpOnly: false, // useAuthState와 동일 (false여야 JS가 읽음)
+          maxAge: 60 * 60,
+          path: "/",
+          secure: false,
+          sameSite: "lax" as const,
+          httpOnly: false,
         };
 
         deleteCookie(event, "auth_access_token", cookieOptions);

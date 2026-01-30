@@ -1,3 +1,119 @@
+<template>
+  <div class="page-container">
+    <header class="header">
+      <h1 class="page-title">시나리오 업로드</h1>
+      <p class="page-desc">시나리오를 커뮤니티와 공유하세요</p>
+    </header>
+
+    <div class="form-container">
+      <!-- 1. 제목 -->
+      <div class="form-group">
+        <label class="label">시나리오 제목 <span class="required">*</span></label>
+        <input
+          v-model="form.title"
+          type="text"
+          class="input-text"
+          placeholder="시나리오 제목을 입력하세요"
+        >
+      </div>
+
+      <!-- 2. 설명 -->
+      <div class="form-group">
+        <label class="label">시나리오 설명 <span class="required">*</span></label>
+        <textarea
+          v-model="form.description"
+          class="input-textarea"
+          placeholder="시나리오에 대한 설명을 입력하세요"
+          rows="5"
+        />
+      </div>
+
+      <!-- 3. 태그 설정 (요청 기능) -->
+      <div class="form-group">
+        <label class="label">
+          태그 설정
+          <span class="sub-label">(최대 5개, 엔터로 입력)</span>
+        </label>
+
+        <div class="tag-input-wrap">
+          <!-- 태그 목록 -->
+          <div v-if="form.tags.length > 0" class="tags-list">
+            <span v-for="(tag, index) in form.tags" :key="index" class="tag-pill">
+              #{{ tag }}
+              <button class="tag-remove" type="button" @click="removeTag(index)">×</button>
+            </span>
+          </div>
+
+          <!-- 입력창 -->
+          <input
+            v-model="tagInput"
+            type="text"
+            class="input-text tag-input"
+            :placeholder="form.tags.length < MAX_TAGS ? '태그 입력 후 Enter' : '태그 최대 개수에 도달했습니다'"
+            :disabled="form.tags.length >= MAX_TAGS"
+            @keydown.enter.prevent="addTag"
+          >
+        </div>
+      </div>
+
+      <!-- 4. 파일 업로드 (드래그 앤 드롭) -->
+      <div class="form-group">
+        <label class="label">시나리오 파일 <span class="required">*</span></label>
+        <div
+          class="upload-area"
+          :class="{ 'is-dragover': isDragOver, 'has-file': form.file }"
+          @dragover.prevent="isDragOver = true"
+          @dragleave.prevent="isDragOver = false"
+          @drop.prevent="onDrop"
+          @click="fileInputRef?.click()"
+        >
+          <input
+            ref="fileInputRef"
+            type="file"
+            class="hidden-input"
+            accept=".xosc,.xml"
+            @change="onFileChange"
+          >
+
+          <template v-if="form.file">
+            <div class="file-info">
+              <span class="file-icon">📄</span>
+              <span class="file-name">{{ form.file.name }}</span>
+              <span class="file-size">({{ (form.file.size / 1024).toFixed(1) }} KB)</span>
+              <button class="btn-clear-file" @click.stop="form.file = null">삭제</button>
+            </div>
+          </template>
+
+          <template v-else>
+            <div class="upload-placeholder">
+              <div class="upload-icon">
+                <!-- 업로드 아이콘 SVG -->
+                <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                  <polyline points="17 8 12 3 7 8" />
+                  <line x1="12" y1="3" x2="12" y2="15" />
+                </svg>
+              </div>
+              <p class="upload-text">파일을 드래그하거나 클릭하여 업로드</p>
+              <button class="btn-select" type="button">파일 선택</button>
+            </div>
+          </template>
+        </div>
+      </div>
+
+      <!-- 하단 버튼 -->
+      <button
+        class="btn btn-submit"
+        :class="{ 'is-active': isValid }"
+        :disabled="isLoading || !isValid"
+        @click="onSubmit"
+      >
+        {{ isLoading ? '업로드 중...' : '업로드' }}
+      </button>
+    </div>
+  </div>
+</template>
+
 <script setup lang="ts">
 import { onMounted, ref } from "vue";
 import { useRoute, useRouter } from "vue-router";
@@ -157,122 +273,6 @@ async function onSubmit() {
   }
 }
 </script>
-
-<template>
-  <div class="page-container">
-    <header class="header">
-      <h1 class="page-title">시나리오 업로드</h1>
-      <p class="page-desc">시나리오를 커뮤니티와 공유하세요</p>
-    </header>
-
-    <div class="form-container">
-      <!-- 1. 제목 -->
-      <div class="form-group">
-        <label class="label">시나리오 제목 <span class="required">*</span></label>
-        <input
-          v-model="form.title"
-          type="text"
-          class="input-text"
-          placeholder="시나리오 제목을 입력하세요"
-        >
-      </div>
-
-      <!-- 2. 설명 -->
-      <div class="form-group">
-        <label class="label">시나리오 설명 <span class="required">*</span></label>
-        <textarea
-          v-model="form.description"
-          class="input-textarea"
-          placeholder="시나리오에 대한 설명을 입력하세요"
-          rows="5"
-        />
-      </div>
-
-      <!-- 3. 태그 설정 (요청 기능) -->
-      <div class="form-group">
-        <label class="label">
-          태그 설정
-          <span class="sub-label">(최대 5개, 엔터로 입력)</span>
-        </label>
-
-        <div class="tag-input-wrap">
-          <!-- 태그 목록 -->
-          <div v-if="form.tags.length > 0" class="tags-list">
-            <span v-for="(tag, index) in form.tags" :key="index" class="tag-pill">
-              #{{ tag }}
-              <button class="tag-remove" type="button" @click="removeTag(index)">×</button>
-            </span>
-          </div>
-
-          <!-- 입력창 -->
-          <input
-            v-model="tagInput"
-            type="text"
-            class="input-text tag-input"
-            :placeholder="form.tags.length < MAX_TAGS ? '태그 입력 후 Enter' : '태그 최대 개수에 도달했습니다'"
-            :disabled="form.tags.length >= MAX_TAGS"
-            @keydown.enter.prevent="addTag"
-          >
-        </div>
-      </div>
-
-      <!-- 4. 파일 업로드 (드래그 앤 드롭) -->
-      <div class="form-group">
-        <label class="label">시나리오 파일 <span class="required">*</span></label>
-        <div
-          class="upload-area"
-          :class="{ 'is-dragover': isDragOver, 'has-file': form.file }"
-          @dragover.prevent="isDragOver = true"
-          @dragleave.prevent="isDragOver = false"
-          @drop.prevent="onDrop"
-          @click="fileInputRef?.click()"
-        >
-          <input
-            ref="fileInputRef"
-            type="file"
-            class="hidden-input"
-            accept=".xosc,.xml"
-            @change="onFileChange"
-          >
-
-          <template v-if="form.file">
-            <div class="file-info">
-              <span class="file-icon">📄</span>
-              <span class="file-name">{{ form.file.name }}</span>
-              <span class="file-size">({{ (form.file.size / 1024).toFixed(1) }} KB)</span>
-              <button class="btn-clear-file" @click.stop="form.file = null">삭제</button>
-            </div>
-          </template>
-
-          <template v-else>
-            <div class="upload-placeholder">
-              <div class="upload-icon">
-                <!-- 업로드 아이콘 SVG -->
-                <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
-                  <polyline points="17 8 12 3 7 8" />
-                  <line x1="12" y1="3" x2="12" y2="15" />
-                </svg>
-              </div>
-              <p class="upload-text">파일을 드래그하거나 클릭하여 업로드</p>
-              <button class="btn-select" type="button">파일 선택</button>
-            </div>
-          </template>
-        </div>
-      </div>
-
-      <!-- 하단 버튼 -->
-      <button
-        class="btn btn-submit"
-        :class="{ 'is-active': isValid }"
-        :disabled="isLoading || !isValid"
-        @click="onSubmit"
-      >
-        {{ isLoading ? '업로드 중...' : '업로드' }}
-      </button>
-    </div>
-  </div>
-</template>
 
 <style scoped>
 /* 전체 레이아웃 */

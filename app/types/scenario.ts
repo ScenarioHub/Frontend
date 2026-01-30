@@ -15,7 +15,7 @@ export interface ScenarioItem extends ScenarioBase { // 시나리오 공유 게�
 export interface ScenarioDetail extends Omit<ScenarioItem, "uploader"> { // 시나리오 상세보기 화면
   code: string;
   file: FileInfo;
-
+  isOwner: boolean;
   // 여기 api 이름 수정==========================================
   uploader: {
     name: string;

@@ -41,6 +41,34 @@
 
         <!-- 우상단 버튼들 -->
         <div class="topbar-actions">
+          <!-- 1. 삭제 버튼 (소유자만) -->
+          <button
+            v-if="detail.isOwner"
+            class="bg-white border-2 border-gray-200 hover:border-red-500 text-red-500 px-4 py-2 rounded-lg text-[14px] flex items-center gap-2"
+            @click="openDeleteModal()"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="16"
+              height="16"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              aria-hidden="true"
+            >
+              <path d="M10 11v6" />
+              <path d="M14 11v6" />
+              <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6" />
+              <path d="M3 6h18" />
+              <path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+            </svg>
+            삭제
+          </button>
+
+          <!-- 2. 공유 버튼 -->
           <button class="btn btn-share" type="button" @click="onShare">
             <svg
               xmlns="http://www.w3.org/2000/svg"
@@ -63,6 +91,7 @@
             공유
           </button>
 
+          <!-- 3. 다운로드 버튼 -->
           <button class="btn btn-download" type="button" @click="onDownload">
             <svg
               xmlns="http://www.w3.org/2000/svg"
@@ -83,7 +112,7 @@
             다운로드
           </button>
 
-          <!-- 좋아요 버튼 -->
+          <!-- 4. 좋아요 버튼 -->
           <button
             class="btn-like"
             :class="{ 'is-active': detail.isBookmarked }"
@@ -108,6 +137,7 @@
             </svg>
           </button>
 
+          <!-- 5. 로그인/로그아웃 (여기가 수정됨) -->
           <button
             v-if="!isLoggedIn"
             class="btn btn-ghost"
@@ -135,14 +165,85 @@
             로그인
           </button>
 
-          <button
-            v-else
-            class="my-avatar"
-            aria-label="사용자 메뉴"
-            @click="onLogoutClick"
-          >
-            <span class="my-avatar-text">{{ userInitial }}</span>
-          </button>
+          <!-- 로그인 상태일 때: 드롭다운 메뉴 -->
+          <Menu v-else as="div" class="relative inline-block text-left">
+            <!-- 메뉴 버튼 (아바타) -->
+            <MenuButton class="my-avatar" aria-label="사용자 메뉴">
+              <span class="my-avatar-text">{{ userInitial }}</span>
+            </MenuButton>
+
+            <!-- 드롭다운 패널 -->
+            <transition
+              enter-active-class="transition ease-out duration-100"
+              enter-from-class="transform opacity-0 scale-95"
+              enter-to-class="transform opacity-100 scale-100"
+              leave-active-class="transition ease-in duration-75"
+              leave-from-class="transform opacity-100 scale-100"
+              leave-to-class="transform opacity-0 scale-95"
+            >
+              <MenuItems
+                class="absolute right-0 mt-2 w-56 origin-top-right rounded-md bg-white shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none z-50"
+              >
+                <!-- 사용자 정보 (헤더) -->
+                <div class="px-4 py-3 border-b border-gray-100">
+                  <p class="text-sm font-bold text-gray-900">
+                    {{ userName || "사용자" }}
+                  </p>
+                  <p class="text-xs text-gray-500 truncate">로그인된 계정</p>
+                </div>
+
+                <div class="py-1">
+                  <MenuItem v-slot="{ active, close }">
+                    <button
+                      type="button"
+                      :class="[
+                        active ? 'bg-gray-100 text-gray-900' : 'text-gray-700',
+                        'block w-full text-left px-4 py-2 text-sm',
+                      ]"
+                      @click="() => {
+                        navigateTo('/my-scenarios');
+                        close();
+                      }"
+                    >
+                      내 시나리오
+                    </button>
+                  </MenuItem>
+
+                  <MenuItem v-slot="{ active, close }">
+                    <button
+                      type="button"
+                      :class="[
+                        active ? 'bg-gray-100 text-gray-900' : 'text-gray-700',
+                        'block w-full text-left px-4 py-2 text-sm',
+                      ]"
+                      @click="() => {
+                        // navigateTo('/settings'); // 나중에 경로 생기면 추가
+                        close();
+                      }"
+                    >
+                      설정
+                    </button>
+                  </MenuItem>
+                </div>
+
+                <!-- 로그아웃 버튼 -->
+                <div class="py-1 border-t border-gray-100">
+                  <MenuItem v-slot="{ active }">
+                    <button
+                      type="button"
+                      :class="[
+                        active ? 'bg-gray-100 text-red-600' : 'text-red-600',
+                        'block w-full text-left px-4 py-2 text-sm',
+                      ]"
+                      @click="onLogoutClick"
+                    >
+                      로그아웃
+                    </button>
+                  </MenuItem>
+                </div>
+              </MenuItems>
+            </transition>
+          </Menu>
         </div>
       </header>
 
@@ -245,7 +346,9 @@
                       stroke-linecap="round"
                       stroke-linejoin="round"
                     >
-                      <path d="M2.062 12.348a1 1 0 0 1 0-.696 10.75 10.75 0 0 1 19.876 0 1 1 0 0 1 0 .696 10.75 10.75 0 0 1-19.876 0" />
+                      <path
+                        d="M2.062 12.348a1 1 0 0 1 0-.696 10.75 10.75 0 0 1 19.876 0 1 1 0 0 1 0 .696 10.75 10.75 0 0 1-19.876 0"
+                      />
                       <circle cx="12" cy="12" r="3" />
                     </svg>
                     <span class="stat-text">조회수</span>
@@ -270,7 +373,9 @@
                       stroke-linecap="round"
                       stroke-linejoin="round"
                     >
-                      <path d="M2 9.5a5.5 5.5 0 0 1 9.591-3.676.56.56 0 0 0 .818 0A5.49 5.49 0 0 1 22 9.5c0 2.29-1.5 4-3 5.5l-5.492 5.313a2 2 0 0 1-3 .019L5 15c-1.5-1.5-3-3.2-3-5.5" />
+                      <path
+                        d="M2 9.5a5.5 5.5 0 0 1 9.591-3.676.56.56 0 0 0 .818 0A5.49 5.49 0 0 1 22 9.5c0 2.29-1.5 4-3 5.5l-5.492 5.313a2 2 0 0 1-3 .019L5 15c-1.5-1.5-3-3.2-3-5.5"
+                      />
                     </svg>
                     <span class="stat-text">좋아요</span>
                   </div>
@@ -285,7 +390,9 @@
             <div class="side-card">
               <div class="side-title">태그</div>
               <div class="tags">
-                <span v-for="t in (detail.tags ?? [])" :key="t" class="tag">{{ t }}</span>
+                <span v-for="t in detail.tags ?? []" :key="t" class="tag">{{
+                  t
+                }}</span>
               </div>
             </div>
 
@@ -293,13 +400,16 @@
             <div class="side-card">
               <div class="side-title">파일 정보</div>
               <div class="info-row">
-                <span class="info-key">형식</span><span class="info-val">{{ detail.file?.format ?? '-' }}</span>
+                <span class="info-key">형식</span><span class="info-val">{{
+                  detail.file?.format ?? "-"
+                }}</span>
               </div>
               <div class="info-row">
-                <span class="info-key">버전</span><span class="info-val"> v{{ detail.file?.version ?? '-' }}</span>
+                <span class="info-key">버전</span><span class="info-val">
+                  v{{ detail.file?.version ?? "-" }}</span>
               </div>
               <div class="info-row">
-                <span class="info-key">파일 크기</span><span class="info-val">{{ detail.file?.size ?? '-' }}</span>
+                <span class="info-key">파일 크기</span><span class="info-val">{{ detail.file?.size ?? "-" }}</span>
               </div>
             </div>
 
@@ -307,11 +417,17 @@
             <div class="side-card">
               <div class="side-title">업로드한 사람</div>
               <div class="uploader">
-                <div class="uploader-avatar">{{ detail.uploader?.name[0] ?? 'U' }}</div>
+                <div class="uploader-avatar">
+                  {{ detail.uploader?.name[0] ?? "U" }}
+                </div>
                 <div class="uploader-meta">
-                  <div class="uploader-name">{{ detail.uploader?.name ?? '알 수 없음' }}</div>
+                  <div class="uploader-name">
+                    {{ detail.uploader?.name ?? "알 수 없음" }}
+                  </div>
                   <div class="uploader-sub">
-                    총 {{ formatNumber(detail.uploader?.totalScenarios ?? 0) }}개의 시나리오
+                    총
+                    {{ formatNumber(detail.uploader?.totalScenarios ?? 0) }}개의
+                    시나리오
                   </div>
                 </div>
               </div>
@@ -320,11 +436,46 @@
         </div>
       </main>
     </div>
+    <!-- 삭제 확인 모달 -->
+    <teleport to="body">
+      <div
+        v-if="isDeleteOpen"
+        class="modal-backdrop"
+        @click.self="closeDeleteModal"
+      >
+        <div
+          class="modal"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="deleteTitle"
+        >
+          <h3 id="deleteTitle" class="modal-title">정말 삭제할까요?</h3>
+          <p class="modal-desc">
+            <strong>{{ detail.title }}</strong> 시나리오를 삭제하면 복구할 수
+            없습니다.
+          </p>
+
+          <div class="modal-actions">
+            <button class="modal-btn ghost" @click="closeDeleteModal">
+              취소
+            </button>
+            <button
+              class="modal-btn danger"
+              :disabled="deleting"
+              @click="confirmDelete"
+            >
+              {{ deleting ? "삭제 중..." : "삭제" }}
+            </button>
+          </div>
+        </div>
+      </div>
+    </teleport>
   </div>
 </template>
 
 <script setup lang="ts">
-import type { ApiResponse, Like, ScenarioDetail } from "@/types";
+import type { ApiError, ApiResponse, Like, ScenarioDetail } from "@/types";
+import { Menu, MenuButton, MenuItem, MenuItems } from "@headlessui/vue"; // ✅ 추가
 
 definePageMeta({ layout: false });
 
@@ -334,6 +485,9 @@ const { openLogin } = useAuthModal();
 
 const route = useRoute();
 const id = computed(() => String(route.params.id));
+
+const isDeleteOpen = ref(false);
+const deleting = ref(false);
 
 // 1. [초기값]
 const DEFAULT_DETAIL: ScenarioDetail = {
@@ -346,15 +500,22 @@ const DEFAULT_DETAIL: ScenarioDetail = {
   tags: [],
   uploader: { name: "", uploader_id: 0, email: "", totalScenarios: 0 },
   file: { format: "", version: "", size: "" },
-  isBookmarked: false, // 기본값 false 확인
+  isBookmarked: false,
+  isOwner: false,
 };
 
 // 2. [로컬 상태]
 const detail = ref<ScenarioDetail>({ ...DEFAULT_DETAIL });
 
 // 3. 서버 데이터 가져오기
-const { data: serverData, pending, error, refresh } = await useFetch<ScenarioDetail>(
-  () => `/nuxt-api/scenarios/${id.value}/detail`, {
+const {
+  data: serverData,
+  pending,
+  error,
+  refresh,
+} = await useFetch<ScenarioDetail>(
+  () => `/nuxt-api/scenarios/${id.value}/detail`,
+  {
     key: `scenario-${id.value}-detail`,
     watch: [id],
   },
@@ -388,11 +549,16 @@ const checkMyLikeStatus = async () => {
   }
 
   try {
-    const res = await $fetch<ApiResponse<Like>>(`/nuxt-api/scenarios/${id.value}/like/`, {
-      method: "POST",
-    });
+    const res = await $fetch<ApiResponse<Like>>(
+      `/nuxt-api/scenarios/${id.value}/like/`,
+      {
+        method: "POST",
+      },
+    );
     if (res.message) {
-      detail.value.isBookmarked = res.message?.liked ? res.message?.liked : false;
+      detail.value.isBookmarked = res.message?.liked
+        ? res.message?.liked
+        : false;
       detail.value.stats.likes = res.message?.likes ? res.message?.likes : 0;
     }
   } catch (e) {
@@ -412,43 +578,70 @@ function goBack() {
   if (!import.meta.client) return;
   const previousPath = window.history.state?.back;
 
-  if (previousPath && typeof previousPath === "string" && previousPath.includes("/my-scenarios")) {
+  if (
+    previousPath
+    && typeof previousPath === "string"
+    && previousPath.includes("/my-scenarios")
+  ) {
     history.back();
   } else {
     navigateTo("/explore");
   }
 }
 
+function openDeleteModal() {
+  isDeleteOpen.value = true;
+}
+
+function closeDeleteModal() {
+  isDeleteOpen.value = false;
+}
+
+async function confirmDelete() {
+  deleting.value = true;
+
+  try {
+    const deleteResponseData = await $fetch<ApiResponse<string>>(
+      `/nuxt-api/scenarios/${detail.value.id}/delete`,
+      { method: "DELETE" },
+    );
+    if (deleteResponseData.status == 200) {
+      alert("삭제되었습니다.");
+      navigateTo("/explore");
+    }
+  } catch (error) {
+    console.error("삭제 실패:", error);
+    const err = error as ApiError;
+    alert(err.statusMessage || "삭제 중 오류가 발생했습니다.");
+  }
+
+  deleting.value = false;
+  closeDeleteModal();
+}
+
 async function onShare() {
-  // SSR 환경이면 실행 안 함
   if (!import.meta.client) return;
 
   const url = window.location.href;
 
-  // 1. 최신 방식 (HTTPS 또는 Localhost) 시도
   if (navigator.clipboard && window.isSecureContext) {
     try {
       await navigator.clipboard.writeText(url);
       alert("링크가 복사되었습니다.");
-      return; // 성공하면 여기서 종료
+      return;
     } catch (err) {
       console.error("Clipboard API 실패, 폴백 시도:", err);
     }
   }
 
-  // 2. 구형 방식 (HTTP 호환) - 폴백
   try {
     const textArea = document.createElement("textarea");
     textArea.value = url;
-
-    // 화면 밖으로 숨김 (안 보이지만 존재하게)
     textArea.style.position = "fixed";
     textArea.style.left = "-9999px";
-
     document.body.appendChild(textArea);
     textArea.focus();
     textArea.select();
-
     const successful = document.execCommand("copy");
     document.body.removeChild(textArea);
 
@@ -458,7 +651,9 @@ async function onShare() {
       throw new Error("execCommand 실패");
     }
   } catch (err) {
-    alert("브라우저 보안 설정으로 인해 복사할 수 없습니다.\n수동으로 주소를 복사해주세요.");
+    alert(
+      "브라우저 보안 설정으로 인해 복사할 수 없습니다.\n수동으로 주소를 복사해주세요.",
+    );
     console.error(err);
   }
 }
@@ -486,8 +681,8 @@ function formatNumber(n: number) {
 const onDownload = () => {
   if (!id.value) return;
   const downloadUrl = `/nuxt-api/scenarios/${id.value}/download`;
-  // 만약 바로 다운로드가 아니라면 window.open(downloadUrl) 등 사용
   window.location.href = downloadUrl;
+  detail.value.stats.downloads += 1;
 };
 </script>
 
@@ -573,7 +768,7 @@ const onDownload = () => {
   font-weight: 600;
   font-size: 14px;
   border: 2px solid transparent;
-  transition: all 0.15s; /* 부드러운 hover 효과 */
+  transition: all 0.15s;
 }
 .btn.btn-share {
   background: #fff;
@@ -582,7 +777,7 @@ const onDownload = () => {
 }
 .btn.btn-share:hover {
   border-color: #155dfc;
-  color: #1447e6
+  color: #1447e6;
 }
 
 .btn.btn-download {
@@ -599,7 +794,7 @@ const onDownload = () => {
   color: #0f172a;
 }
 
-/* --- 좋아요 버튼 스타일 (수정됨) --- */
+/* --- 좋아요 버튼 스타일 --- */
 .btn-like {
   width: 40px;
   height: 40px;
@@ -619,7 +814,6 @@ const onDownload = () => {
   color: #dc2626;
 }
 
-/* 활성화 상태 (isBookmarked = true) */
 .btn-like.is-active {
   border-color: #ef4444;
   color: #dc2626;
@@ -628,7 +822,6 @@ const onDownload = () => {
   background: #fee2e2;
 }
 
-/* 하트 아이콘 기본 */
 .heart-icon {
   width: 23px;
   height: 23px;
@@ -637,7 +830,6 @@ const onDownload = () => {
   transition: fill 0.15s;
 }
 
-/* 하트 아이콘 채움 상태 */
 .heart-filled {
   fill: #ef4444;
 }
@@ -750,7 +942,9 @@ const onDownload = () => {
   padding: 10px 4px;
   border-top: 1px solid rgba(15, 23, 42, 0.06);
 }
-.stat-row:first-of-type { border-top: none; }
+.stat-row:first-of-type {
+  border-top: none;
+}
 .stat-label {
   display: flex;
   align-items: center;
@@ -784,8 +978,12 @@ const onDownload = () => {
   border-top: 1px solid rgba(15, 23, 42, 0.06);
   font-size: 13px;
 }
-.info-row:first-of-type { border-top: none; }
-.info-key { color: #64748b; }
+.info-row:first-of-type {
+  border-top: none;
+}
+.info-key {
+  color: #64748b;
+}
 .uploader {
   display: flex;
   gap: 12px;
@@ -812,6 +1010,75 @@ const onDownload = () => {
 }
 
 @media (max-width: 980px) {
-  .grid { grid-template-columns: 1fr; }
+  .grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* modal */
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.45);
+  display: grid;
+  place-items: center;
+  padding: 16px;
+  z-index: 60;
+}
+
+.modal {
+  width: min(520px, 100%);
+  background: #fff;
+  border-radius: 16px;
+  border: 1px solid rgba(15, 23, 42, 0.1);
+  box-shadow: 0 20px 60px rgba(15, 23, 42, 0.25);
+  padding: 18px 18px 16px;
+}
+
+.modal-title {
+  margin: 0 0 10px;
+  font-size: 18px;
+  letter-spacing: -0.3px;
+}
+.modal-desc {
+  margin: 0 0 16px;
+  color: #475569;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+.modal-btn {
+  height: 36px;
+  padding: 0 14px;
+  border-radius: 10px;
+  border: 1px solid transparent;
+  font-weight: 700;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.modal-btn.ghost {
+  background: #fff;
+  border-color: rgba(15, 23, 42, 0.14);
+  color: #0f172a;
+}
+
+.modal-btn.danger {
+  background: #ef4444;
+  color: #fff;
+  transition: background-color 0.15s ease;
+}
+.modal-btn.danger:hover {
+  background: #dc2626;
+}
+.modal-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
 }
 </style>

@@ -53,7 +53,5 @@ export const useAuth = () => {
     }
   }
 
-
-
   return { logout, login, register, userName };
 };

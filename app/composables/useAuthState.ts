@@ -1,14 +1,12 @@
 // composables/useHeaderState.ts
 export const useAuthState = () => {
-  const searchQuery = useCookie<string | null>("header:q", {
-    default: () => "",
+  const searchQuery = useCookie<string | null>("header_searchQuery", {
     watch: true,
   });
 
   const isLoggedIn = computed(() => !!accessToken.value);
 
   const userName = useCookie<string | null>("auth_userName", {
-    default: () => "",
     watch: true,
   });
 

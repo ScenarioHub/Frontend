@@ -96,29 +96,6 @@
           업로드
         </button>
 
-        <!-- <button
-          v-if="false"
-          class="icon-btn"
-          aria-label="알림"
-          @click="$emit('notifications')"
-        >
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-            <path
-              d="M18 8a6 6 0 1 0-12 0c0 7-3 7-3 7h18s-3 0-3-7Z"
-              stroke="currentColor"
-              stroke-width="2"
-              stroke-linejoin="round"
-            />
-            <path
-              d="M13.7 20a2 2 0 0 1-3.4 0"
-              stroke="currentColor"
-              stroke-width="2"
-              stroke-linecap="round"
-            />
-          </svg>
-        </button> -->
-
-        <!-- [수정] 아바타 드롭다운 메뉴 (Headless UI Menu) -->
         <Menu as="div" class="relative inline-block text-left">
           <!-- 메뉴 버튼 (아바타) -->
           <MenuButton class="avatar" aria-label="사용자 메뉴">
@@ -143,15 +120,36 @@
 
               <!-- 메뉴 항목들 -->
               <div class="py-1">
-                <MenuItem v-slot="{ active }">
-                  <NuxtLink to="/my-scenarios" :class="[active ? 'bg-gray-100 text-gray-900' : 'text-gray-700', 'block px-4 py-2 text-sm']">
+                <MenuItem v-slot="{ active, close }">
+                  <button
+                    type="button"
+                    :class="[
+                      active ? 'bg-gray-100 text-gray-900' : 'text-gray-700',
+                      'block w-full text-left px-4 py-2 text-sm',
+                    ]"
+                    @click="() => {
+                      navigateTo('/my-scenarios');
+                      close();
+                    }"
+                  >
                     내 시나리오
-                  </NuxtLink>
+                  </button>
                 </MenuItem>
-                <MenuItem v-slot="{ active }">
-                  <a href="#" :class="[active ? 'bg-gray-100 text-gray-900' : 'text-gray-700', 'block px-4 py-2 text-sm']">
+
+                <MenuItem v-slot="{ active, close }">
+                  <button
+                    type="button"
+                    :class="[
+                      active ? 'bg-gray-100 text-gray-900' : 'text-gray-700',
+                      'block w-full text-left px-4 py-2 text-sm',
+                    ]"
+                    @click="() => {
+                      // navigateTo('/settings'); // 나중에 경로 생기면 추가
+                      close();
+                    }"
+                  >
                     설정
-                  </a>
+                  </button>
                 </MenuItem>
               </div>
 

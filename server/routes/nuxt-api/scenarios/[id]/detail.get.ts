@@ -54,6 +54,7 @@ export default defineEventHandler(async (event): Promise<ScenarioDetail> => {
       file: { format: "-", version: "-", size: "KB" },
       uploader: { name: "-", uploader_id: 0, email: "", totalScenarios: 0 },
       code: "",
+      isOwner: false,
       isBookmarked: false,
     } as ScenarioDetail;
   }

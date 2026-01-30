@@ -7,18 +7,55 @@
         목록을 불러오지 못했습니다.
       </div>
 
-      <!-- 리스트 -->
-      <section v-else class="list">
-        <article v-for="item in scenarios" :key="item.id" class="card">
-          <div class="card-left">
-            <h3 class="card-title">{{ item.title }}</h3>
-            <p class="card-desc">{{ item.summary }}</p>
+      <!-- 데이터 없음 (Empty State) -->
+      <div v-else-if="scenarios.length === 0" class="empty-state">
+        <div class="empty-icon">📂</div>
+        <p class="empty-text">아직 작성하신 시나리오가 없습니다.</p>
+        <button class="empty-btn" @click="navigateTo('/generator')">
+          새 시나리오 만들기
+        </button>
+      </div>
 
-            <div class="meta">
-              <span class="meta-item">
-                생성일: {{ formatDate(item.createdAt) }}
-              </span>
-              <span class="meta-item meta-downloads">
+      <!-- 리스트 & 페이지네이션 -->
+      <div v-else>
+        <section class="list">
+          <!-- scenarios 대신 pagedScenarios 사용 -->
+          <article v-for="item in pagedScenarios" :key="item.id" class="card">
+            <div class="card-left">
+              <h3 class="card-title">{{ item.title }}</h3>
+              <p class="card-desc">{{ item.summary }}</p>
+
+              <div class="meta">
+                <span class="meta-item">
+                  생성일: {{ formatDate(item.createdAt) }}
+                </span>
+                <span class="meta-item meta-downloads">
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="16"
+                    height="16"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    aria-hidden="true"
+                  >
+                    <path d="M12 15V3" />
+                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                    <path d="m7 10 5 5 5-5" />
+                  </svg>
+                  {{ item.downloadCount }}
+                </span>
+              </div>
+            </div>
+
+            <div class="card-actions">
+              <button
+                class="bg-[#155dfc] hover:bg-[#1447e6] text-white px-4 py-2 rounded-lg text-[14px] flex items-center gap-2"
+                @click="onView(item)"
+              >
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
                   width="16"
@@ -31,67 +68,65 @@
                   stroke-linejoin="round"
                   aria-hidden="true"
                 >
-                  <path d="M12 15V3" />
-                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
-                  <path d="m7 10 5 5 5-5" />
+                  <path
+                    d="M2.062 12.348a1 1 0 0 1 0-.696 10.75 10.75 0 0 1 19.876 0 1 1 0 0 1 0 .696 10.75 10.75 0 0 1-19.876 0"
+                  />
+                  <circle cx="12" cy="12" r="3" />
                 </svg>
-                {{ item.downloadCount }}
-              </span>
+                보기
+              </button>
+
+              <button
+                class="bg-white border-2 border-gray-200 hover:border-red-500 text-red-500 px-4 py-2 rounded-lg text-[14px] flex items-center gap-2"
+                @click="openDeleteModal(item)"
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="16"
+                  height="16"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  aria-hidden="true"
+                >
+                  <path d="M10 11v6" />
+                  <path d="M14 11v6" />
+                  <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6" />
+                  <path d="M3 6h18" />
+                  <path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+                </svg>
+                삭제
+              </button>
             </div>
-          </div>
+          </article>
+        </section>
 
-          <div class="card-actions">
-            <button
-              class="bg-[#155dfc] hover:bg-[#1447e6] text-white px-4 py-2 rounded-lg text-[14px] flex items-center gap-2"
-              @click="onView(item)"
-            >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="16"
-                height="16"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                aria-hidden="true"
-              >
-                <path
-                  d="M2.062 12.348a1 1 0 0 1 0-.696 10.75 10.75 0 0 1 19.876 0 1 1 0 0 1 0 .696 10.75 10.75 0 0 1-19.876 0"
-                />
-                <circle cx="12" cy="12" r="3" />
-              </svg>
-              보기
-            </button>
+        <!-- ✅ 페이지네이션 UI -->
+        <div v-if="totalPages > 1" class="pagination">
+          <button
+            class="page-btn"
+            :disabled="currentPage === 1"
+            @click="currentPage--"
+          >
+            이전
+          </button>
 
-            <button
-              class="bg-white border-2 border-gray-200 hover:border-red-500 text-red-500 px-4 py-2 rounded-lg text-[14px] flex items-center gap-2"
-              @click="openDeleteModal(item)"
-            >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="16"
-                height="16"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                aria-hidden="true"
-              >
-                <path d="M10 11v6" />
-                <path d="M14 11v6" />
-                <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6" />
-                <path d="M3 6h18" />
-                <path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
-              </svg>
-              삭제
-            </button>
-          </div>
-        </article>
-      </section>
+          <span class="page-info">
+            {{ currentPage }} / {{ totalPages }}
+          </span>
+
+          <button
+            class="page-btn"
+            :disabled="currentPage === totalPages"
+            @click="currentPage++"
+          >
+            다음
+          </button>
+        </div>
+      </div>
     </main>
 
     <!-- 삭제 확인 모달 -->
@@ -132,7 +167,7 @@
 </template>
 
 <script setup lang="ts">
-import type { MyScenarioItem } from "@/types";
+import type { ApiError, ApiResponse, MyScenarioItem } from "@/types";
 
 definePageMeta({
   middleware: ["auth"],
@@ -140,11 +175,28 @@ definePageMeta({
 
 const { isLoggedIn } = useAuthState();
 
-const { data, pending, error } = await useFetch<MyScenarioItem[]>("/nuxt-api/scenarios/my-scenarios", {
+const { data, pending, error, refresh } = await useFetch<MyScenarioItem[]>("/nuxt-api/scenarios/my-scenarios", {
   server: false,
   immediate: isLoggedIn.value === true,
 });
 const scenarios = computed(() => data.value ?? []);
+
+const currentPage = ref(1);
+const itemsPerPage = 10;
+
+const totalPages = computed(() => {
+  return Math.ceil(scenarios.value.length / itemsPerPage) || 1;
+});
+
+const pagedScenarios = computed(() => {
+  const start = (currentPage.value - 1) * itemsPerPage;
+  const end = start + itemsPerPage;
+  return scenarios.value.slice(start, end);
+});
+
+watch(scenarios, () => {
+  currentPage.value = 1;
+});
 
 const isDeleteOpen = ref(false);
 const deletingItem = ref<MyScenarioItem | null>(null);
@@ -162,8 +214,7 @@ watch(
 );
 
 function onView(item: MyScenarioItem) {
-  // 추후 게시물 페이지도 더미 데이터 기반: /community/:id 같은 형태로 이동
-  return navigateTo(`/scenarios/${item.id}`); // programmatic navigation [web:37]
+  return navigateTo(`/scenarios/${item.id}`);
 }
 
 function openDeleteModal(item: MyScenarioItem) {
@@ -180,14 +231,17 @@ async function confirmDelete() {
   if (!deletingItem.value) return;
   deleting.value = true;
 
-  // 지금은 더미 삭제(프론트에서 제거)로 처리
-  data.value = (data.value ?? []).filter(
-    (s) => s.id !== deletingItem.value!.id,
-  );
-
-  // 실제 서버 연동 시엔 아래처럼 바꾸면 됨:
-  // await $fetch(`/nuxt-api/my-scenarios/${deletingItem.value.id}`, { method: "DELETE" })
-  // await refresh()
+  try {
+    const deleteResponseData = await $fetch<ApiResponse<string>>(`/nuxt-api/scenarios/${deletingItem.value.id}/delete`, { method: "DELETE" });
+    if (deleteResponseData.status == 200) {
+      alert("삭제되었습니다.");
+      await refresh();
+    }
+  } catch (error) {
+    console.error("삭제 실패:", error);
+    const err = error as ApiError;
+    alert(err.statusMessage || "삭제 중 오류가 발생했습니다.");
+  }
 
   deleting.value = false;
   closeDeleteModal();
@@ -203,6 +257,7 @@ function formatDate(iso: string) {
 </script>
 
 <style scoped>
+/* 기존 스타일 그대로 유지 */
 .page {
   min-height: 90vh;
   background: #f5f7fb;
@@ -280,7 +335,7 @@ function formatDate(iso: string) {
   flex-shrink: 0;
 }
 
-/* modal */
+/* Modal Styles */
 .modal-backdrop {
   position: fixed;
   inset: 0;
@@ -345,5 +400,85 @@ function formatDate(iso: string) {
 .modal-btn:disabled {
   opacity: 0.6;
   cursor: not-allowed;
+}
+
+/* Empty State */
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 60px 20px;
+  background: #fff;
+  border-radius: 16px;
+  border: 1px dashed rgba(15, 23, 42, 0.2);
+  margin-top: 16px;
+  text-align: center;
+}
+
+.empty-icon {
+  font-size: 48px;
+  margin-bottom: 16px;
+  opacity: 0.8;
+}
+
+.empty-text {
+  font-size: 16px;
+  color: #64748b;
+  margin-bottom: 24px;
+}
+
+.empty-btn {
+  background: #155dfc;
+  color: #fff;
+  padding: 10px 20px;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 14px;
+  border: none;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.empty-btn:hover {
+  background: #1447e6;
+}
+
+/* ✅ Pagination Styles (추가됨) */
+.pagination {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 16px;
+  margin-top: 32px;
+}
+
+.page-btn {
+  padding: 8px 16px;
+  border-radius: 8px;
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  color: #0f172a;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.page-btn:hover:not(:disabled) {
+  background: #f1f5f9;
+  border-color: #cbd5e1;
+}
+
+.page-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  background: #f8fafc;
+}
+
+.page-info {
+  font-size: 14px;
+  color: #64748b;
+  font-weight: 500;
 }
 </style>

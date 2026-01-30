@@ -238,7 +238,7 @@
                 type="button"
                 :class="[item.isBookmarked ? 'btn-like--active' : 'btn-like']"
                 :aria-pressed="item.isBookmarked ? 'true' : 'false'"
-                @click="toggleBookmark(item)"
+                @click="toggleLike(item)"
               >
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
@@ -344,15 +344,18 @@
 <script setup lang="ts">
 import type { ApiResponse, Like, Post, ScenarioItem } from "~/types";
 
-const sort = ref<"popular" | "latest" | "oldest">("popular");
+const route = useRoute();
+const router = useRouter();
+
+const sort = ref<"popular" | "latest" | "oldest">(route.query.sort?.toString() as "popular" | "latest" | "oldest" || "popular");
 const validSorts = ["popular", "latest", "oldest"];
 
-const onlyLiked = ref(false);
+const onlyLiked = ref(Boolean(route.query.liked) || false);
 // const pageSize = 12;
-const currentPage = ref(1);
+const currentPage = ref(Number(route.query.page) || 1);
 const totalPages = ref(1);
 
-const { isLoggedIn, accessToken: token } = useAuthState();
+const { isLoggedIn, accessToken } = useAuthState();
 const { openLogin } = useAuthModal();
 
 const tagOverflowMap = ref<Record<string, boolean>>({});
@@ -395,7 +398,7 @@ watch(
   { immediate: true, deep: true },
 );
 
-watch(isLoggedIn, async () => {
+watch([isLoggedIn, accessToken], async () => {
   await refresh();
 });
 
@@ -404,6 +407,26 @@ watch(
   () => nextTick(recomputeTagOverflow),
   { deep: true },
 );
+
+watch([currentPage, sort, onlyLiked], () => {
+  router.push({
+    path: "/explore",
+    query: {
+      ...route.query, // 기존 쿼리 유지 (검색어 등)
+      page: currentPage.value,
+      sort: sort.value,
+      liked: onlyLiked.value ? "true" : undefined, // false면 쿼리에서 제거
+    },
+  });
+  refresh();
+});
+
+watch(() => route.query, (newQuery) => {
+  currentPage.value = Number(newQuery.page) || 1;
+  sort.value = newQuery.sort?.toString() as "popular" | "latest" | "oldest" || "popular";
+  onlyLiked.value = newQuery.liked == "true" ? true : false;
+  refresh();
+});
 
 const visiblePages = computed(() => {
   const total = totalPages.value;
@@ -449,7 +472,7 @@ function onView(item: ScenarioItem) {
 }
 
 // [핵심 수정] 북마크 토글 함수
-function toggleBookmark(item: ScenarioItem) {
+function toggleLike(item: ScenarioItem) {
   if (!isLoggedIn.value) {
     openLogin();
     return;
@@ -458,7 +481,7 @@ function toggleBookmark(item: ScenarioItem) {
 }
 
 const checkMyLikeStatus = async (item: ScenarioItem) => {
-  if (!isLoggedIn.value || !token.value) {
+  if (!isLoggedIn.value || !accessToken.value) {
     item.isBookmarked = false;
     return;
   }
@@ -470,6 +493,7 @@ const checkMyLikeStatus = async (item: ScenarioItem) => {
     if (res.message) {
       item.isBookmarked = res.message?.liked ? res.message?.liked : false;
       item.stats.likes = res.message?.likes ? res.message?.likes : 0;
+      refresh();
     }
   } catch (e) {
     console.error("좋아요 상태 확인 실패", e);
