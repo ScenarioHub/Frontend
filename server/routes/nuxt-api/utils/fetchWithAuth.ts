@@ -24,8 +24,7 @@ export const fetchWithAuth = async <T>(
   };
 
   try {
-    // [1차 시도]
-    console.log("API refresh 1차 시도");
+    console.log("일반 API 요청");
     return await sendRequest(accessToken);
   } catch (error) {
     const err = error as ApiError;
@@ -51,10 +50,11 @@ export const fetchWithAuth = async <T>(
           httpOnly: false,
         };
 
-        deleteCookie(event, "auth_access_token", cookieOptions);
+        // deleteCookie(event, "auth_access_token", cookieOptions);
         setCookie(event, "auth_access_token", newAccessToken, cookieOptions);
 
         console.log("✅ [Server] 토큰 갱신 성공 -> 재요청\n");
+        console.log("이전과 다른 값인가? : ", accessToken == newAccessToken ? "False" : "True");
         // [2차 시도]
         return await sendRequest(newAccessToken);
       } catch (refreshError) {

@@ -367,6 +367,7 @@ const { data: serverData, refresh } = await useFetch<Post>("/nuxt-api/scenarios/
     sort: sort,
     onlyLiked: onlyLiked,
   },
+  server: false,
 });
 
 const uiItems = ref<ScenarioItem[]>([]);

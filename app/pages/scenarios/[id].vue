@@ -480,7 +480,7 @@ import { Menu, MenuButton, MenuItem, MenuItems } from "@headlessui/vue"; // ✅ 
 definePageMeta({ layout: false });
 
 const { logout } = useAuth();
-const { isLoggedIn, userName, accessToken: token } = useAuthState();
+const { isLoggedIn, userName, accessToken } = useAuthState();
 const { openLogin } = useAuthModal();
 
 const route = useRoute();
@@ -518,6 +518,7 @@ const {
   {
     key: `scenario-${id.value}-detail`,
     watch: [id],
+    server: false,
   },
 );
 
@@ -528,7 +529,7 @@ watchEffect(() => {
   }
 });
 
-watch(isLoggedIn, async () => {
+watch([isLoggedIn, accessToken], async () => {
   await refresh();
 });
 
@@ -543,7 +544,7 @@ function toggleLikeButton() {
 
 // --- 유틸리티 함수 (전체 구현 포함) ---
 const checkMyLikeStatus = async () => {
-  if (!isLoggedIn.value || !token.value) {
+  if (!isLoggedIn.value || !accessToken.value) {
     detail.value.isBookmarked = false;
     return;
   }
