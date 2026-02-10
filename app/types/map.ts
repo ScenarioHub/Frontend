@@ -7,6 +7,6 @@ export interface MapItem {
 
 export interface ServerMapItem {
   id: number;
-  map_name: string;
+  mapName: string;
   description: string;
 }

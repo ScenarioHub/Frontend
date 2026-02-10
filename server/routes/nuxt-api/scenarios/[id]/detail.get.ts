@@ -12,7 +12,6 @@ export default defineEventHandler(async (event): Promise<ScenarioDetail> => {
         method: "GET",
       },
     );
-    console.log(externalResponse);
     const data = externalResponse.message;
 
     if (!data) {

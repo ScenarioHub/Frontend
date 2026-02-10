@@ -342,12 +342,12 @@
 </template>
 
 <script setup lang="ts">
-import type { ApiResponse, Like, Post, ScenarioItem } from "~/types";
+import type { ApiResponse, Like, Post, ScenarioItem, Sort } from "~/types";
 
 const route = useRoute();
 const router = useRouter();
 
-const sort = ref<"popular" | "latest" | "oldest">(route.query.sort?.toString() as "popular" | "latest" | "oldest" || "popular");
+const sort = ref<Sort>(route.query.sort?.toString() as Sort || "popular");
 const validSorts = ["popular", "latest", "oldest"];
 
 const onlyLiked = ref(Boolean(route.query.liked) || false);
@@ -388,7 +388,7 @@ watch(
       currentPage.value = newData?.currentPage;
     }
     if (validSorts.includes(newData?.sort as string)) {
-      sort.value = newData?.sort as "popular" | "latest" | "oldest";
+      sort.value = newData?.sort as Sort;
     } else {
       sort.value = "popular";
     }
@@ -410,23 +410,28 @@ watch(
 );
 
 watch([currentPage, sort, onlyLiked], () => {
-  router.push({
-    path: "/explore",
-    query: {
-      ...route.query, // 기존 쿼리 유지 (검색어 등)
-      page: currentPage.value,
-      sort: sort.value,
-      liked: onlyLiked.value ? "true" : undefined, // false면 쿼리에서 제거
-    },
-  });
-  refresh();
+  const nextQuery = {
+    ...route.query,
+    page: currentPage.value.toString(),
+    sort: sort.value,
+    liked: onlyLiked.value ? "true" : undefined,
+  };
+
+  // 동일하면 push 안 함 (watch 3번 트리거 차단)
+  if (
+    route.query.page === nextQuery.page
+    && route.query.sort === nextQuery.sort
+    && String(route.query.liked ?? "") === String(nextQuery.liked ?? "")
+  ) {
+    return;
+  }
+  router.replace({ path: "/explore", query: nextQuery }); // replace로 히스토리 중복 방지
 });
 
 watch(() => route.query, (newQuery) => {
   currentPage.value = Number(newQuery.page) || 1;
-  sort.value = newQuery.sort?.toString() as "popular" | "latest" | "oldest" || "popular";
-  onlyLiked.value = newQuery.liked == "true" ? true : false;
-  refresh();
+  sort.value = (newQuery.sort as Sort) || "popular"; // validSorts 검증 추가 추천
+  onlyLiked.value = newQuery.liked === "true";
 });
 
 const visiblePages = computed(() => {

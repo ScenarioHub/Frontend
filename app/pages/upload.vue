@@ -100,46 +100,54 @@
           </template>
         </div>
       </div>
-      <div
-        class="map-slider-section"
-      >
-        <p class="panel-sub">맵 선택 (프리뷰)</p>
-
-        <swiper
-          :slides-per-view="1"
-          :space-between="15"
-          :loop="isLoopEnabled"
-          :pagination="{ clickable: true }"
-          :navigation="true"
-          :modules
-          class="mySwiper"
-          @swiper="onSwiper"
-          @slide-change="onSlideChange"
+      <div>
+        <div
+          class="form-group"
         >
-          <swiper-slide v-for="map in maps" :key="map.id">
-            <!-- 슬라이드 전체 컨테이너 -->
-            <div class="slide-container">
-              <!-- 1. 이미지 박스 (여기에 제목과 화살표가 들어감) -->
-              <div class="image-box">
-                <img
-                  :src="map.imageUrl || 'https://via.placeholder.com/600x300/e2e8f0/1e293b?text=Map+Preview'"
-                  alt="Map Preview"
-                  class="slide-img"
-                >
+          <label class="label">
+            맵 선택 (프리뷰)
+            <span class="required">*</span>
+            <span class="sub-label">시나리오가 실행될 맵을 선택하세요</span>
+          </label>
 
-                <!-- 2. 맵 이름 (좌측 상단 오버레이) -->
-                <div class="map-name-badge">
-                  {{ map.name }}
+          <swiper
+            :slides-per-view="1.2"
+            :space-between="15"
+            :centered-slides="true"
+            :loop="isLoopEnabled"
+            :centered-slides-bounds="true"
+            :pagination="{ clickable: true }"
+            :navigation="true"
+            :modules
+            class="mySwiper"
+            @swiper="onSwiper"
+            @slide-change="onSlideChange"
+          >
+            <swiper-slide v-for="map in maps" :key="map.id">
+              <!-- 슬라이드 전체 컨테이너 -->
+              <div class="slide-container">
+                <!-- 1. 이미지 박스 (여기에 제목과 화살표가 들어감) -->
+                <div class="image-box">
+                  <img
+                    :src="map.imageUrl || 'https://via.placeholder.com/600x300/e2e8f0/1e293b?text=Map+Preview'"
+                    alt="Map Preview"
+                    class="slide-img"
+                  >
+
+                  <!-- 2. 맵 이름 (좌측 상단 오버레이) -->
+                  <div class="map-name-badge">
+                    {{ map.name }}
+                  </div>
+                </div>
+
+                <!-- 3. 맵 설명 (박스 아래) -->
+                <div class="map-description">
+                  {{ map.description }}
                 </div>
               </div>
-
-              <!-- 3. 맵 설명 (박스 아래) -->
-              <div class="map-description">
-                {{ map.description }}
-              </div>
-            </div>
-          </swiper-slide>
-        </swiper>
+            </swiper-slide>
+          </swiper>
+        </div>
       </div>
       <!-- 하단 버튼 -->
       <button
@@ -623,5 +631,145 @@ async function onSubmit() {
 /* 로딩 중일 때 (활성 상태여도 클릭 방지 느낌) */
 .btn-submit:disabled {
   opacity: 0.7;
+}
+
+/*  */
+.map-slider-section {
+.map-slider-section {
+  width: 100%;
+  margin-top: 4px;      /* label과 약간 간격 */
+  margin-bottom: 0;     /* form-group가 gap으로 간격 관리 */
+  position: relative;
+}
+}
+
+.map-slider-section.is-disabled {
+  opacity: 0.6;
+  pointer-events: none;
+  filter: grayscale(0.5);
+}
+.disabled-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 50;
+  background: transparent;
+  cursor: not-allowed;
+  pointer-events: auto;
+}
+.mySwiper {
+  width: 100%;
+  overflow: hidden;
+}
+
+.slide-container {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.image-box {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  background: #e2e8f0;
+  border-radius: 14px;
+  overflow: hidden;
+  border: 1px solid rgba(15, 23, 42, 0.1);
+}
+
+.slide-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.3s ease;
+}
+
+.map-name-badge {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  background: rgba(136, 134, 134, 0.85);
+  color: #fff;
+  padding: 6px 12px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 00;
+  backdrop-filter: blur(4px);
+  z-index: 10;
+}
+
+.map-description {
+  font-size: 14px;
+  color: #475569;
+  line-height: 1.5;
+  min-height: 1.5em;
+  max-width: 90%;
+  padding: 0 4px;
+  align-self: center;
+  font-weight: 500;
+  word-break: keep-all;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+:deep(.swiper-button-prev),
+:deep(.swiper-button-next) {
+    width: 40px;
+    height: 40px;
+    background-color: rgba(0, 0, 0, 0);
+    border-radius: 50%; /* 원형 */
+    color: #2f6dff; /* 화살표 색상 */
+    transition: all 0.2s ease;
+
+    top: 40%;
+    transform: translateY(-50%);
+    margin: 0;
+    z-index: 20;
+}
+
+:deep(.swiper-button-prev) {
+  left: 12px;
+}
+
+:deep(.swiper-button-next) {
+  right: 12px;
+}
+
+:deep(.swiper-button-prev:after),
+:deep(.swiper-button-next:after) {
+  font-size: 18px;
+  font-weight: 900;
+}
+
+:deep(.swiper-button-prev:hover),
+:deep(.swiper-button-next:hover) {
+  transform: translateY(-50%) scale(1.15); /* 살짝 커짐 */
+}
+
+/* 페이지네이션 (점) 위치 */
+:deep(.swiper-pagination) {
+  bottom: 64px;
+}
+
+:deep(.swiper-pagination-bullet) {
+  background: #ffffff;
+  opacity: 0.8;
+}
+
+:deep(.swiper-pagination-bullet-active) {
+  background: #2f6dff;
+  opacity: 1;
+}
+:deep(.mySwiper .swiper-slide) {
+  transition: transform 0.3s ease, opacity 0.3s ease;
+  opacity: 0.5;
+}
+:deep(.mySwiper .swiper-slide-active) {
+  opacity: 1;
 }
 </style>

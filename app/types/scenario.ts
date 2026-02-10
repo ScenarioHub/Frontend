@@ -78,3 +78,5 @@ export interface Post {
   // totalCount: number;
   sort: string;
 }
+
+export type Sort = "popular" | "latest" | "oldest";

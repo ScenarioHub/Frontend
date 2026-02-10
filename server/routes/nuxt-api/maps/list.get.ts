@@ -24,7 +24,7 @@ export default defineEventHandler(async (event): Promise<MapItem[]> => {
     // 2. 데이터 매핑 (Server -> Client 구조 변환)
     return data.map((item) => ({
       id: item.id, // 숫자 그대로 유지
-      name: item.map_name, // map_name -> name
+      name: item.mapName, // map_name -> name
       description: item.description,
       imageUrl: "", // 이미지는 preview API로 따로 받으므로 비워둠
     }));
