@@ -236,8 +236,8 @@
               <!-- 하트 버튼 -->
               <button
                 type="button"
-                :class="[item.isBookmarked ? 'btn-like--active' : 'btn-like']"
-                :aria-pressed="item.isBookmarked ? 'true' : 'false'"
+                :class="[item.isLiked ? 'btn-like--active' : 'btn-like']"
+                :aria-pressed="item.isLiked ? 'true' : 'false'"
                 @click="toggleLike(item)"
               >
                 <svg
@@ -252,7 +252,7 @@
                   stroke-linejoin="round"
                   :class="[
                     'lucide lucide-heart',
-                    item.isBookmarked ? 'fill-red-500' : '',
+                    item.isLiked ? 'fill-red-500' : '',
                   ]"
                   aria-hidden="true"
                 >
@@ -483,7 +483,7 @@ function toggleLike(item: ScenarioItem) {
 
 const checkMyLikeStatus = async (item: ScenarioItem) => {
   if (!isLoggedIn.value || !accessToken.value) {
-    item.isBookmarked = false;
+    item.isLiked = false;
     return;
   }
 
@@ -492,7 +492,7 @@ const checkMyLikeStatus = async (item: ScenarioItem) => {
       method: "POST",
     });
     if (res.message) {
-      item.isBookmarked = res.message?.liked ? res.message?.liked : false;
+      item.isLiked = res.message?.liked ? res.message?.liked : false;
       item.stats.likes = res.message?.likes ? res.message?.likes : 0;
       refresh();
     }

@@ -19,12 +19,11 @@ export default defineEventHandler(async (event) => {
         query: {
           page: page,
           // page_size: page_size,
-          bookmarked: liked,
+          isLiked: liked,
           sort: sortString,
         },
       },
     );
-
     return externalResponse.message;
   } catch (error) {
     console.error("[Explore API Error]", error);

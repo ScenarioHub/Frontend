@@ -12,6 +12,7 @@ export default defineEventHandler(async (event): Promise<ScenarioDetail> => {
         method: "GET",
       },
     );
+    console.log(externalResponse);
     const data = externalResponse.message;
 
     if (!data) {
@@ -20,12 +21,9 @@ export default defineEventHandler(async (event): Promise<ScenarioDetail> => {
 
     // 2. 매핑 (타입 불일치 해결)
     const scenario: ScenarioDetail = {
-      // 기존 속성들을 먼저 다 복사 (title, description, code, tags, stats 등)
       ...data,
-
-      // [덮어쓰기] 타입이 다른 필드만 직접 변환
       id: data.id,
-      isBookmarked: data.isBookmarked ?? false,
+      isLiked: data.isLiked ?? false,
       file: {
         format: data.file?.format ?? "-",
         version: data.file?.version ?? "-",
@@ -33,7 +31,7 @@ export default defineEventHandler(async (event): Promise<ScenarioDetail> => {
       },
       uploader: {
         name: data.uploader?.name ?? "Unknown",
-        uploader_id: data.uploader?.uploader_id ?? 0,
+        uploaderid: data.uploader?.uploaderid ?? 0,
         email: data.uploader?.email ?? "Unknown email",
         totalScenarios: data.uploader?.totalScenarios ?? 0,
       },
@@ -51,11 +49,11 @@ export default defineEventHandler(async (event): Promise<ScenarioDetail> => {
       description: "데이터를 불러오는 중 오류가 발생했습니다.",
       tags: [],
       stats: { downloads: 0, views: 0, likes: 0 },
-      file: { format: "-", version: "-", size: "KB" },
-      uploader: { name: "-", uploader_id: 0, email: "", totalScenarios: 0 },
+      file: { format: "-", version: "", size: 0 },
+      uploader: { name: "-", uploaderid: 0, email: "", totalScenarios: 0 },
       code: "",
       isOwner: false,
-      isBookmarked: false,
+      isLiked: false,
     } as ScenarioDetail;
   }
 });

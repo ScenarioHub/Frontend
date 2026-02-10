@@ -115,7 +115,7 @@
           <!-- 4. 좋아요 버튼 -->
           <button
             class="btn-like"
-            :class="{ 'is-active': detail.isBookmarked }"
+            :class="{ 'is-active': detail.isLiked }"
             type="button"
             aria-label="좋아요"
             @click="toggleLikeButton"
@@ -128,7 +128,7 @@
               stroke-linecap="round"
               stroke-linejoin="round"
               class="heart-icon"
-              :class="{ 'heart-filled': detail.isBookmarked }"
+              :class="{ 'heart-filled': detail.isLiked }"
               aria-hidden="true"
             >
               <path
@@ -406,10 +406,10 @@
               </div>
               <div class="info-row">
                 <span class="info-key">버전</span><span class="info-val">
-                  v{{ detail.file?.version ?? "-" }}</span>
+                  v{{ detail.file?.version ?? "" }}</span>
               </div>
               <div class="info-row">
-                <span class="info-key">파일 크기</span><span class="info-val">{{ detail.file?.size ?? "-" }}</span>
+                <span class="info-key">파일 크기</span><span class="info-val">{{ detail.file?.size ?? "-" }} KB</span>
               </div>
             </div>
 
@@ -498,9 +498,9 @@ const DEFAULT_DETAIL: ScenarioDetail = {
   code: "",
   stats: { downloads: 0, views: 0, likes: 0 },
   tags: [],
-  uploader: { name: "", uploader_id: 0, email: "", totalScenarios: 0 },
-  file: { format: "", version: "", size: "" },
-  isBookmarked: false,
+  uploader: { name: "", uploaderid: 0, email: "", totalScenarios: 0 },
+  file: { format: "", version: "", size: 0 },
+  isLiked: false,
   isOwner: false,
 };
 
@@ -545,7 +545,7 @@ function toggleLikeButton() {
 // --- 유틸리티 함수 (전체 구현 포함) ---
 const checkMyLikeStatus = async () => {
   if (!isLoggedIn.value || !accessToken.value) {
-    detail.value.isBookmarked = false;
+    detail.value.isLiked = false;
     return;
   }
 
@@ -557,7 +557,7 @@ const checkMyLikeStatus = async () => {
       },
     );
     if (res.message) {
-      detail.value.isBookmarked = res.message?.liked
+      detail.value.isLiked = res.message?.liked
         ? res.message?.liked
         : false;
       detail.value.stats.likes = res.message?.likes ? res.message?.likes : 0;
@@ -582,7 +582,7 @@ function goBack() {
   if (
     previousPath
     && typeof previousPath === "string"
-    && previousPath.includes("/my-scenarios")
+    && (previousPath.includes("/my-scenarios") || previousPath.includes("/explore"))
   ) {
     history.back();
   } else {

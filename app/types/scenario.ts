@@ -5,7 +5,7 @@ export interface ScenarioBase {
   tags: string[];
   stats: PostStats;
   uploader: Uploader;
-  isBookmarked: boolean;
+  isLiked: boolean;
 };
 
 export interface ScenarioItem extends ScenarioBase { // 시나리오 공유 게시물 화면, 각 아이템
@@ -19,7 +19,7 @@ export interface ScenarioDetail extends Omit<ScenarioItem, "uploader"> { // 시�
   // 여기 api 이름 수정==========================================
   uploader: {
     name: string;
-    uploader_id: number;
+    uploaderid: number;
     email: string;
     totalScenarios: number; // 업로드한 사니리오
   };
@@ -41,7 +41,7 @@ export interface Uploader { // 업로더
 export interface FileInfo {
   format: string;
   version: string;
-  size: string;
+  size: number;
 }
 
 export interface PostStats {

@@ -100,7 +100,47 @@
           </template>
         </div>
       </div>
+      <div
+        class="map-slider-section"
+      >
+        <p class="panel-sub">맵 선택 (프리뷰)</p>
 
+        <swiper
+          :slides-per-view="1"
+          :space-between="15"
+          :loop="isLoopEnabled"
+          :pagination="{ clickable: true }"
+          :navigation="true"
+          :modules
+          class="mySwiper"
+          @swiper="onSwiper"
+          @slide-change="onSlideChange"
+        >
+          <swiper-slide v-for="map in maps" :key="map.id">
+            <!-- 슬라이드 전체 컨테이너 -->
+            <div class="slide-container">
+              <!-- 1. 이미지 박스 (여기에 제목과 화살표가 들어감) -->
+              <div class="image-box">
+                <img
+                  :src="map.imageUrl || 'https://via.placeholder.com/600x300/e2e8f0/1e293b?text=Map+Preview'"
+                  alt="Map Preview"
+                  class="slide-img"
+                >
+
+                <!-- 2. 맵 이름 (좌측 상단 오버레이) -->
+                <div class="map-name-badge">
+                  {{ map.name }}
+                </div>
+              </div>
+
+              <!-- 3. 맵 설명 (박스 아래) -->
+              <div class="map-description">
+                {{ map.description }}
+              </div>
+            </div>
+          </swiper-slide>
+        </swiper>
+      </div>
       <!-- 하단 버튼 -->
       <button
         class="btn btn-submit"
@@ -115,14 +155,25 @@
 </template>
 
 <script setup lang="ts">
+import type SwiperType from "swiper";
+import "swiper/css";
+import "swiper/css/navigation";
+import "swiper/css/pagination";
+import { Navigation, Pagination } from "swiper/modules";
+import { Swiper, SwiperSlide } from "swiper/vue";
+
 import { onMounted, ref } from "vue";
 import { useRoute, useRouter } from "vue-router";
-import type { ApiResponse, UploadResponse } from "~/types";
+import type { ApiResponse, MapItem, UploadResponse } from "~/types";
 
 // 라우터 및 상태 관리
 const route = useRoute();
 const router = useRouter();
 const { isLoggedIn } = useAuthState();
+
+const selectedMapId = ref<number | null>(null);
+const maps = ref<MapItem[]>([]);
+const modules = [Pagination, Navigation];
 
 // 폼 데이터
 const form = ref({
@@ -140,6 +191,42 @@ const isLoading = ref(false);
 const fileInputRef = ref<HTMLInputElement | null>(null);
 
 const MAX_TAGS = 5;
+
+onMounted(() => {
+  fetchMaps();
+  const id = route.query.scenarioId as string;
+  if (id) {
+    loadScenarioData(id);
+  }
+});
+
+watch(
+  () => isLoggedIn.value,
+  (v) => {
+    if (import.meta.client && v !== true) {
+      alert("로그아웃하여 홈으로 이동합니다.");
+      navigateTo("/");
+    }
+  },
+  { immediate: true },
+);
+
+async function fetchMaps() {
+  try {
+    const data = await $fetch<MapItem[]>("/nuxt-api/maps/list");
+
+    if (data && Array.isArray(data)) {
+      maps.value = data.map((item) => ({
+        id: item.id,
+        name: item.name,
+        description: item.description,
+        imageUrl: `/nuxt-api/maps/preview?id=${item.id}`,
+      }));
+    }
+  } catch (err) {
+    console.error("fetchMaps 에러:", err);
+  }
+}
 
 async function loadScenarioData(id: string) {
   if (!id) return;
@@ -162,23 +249,23 @@ async function loadScenarioData(id: string) {
     isLoading.value = false;
   }
 };
-onMounted(() => {
-  const id = route.query.scenarioId as string;
-  if (id) {
-    loadScenarioData(id);
-  }
-});
 
-watch(
-  () => isLoggedIn.value,
-  (v) => {
-    if (import.meta.client && v !== true) {
-      alert("로그아웃하여 홈으로 이동합니다.");
-      navigateTo("/");
+const isLoopEnabled = computed(() => maps.value.length > 1);
+
+const onSwiper = (swiper: SwiperType) => {
+  if (maps.value.length > 0) {
+    const map = maps.value[swiper.realIndex];
+    if (map) {
+      selectedMapId.value = map.id;
     }
-  },
-  { immediate: true },
-);
+  }
+};
+const onSlideChange = (swiper: SwiperType) => {
+  const index = swiper.realIndex;
+  if (maps.value[index]) {
+    selectedMapId.value = maps.value[index].id;
+  }
+};
 
 // 태그 추가
 function addTag() {

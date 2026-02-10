@@ -11,7 +11,6 @@ export const fetchWithAuth = async <T>(
 
   const accessToken = getCookie(event, "auth_access_token");
   const refreshToken = getCookie(event, "auth_refresh_token");
-
   // 내부 헬퍼: 실제 요청 보내기
   const sendRequest = (token: string | undefined) => {
     return $fetch<T>(url, {
