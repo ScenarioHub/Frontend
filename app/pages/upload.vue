@@ -25,6 +25,7 @@
           class="input-textarea"
           placeholder="시나리오에 대한 설명을 입력하세요"
           rows="5"
+          :disabled="isDescriptionDisabled"
         />
       </div>
 
@@ -59,46 +60,63 @@
       <!-- 4. 파일 업로드 (드래그 앤 드롭) -->
       <div class="form-group">
         <label class="label">시나리오 파일 <span class="required">*</span></label>
-        <div
-          class="upload-area"
-          :class="{ 'is-dragover': isDragOver, 'has-file': form.file }"
-          @dragover.prevent="isDragOver = true"
-          @dragleave.prevent="isDragOver = false"
-          @drop.prevent="onDrop"
-          @click="fileInputRef?.click()"
-        >
-          <input
-            ref="fileInputRef"
-            type="file"
-            class="hidden-input"
-            accept=".xosc,.xml"
-            @change="onFileChange"
+        <ClientOnly>
+          <div
+            class="upload-area"
+            :class="{
+              'is-dragover': isDragOver,
+              'has-file': form.file || form.serverFilePath,
+              'is-readonly': isFileDisabled,
+            }"
+            @dragover.prevent="!isFileDisabled && (isDragOver = true)"
+            @dragleave.prevent="!isFileDisabled && (isDragOver = false)"
+            @drop.prevent="!isFileDisabled && onDrop($event)"
+            @click="!isFileDisabled && fileInputRef?.click()"
           >
-
-          <template v-if="form.file">
-            <div class="file-info">
-              <span class="file-icon">📄</span>
-              <span class="file-name">{{ form.file.name }}</span>
-              <span class="file-size">({{ (form.file.size / 1024).toFixed(1) }} KB)</span>
-              <button class="btn-clear-file" @click.stop="form.file = null">삭제</button>
-            </div>
-          </template>
-
-          <template v-else>
-            <div class="upload-placeholder">
-              <div class="upload-icon">
-                <!-- 업로드 아이콘 SVG -->
-                <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
-                  <polyline points="17 8 12 3 7 8" />
-                  <line x1="12" y1="3" x2="12" y2="15" />
-                </svg>
+            <input
+              ref="fileInputRef"
+              type="file"
+              class="hidden-input"
+              accept=".xosc,.xml"
+              :disabled="isFileDisabled"
+              @change="onFileChange"
+            >
+            <template v-if="form.file || form.serverFilePath">
+              <div class="file-info">
+                <span class="file-icon">📄</span>
+                <span class="file-name">
+                  {{ form.file?.name || extractFileName(form.serverFilePath) }}
+                </span>
+                <span v-if="form.file" class="file-size">
+                  ({{ (form.file.size / 1024).toFixed(1) }} KB)
+                </span>
+                <button
+                  class="btn-clear-file"
+                  type="button"
+                  :disabled="isReadonlyFromGenerator"
+                  @click.stop="clearFile"
+                >
+                  삭제
+                </button>
               </div>
-              <p class="upload-text">파일을 드래그하거나 클릭하여 업로드</p>
-              <button class="btn-select" type="button">파일 선택</button>
-            </div>
-          </template>
-        </div>
+            </template>
+
+            <template v-else>
+              <div class="upload-placeholder">
+                <div class="upload-icon">
+                  <!-- 업로드 아이콘 SVG -->
+                  <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                    <polyline points="17 8 12 3 7 8" />
+                    <line x1="12" y1="3" x2="12" y2="15" />
+                  </svg>
+                </div>
+                <p class="upload-text">파일을 드래그하거나 클릭하여 업로드</p>
+                <button class="btn-select" type="button">파일 선택</button>
+              </div>
+            </template>
+          </div>
+        </ClientOnly>
       </div>
       <div>
         <div
@@ -109,44 +127,51 @@
             <span class="required">*</span>
             <span class="sub-label">시나리오가 실행될 맵을 선택하세요</span>
           </label>
-
-          <swiper
-            :slides-per-view="1.2"
-            :space-between="15"
-            :centered-slides="true"
-            :loop="isLoopEnabled"
-            :centered-slides-bounds="true"
-            :pagination="{ clickable: true }"
-            :navigation="true"
-            :modules
-            class="mySwiper"
-            @swiper="onSwiper"
-            @slide-change="onSlideChange"
+          <div
+            class="map-slider-section"
+            :class="{ 'is-readonly': isMapReadonly }"
           >
-            <swiper-slide v-for="map in maps" :key="map.id">
-              <!-- 슬라이드 전체 컨테이너 -->
-              <div class="slide-container">
-                <!-- 1. 이미지 박스 (여기에 제목과 화살표가 들어감) -->
-                <div class="image-box">
-                  <img
-                    :src="map.imageUrl || 'https://via.placeholder.com/600x300/e2e8f0/1e293b?text=Map+Preview'"
-                    alt="Map Preview"
-                    class="slide-img"
-                  >
+            <ClientOnly>
+              <swiper
+                :slides-per-view="1.2"
+                :space-between="15"
+                :centered-slides="true"
+                :loop="isLoopEnabled"
+                :centered-slides-bounds="true"
+                :pagination="{ clickable: !isMapReadonly }"
+                :navigation="!isMapReadonly "
+                :initial-slide="setInitialSlide"
+                :modules
+                class="mySwiper"
+                @swiper="onSwiper"
+                @slide-change="onSlideChange"
+              >
+                <swiper-slide v-for="map in maps" :key="map.id">
+                  <!-- 슬라이드 전체 컨테이너 -->
+                  <div class="slide-container">
+                    <!-- 1. 이미지 박스 (여기에 제목과 화살표가 들어감) -->
+                    <div class="image-box">
+                      <img
+                        :src="map.imageUrl || 'https://via.placeholder.com/600x300/e2e8f0/1e293b?text=Map+Preview'"
+                        alt="Map Preview"
+                        class="slide-img"
+                      >
 
-                  <!-- 2. 맵 이름 (좌측 상단 오버레이) -->
-                  <div class="map-name-badge">
-                    {{ map.name }}
+                      <!-- 2. 맵 이름 (좌측 상단 오버레이) -->
+                      <div class="map-name-badge">
+                        {{ map.name }}
+                      </div>
+                    </div>
+
+                    <!-- 3. 맵 설명 (박스 아래) -->
+                    <div class="map-description">
+                      {{ map.description }}
+                    </div>
                   </div>
-                </div>
-
-                <!-- 3. 맵 설명 (박스 아래) -->
-                <div class="map-description">
-                  {{ map.description }}
-                </div>
-              </div>
-            </swiper-slide>
-          </swiper>
+                </swiper-slide>
+              </swiper>
+            </ClientOnly>
+          </div>
         </div>
       </div>
       <!-- 하단 버튼 -->
@@ -172,7 +197,7 @@ import { Swiper, SwiperSlide } from "swiper/vue";
 
 import { onMounted, ref } from "vue";
 import { useRoute, useRouter } from "vue-router";
-import type { ApiResponse, MapItem, UploadResponse } from "~/types";
+import type { ApiResponse, DataWithJobIdResponse, MapItem, UploadResponse, UploadResponseFromGenerator } from "~/types";
 
 // 라우터 및 상태 관리
 const route = useRoute();
@@ -182,6 +207,19 @@ const { isLoggedIn } = useAuthState();
 const selectedMapId = ref<number | null>(null);
 const maps = ref<MapItem[]>([]);
 const modules = [Pagination, Navigation];
+const swiperRef = ref<SwiperType | null>(null);
+
+const isReadonlyFromGenerator = ref(false);
+const isInitLoading = ref(true);
+const isDescriptionDisabled = computed(
+  () => isInitLoading.value || isReadonlyFromGenerator.value,
+);
+const isFileDisabled = computed(
+  () => isInitLoading.value || isReadonlyFromGenerator.value,
+);
+const isMapReadonly = computed(
+  () => isInitLoading.value || isReadonlyFromGenerator.value,
+);
 
 // 폼 데이터
 const form = ref({
@@ -189,7 +227,9 @@ const form = ref({
   description: "",
   tags: [] as string[],
   file: null as File | null,
-  scenarioId: "",
+  scenarioId: 0,
+  jobId: "",
+  serverFilePath: "" as string,
 });
 
 // UI 상태
@@ -200,11 +240,22 @@ const fileInputRef = ref<HTMLInputElement | null>(null);
 
 const MAX_TAGS = 5;
 
-onMounted(() => {
-  fetchMaps();
-  const id = route.query.scenarioId as string;
-  if (id) {
-    loadScenarioData(id);
+onMounted(async () => {
+  try {
+    isInitLoading.value = true;
+
+    await fetchMaps();
+
+    form.value.jobId = route.query.jobId as string;
+    if (form.value.jobId) {
+      await loadScenarioData(form.value.jobId); // 여기서 isReadonlyFromGenerator=true
+    } else {
+      isReadonlyFromGenerator.value = false;
+    }
+
+    startEnsureMoveTimer(); // 🔹 여기서만 한 번
+  } finally {
+    isInitLoading.value = false;
   }
 });
 
@@ -235,40 +286,96 @@ async function fetchMaps() {
     console.error("fetchMaps 에러:", err);
   }
 }
-
-async function loadScenarioData(id: string) {
-  if (!id) return;
+const setInitialSlide = computed(() => {
+  if (!selectedMapId.value || maps.value.length === 0) return 0;
+  const idx = maps.value.findIndex((m) => m.id === selectedMapId.value);
+  return idx === -1 ? 0 : idx;
+});
+async function loadScenarioData(jobId: string) {
+  if (!jobId) return;
   try {
     isLoading.value = true;
-    form.value.scenarioId = id;
+    form.value.jobId = jobId;
 
-    // 데이터가 존재하면 (upload에서 넘어왔으면), 일부 입력칸 잠그기?
-
-    // 실제 API 연동 시 아래 주석 해제 및 fetch 로직 적용
-    // const data = await $fetch(`/api/scenarios/${id}`);
-    // form.value.title = data.title || "";
-    // form.value.description = data.description || "";
-    // form.value.tags = data.tags || [];
-
-    console.log(`ID ${id}에 대한 시나리오 정보를 불러왔습니다.`);
+    const data = await $fetch<DataWithJobIdResponse>("/nuxt-api/upload/data", {
+      query: {
+        jobId,
+      },
+    });
+    setInputData(data);
   } catch (e) {
     console.error("데이터 로드 실패", e);
   } finally {
     isLoading.value = false;
   }
 };
+function setInputData(data: DataWithJobIdResponse) {
+  console.log(data);
+  selectedMapId.value = data.mapId;
+  form.value.description = data.description;
+  form.value.scenarioId = data.scenarioId;
+  form.value.serverFilePath = data.filePath;
+  isReadonlyFromGenerator.value = true;
+  // 데이터가 존재하면 (upload에서 넘어왔으면), 일부 입력칸 잠그기?
+}
+// const isLoopEnabled = computed(() => maps.value.length > 1);
+const isLoopEnabled = ref<boolean>(false);
+let ensureTimer: number | null = null;
 
-const isLoopEnabled = computed(() => maps.value.length > 1);
+// 목표 인덱스 계산
+function getTargetIndex() {
+  if (!selectedMapId.value || maps.value.length === 0) return -1;
+  return maps.value.findIndex((m) => m.id === selectedMapId.value);
+}
+
+// 실제 이동 함수 (slideTo 실패 대비해서 콘솔 찍기)
+function moveToSelectedMap() {
+  const swiper = swiperRef.value;
+  const idx = getTargetIndex();
+  if (!swiper || idx < 0) return;
+
+  if ((swiper as SwiperType).slideToLoop && isLoopEnabled.value) {
+    swiper.slideToLoop(idx);
+  } else {
+    swiper.slideTo(idx);
+  }
+}
+
+// 1) 조건 만족하면 1회 즉시 이동
+watch(
+  () => ({
+    mapsLen: maps.value.length,
+    selectedId: selectedMapId.value,
+    ready: !!swiperRef.value,
+  }),
+  async ({ mapsLen, selectedId, ready }) => {
+    if (!ready || !selectedId || !mapsLen) return;
+    await nextTick();
+    moveToSelectedMap();
+  },
+  { immediate: true },
+);
+
+// 2) 초기 1.5초 동안 3번 정도 재시도
+function startEnsureMoveTimer() {
+  if (ensureTimer) window.clearInterval(ensureTimer);
+  let attempts = 0;
+
+  ensureTimer = window.setInterval(() => {
+    attempts += 1;
+    moveToSelectedMap();
+    if (attempts >= 3) {
+      if (ensureTimer) window.clearInterval(ensureTimer);
+      ensureTimer = null;
+    }
+  }, 500); // 0.5초 간격으로 3번
+}
 
 const onSwiper = (swiper: SwiperType) => {
-  if (maps.value.length > 0) {
-    const map = maps.value[swiper.realIndex];
-    if (map) {
-      selectedMapId.value = map.id;
-    }
-  }
+  swiperRef.value = swiper;
 };
 const onSlideChange = (swiper: SwiperType) => {
+  if (isReadonlyFromGenerator.value) return;
   const index = swiper.realIndex;
   if (maps.value[index]) {
     selectedMapId.value = maps.value[index].id;
@@ -291,13 +398,22 @@ function addTag() {
   tagInput.value = "";
 }
 
-// 유효성 검사 (제목, 설명, 파일이 모두 있어야 함)
+// 유효성 검사
+// jobId 없으면 (제목, 설명, 파일이 모두 있어야 함)
+// jobId 있으면 (제목만 필수)
 const isValid = computed(() => {
-  return (
-    form.value.title.trim() !== ""
-    && form.value.description.trim() !== ""
-    && form.value.file !== null
-  );
+  if (!form.value.jobId) {
+    return (
+      form.value.title.trim() !== ""
+      && form.value.description.trim() !== ""
+      && form.value.file !== null
+      && (form.value.file !== null)
+    );
+  } else {
+    return (
+      form.value.title.trim() !== ""
+    );
+  }
 });
 
 // 태그 삭제
@@ -320,45 +436,60 @@ function onDrop(e: DragEvent) {
     form.value.file = e.dataTransfer.files[0] || null;
   }
 }
-
+function extractFileName(path: string) {
+  if (!path) return "";
+  return path.split("/").pop() || path;
+}
+function clearFile() {
+  form.value.file = null;
+  form.value.serverFilePath = "";
+}
 // 업로드(제출) 핸들러
 async function onSubmit() {
   if (!isValid.value) return;
 
+  const formData = new FormData();
+  isLoading.value = true;
+  formData.append("title", form.value.title);
+  formData.append("tags", form.value.tags.join(","));
   try {
-    isLoading.value = true;
-
-    // 1. FormData 생성
-    const formData = new FormData();
-    formData.append("title", form.value.title);
-    formData.append("description", form.value.description);
-
-    // [수정 1] 태그를 JSON 배열이 아닌 CSV(콤마로 구분된 문자열)로 변환
-    // 예: ["어린이", "안전"] -> "어린이,안전"
-    formData.append("tags", form.value.tags.join(","));
-
-    if (form.value.scenarioId) {
-      // API 명세에 id 필드명이 명시되지 않았으나, 보통 수정 시 필요하므로 유지하거나 명세에 맞게 조정 필요
-      // 명세에 없다면 쿼리 파라미터나 다른 방식으로 보낼 수도 있음. 일단 유지.
-      formData.append("id", form.value.scenarioId);
-    }
-
-    if (form.value.file) {
-      formData.append("file", form.value.file);
-    }
-
-    const res = await $fetch<ApiResponse<UploadResponse>>("/nuxt-api/scenarios/upload", {
-      method: "POST",
-      body: formData,
-    });
-
-    // [수정 3] 응답 처리 로직 변경 (res.id -> res.message.postId)
-    if (res.status === 201) {
-      console.log("업로드 성공, ID:", res.message?.postId);
-      alert("성공적으로 업로드되었습니다!");
-      router.push(`/scenarios/${res.message?.postId}`);
+    if (form.value.jobId) {
+      // jobId 있으면 여기 실행
+      formData.append("jobId", form.value.jobId);
+      const res = await $fetch<ApiResponse<UploadResponseFromGenerator>>("/nuxt-api/upload/post_generator", {
+        method: "POST",
+        body: formData,
+      });
+      if (res.status === 201) {
+        console.log("업로드 성공, ID:", res.message);
+        alert("성공적으로 업로드되었습니다!");
+        router.push(`/scenarios/${res.message?.postId}`);
+      } else {
+        throw new Error("업로드 상태 코드가 201이 아닙니다.");
+      }
     } else {
-      throw new Error("업로드 상태 코드가 201이 아닙니다.");
+      // 직접 업로드 하는 코드
+      formData.append("description", form.value.description);
+
+      // [수정 1] 태그를 JSON 배열이 아닌 CSV(콤마로 구분된 문자열)로 변환
+      // 예: ["어린이", "안전"] -> "어린이,안전"
+      if (form.value.file) {
+        formData.append("file", form.value.file);
+      }
+
+      const res = await $fetch<ApiResponse<UploadResponse>>("/nuxt-api/upload/post", {
+        method: "POST",
+        body: formData,
+      });
+
+      // [수정 3] 응답 처리 로직 변경 (res.id -> res.message.postId)
+      if (res.status === 201) {
+        console.log("업로드 성공, ID:", res.message?.postId);
+        alert("성공적으로 업로드되었습니다!");
+        router.push(`/scenarios/${res.message?.postId}`);
+      } else {
+        throw new Error("업로드 상태 코드가 201이 아닙니다.");
+      }
     }
   } catch (e) {
     console.error("업로드 실패:", e);
@@ -456,6 +587,11 @@ async function onSubmit() {
   min-height: 120px;
 }
 
+.input-textarea:disabled {
+  background: #f1f5f9;
+  color: #64748b;
+  cursor: not-allowed;
+}
 /* 태그 스타일 */
 .tag-input-wrap {
   display: flex;
@@ -537,7 +673,11 @@ async function onSubmit() {
   align-items: center;
   gap: 12px;
 }
-
+.upload-area.is-readonly {
+  opacity: 0.7;
+  cursor: not-allowed;
+  pointer-events: none;
+}
 .upload-icon {
   margin-bottom: 4px;
 }
@@ -642,6 +782,11 @@ async function onSubmit() {
   position: relative;
 }
 }
+.map-slider-section.is-readonly {
+  opacity: 0.6;
+  pointer-events: none;
+  filter: grayscale(0.5);
+}
 
 .map-slider-section.is-disabled {
   opacity: 0.6;
@@ -659,6 +804,7 @@ async function onSubmit() {
 .mySwiper {
   width: 100%;
   overflow: hidden;
+  min-height: 220px;
 }
 
 .slide-container {

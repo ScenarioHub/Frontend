@@ -1,10 +1,19 @@
 <template>
   <div>
-    <ProgressModal
-      v-if="isProgressModalOpen"
-      :percent="progress"
-      :lines="statusLines"
-    />
+    <div v-if="isProgressOpen" class="p-backdrop">
+      <div class="p-modal" role="dialog" aria-modal="true" aria-label="시나리오 생성 중">
+        <div class="p-spinner" aria-hidden="true" />
+        <div class="p-title">시나리오 생성 중</div>
+        <div class="p-sub">{{ currentStepText }}</div>
+
+        <!-- 최근 로그 (선택사항) -->
+        <!-- <div v-if="statusLines.length" class="p-logs">
+          <div v-for="(line, i) in statusLines.slice(-2)" :key="i" class="p-log-item">
+            {{ line }}
+          </div>
+        </div> -->
+      </div>
+    </div>
 
     <!-- page wrapper는 layout에서 하니까, 여기서는 내용만 -->
     <div class="stepbar">
@@ -37,7 +46,7 @@
           <p class="panel-sub">시나리오 설명을 입력하세요</p>
 
           <textarea
-            v-model="prompt"
+            v-model="description"
             class="textarea"
             placeholder="예: 차량이 좌회전 중 보행자를 만나는 상황"
             :disabled="uiState === 'done' || uiState === 'running'"
@@ -51,6 +60,8 @@
             <swiper
               :slides-per-view="1"
               :space-between="15"
+              :centered-slides="true"
+              :centered-slides-bounds="true"
               :loop="isLoopEnabled"
               :pagination="{ clickable: true }"
               :navigation="true"
@@ -178,7 +189,7 @@
               <button
                 class="btn btn-green"
                 :disabled="currentStep !== 3"
-                @click="onDownloadXosc"
+                @click="onDownload"
               >
                 <svg
                   class="icon"
@@ -203,28 +214,6 @@
         </article>
       </section>
     </main>
-    <div v-if="isProgressOpen" class="p-backdrop">
-      <div
-        class="p-modal"
-        role="dialog"
-        aria-modal="true"
-        aria-label="시나리오 생성 중"
-      >
-        <div class="p-spinner" aria-hidden="true" />
-
-        <div class="p-title">시나리오 생성 중...</div>
-        <div class="p-sub">{{ statusText }}</div>
-
-        <div class="p-row">
-          <span class="p-left">진행 중</span>
-          <span class="p-right">{{ progress }}%</span>
-        </div>
-
-        <div class="p-bar">
-          <div class="p-bar-fill" :style="{ width: progress + '%' }" />
-        </div>
-      </div>
-    </div>
   </div>
 </template>
 
@@ -323,8 +312,7 @@ SSE에서 stream_ended 수신하면 UI를 3단계 완료로 바꾸고, 라이브
  -->
 
 <script setup lang="ts">
-import { useEventSource } from "@vueuse/core"; // SSE [web:1076]
-import { computed, onBeforeUnmount, ref, watch } from "vue";
+import { computed, onBeforeUnmount, ref } from "vue";
 
 import { useRouter } from "vue-router"; // [web:router_push]
 
@@ -334,7 +322,7 @@ import "swiper/css/navigation";
 import "swiper/css/pagination";
 import { Navigation, Pagination } from "swiper/modules";
 import { Swiper, SwiperSlide } from "swiper/vue";
-import type { MapItem } from "~/types";
+import type { ApiResponse, GenerateResponse, GenerateStateResponse, MapItem, ServerState } from "~/types";
 
 const modules = [Pagination, Navigation];
 
@@ -342,35 +330,47 @@ const { openLogin } = useAuthModal();
 const { isLoggedIn } = useAuthState();
 
 type UiState = "idle" | "running" | "done" | "error";
-type ProgressEvent = {
-  percent: number;
-  message: string;
-  done?: boolean;
-  videoUrl?: string;
-};
 
 // 1=입력, 2=생성중, 3=완료
 type Step = 1 | 2 | 3;
 
-const prompt = ref("");
+const description = ref("");
 const uiState = ref<UiState>("idle");
 const currentStep = ref<Step>(1);
+const downloadUrl = ref<string>("");
 
 const jobId = ref<string | null>(null);
-const progress = ref(0);
+const currentStepText = ref("");
 const statusLines = ref<string[]>([]);
-const statusText = ref("AI가 시나리오를 분석하고 있습니다");
+const stateText = ref("AI가 시나리오를 분석하고 있습니다");
 const videoUrl = ref<string | null>(null);
 const resultScenarioId = ref<number | null>(null);
 resultScenarioId.value = 1; // eslint 오류 방지용 코드 : 나중에 밑에서 선언하면 삭제 할 코드임========================================
+let pollInterval: NodeJS.Timeout | null = null;
+const POLL_INTERVAL = 500; // 0.5초마다 확인
 
-const isProgressModalOpen = computed(() => uiState.value === "running");
+// const isProgressModalOpen = computed(() => uiState.value === "running");
+const isProgressOpen = ref(false);
 const selectedMapId = ref<number | null>(null);
 const router = useRouter();
 
 const isLoopEnabled = computed(() => maps.value.length > 1);
 
 const maps = ref<MapItem[]>([]);
+
+// 상태별 메시지 매핑
+const getStateTextByState = (state: ServerState): string => {
+  switch (state) {
+    case "pending":
+      return "서버 준비 중...";
+    case "running":
+      return "AI가 시나리오를 생성하고 있습니다";
+    case "done":
+      return "시나리오 생성 완료!";
+    default:
+      return "상태를 확인 중입니다";
+  }
+};
 
 onMounted(() => {
   fetchMaps();
@@ -408,8 +408,7 @@ const onSlideChange = (swiper: SwiperType) => {
   }
 };
 function onGoToUploadForm() {
-  // if (currentStep.value !== 3 || !jobId.value) return;
-  // jobId는 시나리오 생성 완료 시 서버에서 받은 PK(id)라고 가정
+  if (currentStep.value !== 3 || !jobId.value) return;
 
   if (!isLoggedIn.value) {
     openLogin();
@@ -419,135 +418,119 @@ function onGoToUploadForm() {
   // ID만 쿼리 스트링으로 전달 (예: /upload?scenarioId=105)
   router.push({
     path: "/upload",
-    query: { scenarioId: jobId.value },
+    query: { jobId: jobId.value },
   });
 }
 
-// ===== 임시 오버레이 모달(5초짜리)용 =====
-const isProgressOpen = ref(false);
-let timer: ReturnType<typeof setInterval> | null = null;
-
-function stopTimer() {
-  if (timer) {
-    clearInterval(timer);
-    timer = null;
-  }
-}
-
-function closeProgress() {
-  stopTimer();
-  isProgressOpen.value = false;
-}
-
 async function onGenerate() {
-  stopTimer();
-
+  // 초기화
   currentStep.value = 2;
   uiState.value = "running";
-  isProgressOpen.value = true;
-  progress.value = 0;
-  statusText.value = "AI가 시나리오를 분석하고 있습니다";
-  statusLines.value = [statusText.value];
+  jobId.value = null;
+  statusLines.value = ["시나리오 생성을 시작합니다"];
   videoUrl.value = null;
 
-  // // ✅ 서버 만들면 여기 추가 (jobId 발급)
-  // const res = await $fetch<{ jobId: string }>("/nuxt-api/scenario/generate", {
-  //   method: "POST",
-  //   body: {
-  //     prompt: prompt.value,
-  //     mapId: selectedMapId.value
-  //   },
-  // })
-  // jobId.value = res.jobId
-  // resultScenarioId = res.scenarioId
-
-  // (개발 중 mock 돌릴 거면 아래를 조건부로만 실행)
-  startMockProgress();
-}
-function onDownloadXosc() {
-  if (currentStep.value !== 3) return;
-  // TODO: 서버 붙이면 여기서 파일 다운로드 URL로 이동 or fetch blob
-}
-
-function startMockProgress() {
-  timer = setInterval(() => {
-    progress.value = Math.min(100, progress.value + 2);
-    if (progress.value >= 30) statusText.value = "도로 환경 생성 중";
-    if (progress.value >= 60) statusText.value = "객체 배치 중";
-    if (progress.value >= 90) statusText.value = "마무리 작업 중";
-    statusLines.value = [...statusLines.value, statusText.value].slice(-5);
-
-    if (progress.value >= 100) {
-      currentStep.value = 3;
-      uiState.value = "done";
-      videoUrl.value
-        = "https://github.com/esmini/esmini.github.io/raw/main/images/custom_camera_fixed_pos.mp4?raw=true";
-      closeProgress();
-    }
-  }, 100);
-}
-
-// ===== SSE(나중에 쓸 코드) =====
-const sseUrl = computed(() =>
-  jobId.value
-    ? `/nuxt-api/scenarios/progress?jobId=${encodeURIComponent(jobId.value)}`
-    : undefined,
-);
-
-const { data, close, open } = useEventSource(sseUrl, [], {
-  immediate: false,
-  autoReconnect: { retries: 5, delay: 1000 },
-  serializer: {
-    read: (raw?: string) => {
-      if (raw == null) throw new Error("Empty response body");
-      return JSON.parse(raw) as ProgressEvent;
-    },
-  },
-});
-
-watch(jobId, (id) => {
-  if (id) open();
-});
-
-watch(data, (evt) => {
-  if (!evt) return;
-
-  // SSE로 받을 때도 "생성중" 단계 유지
-  currentStep.value = 2;
-
-  progress.value = evt.percent;
-  statusLines.value = [...statusLines.value, evt.message].slice(-5);
-
-  if (evt.done) {
-    // 완료되면 단계 3
-    currentStep.value = 3;
-
-    uiState.value = "done";
-    videoUrl.value = evt.videoUrl ?? null;
-    close();
-    closeProgress();
+  isProgressOpen.value = true;
+  stateText.value = "요청을 준비 중입니다...";
+  try {
+    const res = await $fetch<ApiResponse<GenerateResponse>>("/nuxt-api/generator/generate", {
+      method: "POST",
+      body: {
+        description: description.value,
+        mapId: 5,
+        // mapId: selectedMapId.value,
+      },
+    });
+    jobId.value = res.message?.jobId as string;
+    stateText.value = getStateTextByState(res.message?.state as ServerState);
+    currentStepText.value = getStateTextByState("pending");
+    statusLines.value = ["서버에 요청을 보냈습니다", stateText.value];
+    // console.log("🔄 폴링 시작:", res.message?.state);
+    startPolling();
+  } catch (error) {
+    console.error("생성 요청 실패:", error);
+    isProgressOpen.value = false;
+    uiState.value = "error";
+    currentStep.value = 1;
+    stateText.value = "요청 중 오류가 발생했습니다";
   }
-});
+}
+function stopPolling() {
+  if (pollInterval) {
+    clearInterval(pollInterval);
+    pollInterval = null;
+    console.log("🛑 폴링 중단");
+  }
+}
+
+function onDownload() {
+  if (currentStep.value !== 3) return;
+  window.location.href = downloadUrl.value;
+}
+
+async function startPolling() {
+  if (pollInterval) clearInterval(pollInterval);
+
+  pollInterval = setInterval(async () => {
+    if (!jobId.value) return;
+
+    try {
+      const res = await $fetch<ApiResponse<GenerateStateResponse>>(`/nuxt-api/generator/${jobId.value}/state`);
+      const msg = res.message;
+      // console.log("✅ 상태 수신:", msg?.state);
+
+      // 상태 업데이트
+      currentStepText.value = getStateTextByState(msg?.state as ServerState);
+
+      // 완료 체크
+      if (msg?.state === "done") {
+        if (pollInterval) {
+          clearInterval(pollInterval);
+          pollInterval = null;
+        }
+        setTimeout(() => {
+          handleDoneState(msg);
+          return;
+        }, 500);
+        return;
+      }
+    } catch (error) {
+      console.error("❌ 폴링 에러:", error);
+      // 30초 연속 실패시 중단
+    }
+  }, POLL_INTERVAL);
+}
+function handleDoneState(state: GenerateStateResponse) {
+  // console.log("🎉 완료!\n", state);
+  currentStepText.value = getStateTextByState("done");
+  currentStep.value = 3;
+
+  uiState.value = "done";
+
+  isProgressOpen.value = false;
+
+  downloadUrl.value = `/nuxt-api/scenarios/${state.scenarioId}/download`;
+  videoUrl.value = state.scenarioId ? `/nuxt-api/scenarios/${state.scenarioId}/video` : null;
+}
 
 onBeforeUnmount(() => {
-  stopTimer();
+  stopPolling();
 });
 
 function onReset() {
-  stopTimer();
-  close(); // SSE 연결 열려있으면 닫기 (vueuse close) [web:197]
-  closeProgress();
+  stopPolling();
+  isProgressOpen.value = false;
 
-  // 상태 초기화
-  prompt.value = "";
+  description.value = "";
   uiState.value = "idle";
   currentStep.value = 1;
 
   jobId.value = null;
-  progress.value = 0;
-  statusText.value = "AI가 시나리오를 분석하고 있습니다";
-  statusLines.value = [statusText.value];
+  stateText.value = "AI가 시나리오를 분석하고 있습니다";
+  statusLines.value = [];
   videoUrl.value = null;
+  downloadUrl.value = "";
+  currentStepText.value = "준비 중";
 }
 </script>
 
