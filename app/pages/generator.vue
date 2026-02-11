@@ -98,6 +98,7 @@
           </div>
           <button
             :class="uiState === 'done' ? 'btn-reset' : 'btn-primary'"
+            :disabled="isValid"
             @click="uiState === 'done' ? onReset() : onGenerate()"
           >
             {{ uiState === "done" ? "초기화 (새로 만들기)" : "시나리오 생성하기" }}
@@ -357,6 +358,13 @@ const router = useRouter();
 const isLoopEnabled = computed(() => maps.value.length > 1);
 
 const maps = ref<MapItem[]>([]);
+
+const isValid = computed(() => {
+  // 비어있거나 공백뿐이면 비활성화
+  const empty = description.value.trim().length === 0;
+  const busy = uiState.value === "running";
+  return empty || busy;
+});
 
 // 상태별 메시지 매핑
 const getStateTextByState = (state: ServerState): string => {
@@ -634,7 +642,13 @@ function onReset() {
   flex: 0 0 auto; /* 버튼은 아래에 고정 */
   margin-top: 16px;
 }
-
+.btn-primary:disabled {
+  background: #cbd5e1;
+  color: #475569;
+  opacity: 1;
+  cursor: not-allowed;
+  pointer-events: none;
+}
 .pill {
   display: inline-flex;
   align-items: center;
@@ -753,15 +767,6 @@ function onReset() {
 }
 .btn-green:hover {
   background: #15803d; /* green-700 */
-}
-
-/* disabled(3단계 전, 초기화 후 포함) */
-.btn:disabled {
-  background: #cbd5e1; /* 회색 */
-  color: #475569;
-  opacity: 1; /* 흐릿해 보이기 싫으면 1 */
-  cursor: not-allowed;
-  pointer-events: none; /* hover/클릭 차단 */
 }
 
 /* 아이콘 크기 */

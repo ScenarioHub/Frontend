@@ -463,7 +463,7 @@ async function onSubmit() {
       if (res.status === 201) {
         console.log("업로드 성공, ID:", res.message);
         alert("성공적으로 업로드되었습니다!");
-        router.push(`/scenarios/${res.message?.postId}`);
+        router.replace(`/scenarios/${res.message?.postId}`);
       } else {
         throw new Error("업로드 상태 코드가 201이 아닙니다.");
       }
@@ -486,7 +486,7 @@ async function onSubmit() {
       if (res.status === 201) {
         console.log("업로드 성공, ID:", res.message?.postId);
         alert("성공적으로 업로드되었습니다!");
-        router.push(`/scenarios/${res.message?.postId}`);
+        router.replace(`/scenarios/${res.message?.postId}`);
       } else {
         throw new Error("업로드 상태 코드가 201이 아닙니다.");
       }
