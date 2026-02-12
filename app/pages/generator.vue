@@ -489,7 +489,16 @@ async function startPolling() {
 
       // 상태 업데이트
       currentStepText.value = getStateTextByState(msg?.state as ServerState);
-
+      if (msg?.state === "failed") {
+        if (pollInterval) {
+          clearInterval(pollInterval);
+          pollInterval = null;
+        }
+        handleErrorState();
+        alert("시나리오 생성 중 오류가 발생했습니다.");
+        console.log("[Generator] : State failed");
+        return;
+      }
       // 완료 체크
       if (msg?.state === "done") {
         if (pollInterval) {
@@ -519,6 +528,21 @@ function handleDoneState(state: GenerateStateResponse) {
 
   downloadUrl.value = `/nuxt-api/scenarios/${state.scenarioId}/download`;
   videoUrl.value = state.scenarioId ? `/nuxt-api/scenarios/${state.scenarioId}/video` : null;
+}
+
+function handleErrorState() {
+  stopPolling();
+  isProgressOpen.value = false;
+
+  uiState.value = "idle";
+  currentStep.value = 1;
+
+  jobId.value = null;
+  stateText.value = "AI가 시나리오를 분석하고 있습니다";
+  statusLines.value = [];
+  videoUrl.value = null;
+  downloadUrl.value = "";
+  currentStepText.value = "준비 중";
 }
 
 onBeforeUnmount(() => {
@@ -768,7 +792,13 @@ function onReset() {
 .btn-green:hover {
   background: #15803d; /* green-700 */
 }
-
+.btn-green:disabled {
+  background: #cbd5e1;
+  color: #475569;
+  opacity: 1;
+  cursor: not-allowed;
+  pointer-events: none;
+}
 /* 아이콘 크기 */
 .icon {
   width: 22px;
@@ -914,6 +944,13 @@ function onReset() {
   background: #1d4ed8;
 }
 
+.btn-blue:disabled {
+  background: #cbd5e1;
+  color: #475569;
+  opacity: 1;
+  cursor: not-allowed;
+  pointer-events: none;
+}
 /* 모바일 대응: 화면이 좁을 때는 위아래로 배치 */
 @media (max-width: 600px) {
   .btn-row {
