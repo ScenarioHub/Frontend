@@ -5,7 +5,7 @@ import { fetchWithAuth } from "../../utils/fetchWithAuth";
 export default defineEventHandler(async (event) => {
   const config = useRuntimeConfig();
   const token = getCookie(event, "auth_access_token");
-  const id = getRouterParam(event, "id");
+  const id = getRouterParam(event, "postId") as string;
 
   try {
     if (!id) {

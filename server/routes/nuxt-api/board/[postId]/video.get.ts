@@ -3,7 +3,7 @@ import { defineEventHandler, getHeader, getRouterParam, sendStream, setResponseH
 
 export default defineEventHandler(async (event) => {
   const config = useRuntimeConfig(event);
-  const id = getRouterParam(event, "id");
+  const id = getRouterParam(event, "postId") as string;
 
   if (!id) {
     throw createError({ statusCode: 400, statusMessage: "Post ID is required" });

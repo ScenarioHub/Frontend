@@ -2,8 +2,8 @@ import type { ApiResponse, ScenarioDetail } from "@/types";
 import { fetchWithAuth } from "../../utils/fetchWithAuth";
 
 export default defineEventHandler(async (event): Promise<ScenarioDetail> => {
-  const id = event.context.params?.id || "";
   const config = useRuntimeConfig(event);
+  const id = getRouterParam(event, "postId") as string;
 
   try {
     const res = await fetchWithAuth<ApiResponse<ScenarioDetail>>(

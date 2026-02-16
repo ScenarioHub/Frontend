@@ -361,7 +361,7 @@ const { openLogin } = useAuthModal();
 const tagOverflowMap = ref<Record<string, boolean>>({});
 const tagContainers = ref<HTMLElement[]>([]);
 
-const { data: serverData, refresh } = await useFetch<Post>("/nuxt-api/scenarios/explore", {
+const { data: serverData, refresh } = await useFetch<Post>("/nuxt-api/board/explore", {
   query: {
     page: currentPage,
     sort: sort,
@@ -493,7 +493,7 @@ const checkMyLikeStatus = async (item: ScenarioItem) => {
   }
 
   try {
-    const res = await $fetch<ApiResponse<Like>>(`/nuxt-api/scenarios/${item.id}/like/`, {
+    const res = await $fetch<ApiResponse<Like>>(`/nuxt-api/board/${item.id}/like/`, {
       method: "POST",
     });
     if (res.message) {
@@ -510,7 +510,7 @@ function onDownload(item: ScenarioItem) {
   if (!item.id) return;
 
   console.log("download scenario", item.id);
-  const downloadUrl = `/nuxt-api/scenarios/${item.id}/download`;
+  const downloadUrl = `/nuxt-api/board/${item.id}/download/`;
 
   const iframe = document.createElement("iframe");
   iframe.style.display = "none";

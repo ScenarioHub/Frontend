@@ -514,7 +514,7 @@ const {
   error,
   refresh,
 } = await useFetch<ScenarioDetail>(
-  () => `/nuxt-api/scenarios/${id.value}/detail`,
+  () => `/nuxt-api/board/${id.value}/details/`,
   {
     key: `scenario-${id.value}-detail`,
     watch: [id],
@@ -551,7 +551,7 @@ const checkMyLikeStatus = async () => {
 
   try {
     const res = await $fetch<ApiResponse<Like>>(
-      `/nuxt-api/scenarios/${id.value}/like/`,
+      `/nuxt-api/board/${id.value}/like/`,
       {
         method: "POST",
       },
@@ -603,7 +603,7 @@ async function confirmDelete() {
 
   try {
     const deleteResponseData = await $fetch<ApiResponse<string>>(
-      `/nuxt-api/scenarios/${detail.value.id}/delete`,
+      `/nuxt-api/board/${detail.value.id}/delete`,
       { method: "DELETE" },
     );
     if (deleteResponseData.status == 200) {
@@ -661,7 +661,7 @@ async function onShare() {
 
 const videoSrc = computed(() => {
   if (!id.value) return "";
-  return `/nuxt-api/scenarios/${id.value}/video`;
+  return `/nuxt-api/board/${id.value}/video`;
 });
 
 function formatDate(iso: string | undefined) {
@@ -681,7 +681,7 @@ function formatNumber(n: number) {
 
 const onDownload = () => {
   if (!id.value) return;
-  const downloadUrl = `/nuxt-api/scenarios/${id.value}/download`;
+  const downloadUrl = `/nuxt-api/board/${id.value}/download`;
   window.location.href = downloadUrl;
   detail.value.stats.downloads += 1;
 };

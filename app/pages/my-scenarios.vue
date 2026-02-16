@@ -175,7 +175,7 @@ definePageMeta({
 
 const { isLoggedIn } = useAuthState();
 
-const { data, pending, error, refresh } = await useFetch<MyScenarioItem[]>("/nuxt-api/scenarios/my-scenarios", {
+const { data, pending, error, refresh } = await useFetch<MyScenarioItem[]>("/nuxt-api/user/myscenario", {
   server: false,
   immediate: isLoggedIn.value === true,
 });
@@ -232,7 +232,7 @@ async function confirmDelete() {
   deleting.value = true;
 
   try {
-    const deleteResponseData = await $fetch<ApiResponse<string>>(`/nuxt-api/scenarios/${deletingItem.value.id}/delete`, { method: "DELETE" });
+    const deleteResponseData = await $fetch<ApiResponse<string>>(`/nuxt-api/board/${deletingItem.value.id}/delete/`, { method: "DELETE" });
     if (deleteResponseData.status == 200) {
       alert("삭제되었습니다.");
       await refresh();

@@ -1,16 +1,15 @@
 import { defineEventHandler } from "h3";
 import type { ApiResponse, DataWithJobIdResponse } from "~/types";
-import { fetchWithAuth } from "../utils/fetchWithAuth";
+import { fetchWithAuth } from "../../utils/fetchWithAuth";
 
 export default defineEventHandler(async (event) => {
   const config = useRuntimeConfig(event);
-  const query = getQuery(event);
+  const jobId = getRouterParam(event, "jobId") as string;
 
-  const jobId = query.jobId as string || "";
   try {
     const res = await fetchWithAuth<ApiResponse<DataWithJobIdResponse>>(
       event,
-      `${config.apiBase}/api/generator/${encodeURIComponent(jobId)}/contents`, {
+      `${config.apiBase}/api/generator/${jobId}/contents`, {
         method: "GET",
       },
     );

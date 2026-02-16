@@ -272,14 +272,14 @@ watch(
 
 async function fetchMaps() {
   try {
-    const data = await $fetch<MapItem[]>("/nuxt-api/maps/list");
+    const data = await $fetch<MapItem[]>("/nuxt-api/scenarios/maps/list");
 
     if (data && Array.isArray(data)) {
       maps.value = data.map((item) => ({
         id: item.id,
         name: item.name,
         description: item.description,
-        imageUrl: `/nuxt-api/maps/preview?id=${item.id}`,
+        imageUrl: `/nuxt-api/scenarios/maps/preview?id=${item.id}`,
       }));
     }
   } catch (err) {
@@ -297,11 +297,7 @@ async function loadScenarioData(jobId: string) {
     isLoading.value = true;
     form.value.jobId = jobId;
 
-    const data = await $fetch<DataWithJobIdResponse>("/nuxt-api/upload/data", {
-      query: {
-        jobId,
-      },
-    });
+    const data = await $fetch<DataWithJobIdResponse>(`/nuxt-api/generator/${jobId}/contents/`);
     setInputData(data);
   } catch (e) {
     console.error("데이터 로드 실패", e);
@@ -455,8 +451,8 @@ async function onSubmit() {
   try {
     if (form.value.jobId) {
       // jobId 있으면 여기 실행
-      formData.append("jobId", form.value.jobId);
-      const res = await $fetch<ApiResponse<UploadResponseFromGenerator>>("/nuxt-api/upload/post_generator", {
+      // formData.append("jobId", form.value.jobId);
+      const res = await $fetch<ApiResponse<UploadResponseFromGenerator>>(`/nuxt-api/generator/${form.value.jobId}/upload`, {
         method: "POST",
         body: formData,
       });
@@ -477,7 +473,7 @@ async function onSubmit() {
         formData.append("file", form.value.file);
       }
 
-      const res = await $fetch<ApiResponse<UploadResponse>>("/nuxt-api/upload/post", {
+      const res = await $fetch<ApiResponse<UploadResponse>>("/nuxt-api/board/upload/", {
         method: "POST",
         body: formData,
       });

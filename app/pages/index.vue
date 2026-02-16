@@ -186,7 +186,7 @@
 <script setup lang="ts">
 import type { IndexStats } from "~/types";
 
-const { data } = await useFetch<IndexStats>("/nuxt-api/stats/stats");
+const { data } = await useFetch<IndexStats>("/nuxt-api/board/stats");
 
 const sharedScenariosText = computed(() =>
   data.value?.sharedScenarios != null

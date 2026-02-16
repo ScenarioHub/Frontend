@@ -4,7 +4,7 @@ import { fetchWithAuth } from "../../utils/fetchWithAuth";
 
 export default defineEventHandler(async (event) => {
   const config = useRuntimeConfig(event);
-  const jobId = event.context.params?.jobId;
+  const jobId = getRouterParam(event, "jobId") as string;
 
   try {
     const res = await fetchWithAuth<ApiResponse<GenerateStateResponse>>(

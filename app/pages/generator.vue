@@ -386,14 +386,14 @@ onMounted(() => {
 
 async function fetchMaps() {
   try {
-    const data = await $fetch<MapItem[]>("/nuxt-api/maps/list");
+    const data = await $fetch<MapItem[]>("/nuxt-api/scenarios/maps/list");
 
     if (data && Array.isArray(data)) {
       maps.value = data.map((item) => ({
         id: item.id,
         name: item.name,
         description: item.description,
-        imageUrl: `/nuxt-api/maps/preview?id=${item.id}`,
+        imageUrl: `/nuxt-api/scenarios/maps/preview?id=${item.id}`,
       }));
     }
   } catch (err) {
@@ -525,8 +525,8 @@ function handleDoneState(state: GenerateStateResponse) {
 
   isProgressOpen.value = false;
 
-  downloadUrl.value = `/nuxt-api/generator/tmp/${state.scenarioId}/download`;
-  videoUrl.value = state.scenarioId ? `/nuxt-api/generator/tmp/${state.scenarioId}/video` : null;
+  downloadUrl.value = `/nuxt-api/scenarios/${state.scenarioId}/download/`;
+  videoUrl.value = state.scenarioId ? `/nuxt-api/scenarios/${state.scenarioId}/video/` : null;
 }
 
 function handleErrorState() {

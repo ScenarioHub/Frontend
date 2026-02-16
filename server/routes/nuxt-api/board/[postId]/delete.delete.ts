@@ -4,7 +4,7 @@ import { fetchWithAuth } from "../../utils/fetchWithAuth"; // 경로 확인 필�
 
 export default defineEventHandler(async (event) => {
   const config = useRuntimeConfig();
-  const id = getRouterParam(event, "id");
+  const id = getRouterParam(event, "postId") as string;
 
   try {
     if (!id) {

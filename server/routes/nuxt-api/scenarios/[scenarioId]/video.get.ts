@@ -3,8 +3,8 @@ import { defineEventHandler, getHeader, sendStream, setResponseHeaders, setRespo
 
 export default defineEventHandler(async (event) => {
   const config = useRuntimeConfig(event);
-  const scenarioId = event.context.params?.scenarioId;
-  console.log("[tmp video]", scenarioId);
+  const scenarioId = getRouterParam(event, "scenarioId") as string;
+
   if (!scenarioId) {
     throw createError({ statusCode: 400, statusMessage: "Scenario ID is required" });
   }
