@@ -55,7 +55,7 @@ export default defineEventHandler(async (event) => {
 
     const externalResponse = await fetchWithAuth(
       event,
-      `${config.apiBase}/api/upload/post/`, {
+      `${config.apiBase}/api/board/upload/`, {
         method: "POST",
         body: formData,
       },

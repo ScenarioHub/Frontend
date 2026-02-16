@@ -14,7 +14,7 @@ export default defineEventHandler(async (event) => {
   try {
     const externalResponse = await fetchWithAuth<ApiResponse<Post>>(
       event,
-      `${config.apiBase}/api/scenarios/explore`, {
+      `${config.apiBase}/api/board/explore`, {
         method: "GET",
         query: {
           page: page,

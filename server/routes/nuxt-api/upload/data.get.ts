@@ -10,11 +10,11 @@ export default defineEventHandler(async (event) => {
   try {
     const res = await fetchWithAuth<ApiResponse<DataWithJobIdResponse>>(
       event,
-      `${config.apiBase}/api/upload/data`, {
+      `${config.apiBase}/api/generator/${encodeURIComponent(jobId)}/contents`, {
         method: "GET",
-        query: {
-          job_uuid: jobId,
-        },
+        // query: {
+        //   job_uuid: jobId,
+        // },
       },
     );
     return res.message;

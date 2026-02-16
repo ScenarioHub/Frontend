@@ -15,7 +15,7 @@ export default defineEventHandler(async (event) => {
     // 1. 백엔드 API로 이미지 요청
     // (responseType: 'arrayBuffer' 또는 'stream'으로 받아야 함)
     const backendRes = await $fetch.raw(
-      `${config.apiBase}/api/maps/preview`,
+      `${config.apiBase}/api/scenarios/maps/preview`,
       {
         query: { id: mapId }, // 쿼리 파라미터 전달
         responseType: "stream", // 스트림으로 받기

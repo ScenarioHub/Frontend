@@ -31,8 +31,6 @@ export default defineEventHandler(async (event) => {
         password,
         name,
       },
-      // 필요 시 헤더 추가
-      // headers: { 'Authorization': ... }
     });
 
     return registerResponse;

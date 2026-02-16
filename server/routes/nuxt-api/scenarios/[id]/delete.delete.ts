@@ -13,7 +13,7 @@ export default defineEventHandler(async (event) => {
 
     const externalResponse = await fetchWithAuth<ApiResponse<string>>(
       event,
-      `${config.apiBase}/api/scenarios/${id}/delete/`,
+      `${config.apiBase}/api/board/${id}/delete/`,
       {
         method: "DELETE",
       },

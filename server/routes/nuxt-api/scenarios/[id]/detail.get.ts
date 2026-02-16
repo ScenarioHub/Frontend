@@ -6,13 +6,13 @@ export default defineEventHandler(async (event): Promise<ScenarioDetail> => {
   const config = useRuntimeConfig(event);
 
   try {
-    const externalResponse = await fetchWithAuth<ApiResponse<ScenarioDetail>>(
+    const res = await fetchWithAuth<ApiResponse<ScenarioDetail>>(
       event,
-      `${config.apiBase}/api/scenarios/${id}/details/`, {
+      `${config.apiBase}/api/board/${id}/details/`, {
         method: "GET",
       },
     );
-    const data = externalResponse.message;
+    const data = res.message;
 
     if (!data) {
       throw new Error("API 응답에 message 필드가 없습니다.");
