@@ -1,12 +1,12 @@
 import type { ApiError } from "@/types";
-import { defineEventHandler, getHeader, getRouterParam, sendStream, setResponseHeaders, setResponseStatus } from "h3";
+import { defineEventHandler, getHeader, sendStream, setResponseHeaders, setResponseStatus } from "h3";
 
 export default defineEventHandler(async (event) => {
   const config = useRuntimeConfig(event);
-  const id = getRouterParam(event, "id");
-
-  if (!id) {
-    throw createError({ statusCode: 400, statusMessage: "Post ID is required" });
+  const scenarioId = event.context.params?.scenarioId;
+  console.log("[tmp video]", scenarioId);
+  if (!scenarioId) {
+    throw createError({ statusCode: 400, statusMessage: "Scenario ID is required" });
   }
 
   // 1. 클라이언트(브라우저)가 보낸 Range 헤더 가져오기
@@ -17,12 +17,11 @@ export default defineEventHandler(async (event) => {
   try {
     // 2. 외부 서버로 요청 보내기 (스트림 모드)
     const response = await $fetch.raw(
-      `${config.apiBase}/api/board/${encodeURIComponent(id)}/video/`, // 외부 API 엔드포인트 (상황에 맞춰 수정 필요)
+      `${config.apiBase}/api/scenarios/${encodeURIComponent(scenarioId)}/video/`, // 외부 API 엔드포인트 (상황에 맞춰 수정 필요)
       {
         method: "GET",
         responseType: "stream", // 메모리에 담지 않고 스트림으로 받음
         headers: {
-          // 중요: 브라우저가 요청한 Range 정보를 외부 서버에도 그대로 전달해야 합니다.
           ...(range && { Range: range }),
           Accept: "video/mp4,video/*;q=0.9,*/*;q=0.8", // 비디오 요청임을 명시
         },
@@ -31,8 +30,6 @@ export default defineEventHandler(async (event) => {
       },
     );
 
-    // 3. 외부 서버의 응답 헤더를 클라이언트에게 전달
-    // 비디오 스트리밍에 필수적인 헤더들을 복사합니다.
     const headers: Record<string, string> = {};
 
     const contentType = response.headers.get("content-type");

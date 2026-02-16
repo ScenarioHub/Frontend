@@ -13,7 +13,7 @@ export default defineEventHandler(async (event) => {
         method: "GET",
       },
     );
-    console.log("[State] ", res.message?.state);
+    // console.log("[State] ", res.message?.state);
     return res;
   } catch (error) {
     const err = error as ApiError;

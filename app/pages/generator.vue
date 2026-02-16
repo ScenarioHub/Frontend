@@ -445,8 +445,7 @@ async function onGenerate() {
       method: "POST",
       body: {
         description: description.value,
-        mapId: 5,
-        // mapId: selectedMapId.value,
+        mapId: selectedMapId.value,
       },
     });
     jobId.value = res.message?.jobId as string;
@@ -526,8 +525,8 @@ function handleDoneState(state: GenerateStateResponse) {
 
   isProgressOpen.value = false;
 
-  downloadUrl.value = `/nuxt-api/scenarios/${state.scenarioId}/download`;
-  videoUrl.value = state.scenarioId ? `/nuxt-api/scenarios/${state.scenarioId}/video` : null;
+  downloadUrl.value = `/nuxt-api/generator/tmp/${state.scenarioId}/download`;
+  videoUrl.value = state.scenarioId ? `/nuxt-api/generator/tmp/${state.scenarioId}/video` : null;
 }
 
 function handleErrorState() {

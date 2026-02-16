@@ -12,9 +12,6 @@ export default defineEventHandler(async (event) => {
       event,
       `${config.apiBase}/api/generator/${encodeURIComponent(jobId)}/contents`, {
         method: "GET",
-        // query: {
-        //   job_uuid: jobId,
-        // },
       },
     );
     return res.message;

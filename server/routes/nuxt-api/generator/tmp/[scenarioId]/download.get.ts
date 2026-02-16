@@ -1,20 +1,21 @@
-import { defineEventHandler, getRouterParam, sendStream, setResponseHeaders } from "h3";
+import { defineEventHandler, sendStream, setResponseHeaders } from "h3";
 
 export default defineEventHandler(async (event) => {
   const config = useRuntimeConfig(event);
-  const id = getRouterParam(event, "id");
+  const scenarioId = event.context.params?.scenarioId;
 
-  if (!id) {
-    throw createError({ statusCode: 400, statusMessage: "Post ID is required" });
+
+  if (!scenarioId) {
+    throw createError({ statusCode: 400, statusMessage: "Scenario ID is required" });
   }
 
   try {
     // 1. 요청 설정 변경 (blob -> stream)
     const response = await $fetch.raw(
-      `${config.apiBase}/api/board/${encodeURIComponent(id)}/download/`,
+      `${config.apiBase}/api/scenarios/${encodeURIComponent(scenarioId)}/download/`,
       {
-        method: "GET", // 명시적으로 GET 적어줌
-        responseType: "stream", // 여기가 핵심입니다! 메모리에 담지 않고 스트림으로 받음
+        method: "GET",
+        responseType: "stream",
       },
     );
 
@@ -30,7 +31,7 @@ export default defineEventHandler(async (event) => {
       headers["Content-Disposition"] = originalDisposition;
     } else {
       // 외부 서버가 파일명을 안 줬을 때만 이름 설정
-      headers["Content-Disposition"] = `attachment; filename="scenario_${id}.xosc"`;
+      headers["Content-Disposition"] = `attachment; filename="scenario_${scenarioId}.xosc"`;
     }
 
     setResponseHeaders(event, headers);

@@ -12,33 +12,33 @@ export default defineEventHandler(async (event) => {
     }
 
     // 2. 외부 API로 보낼 FormData 객체 생성
-    // const formData = new FormData();
+    const formData = new FormData();
 
     // 필드 찾기 헬퍼 함수
     const findField = (name: string) => body.find((f) => f.name === name);
 
     // [데이터 매핑]
-    // const title = findField("title");
-    // const tags = findField("tags");
+    const title = findField("title");
+    const tags = findField("tags");
     const jobId = findField("jobId");
 
     // 필수값 검증
-    // if (!title || !jobId) {
-    // throw createError({ statusCode: 500, statusMessage: "필수 데이터(제목, jobId) 누락" });
-    // }
-    // formData.append("jobId", jobId.data.toString());
-    // formData.append("title", title.data.toString());
+    if (!title || !jobId) {
+      throw createError({ statusCode: 500, statusMessage: "필수 데이터(제목, jobId) 누락" });
+    }
+    formData.append("jobId", jobId.data.toString());
+    formData.append("title", title.data.toString());
 
-    // if (tags) {
-    //   formData.append("tags", tags.data.toString());
-    // }
+    if (tags) {
+      formData.append("tags", tags.data.toString());
+    }
 
     // 3. 파일 처리
     const externalResponse = await fetchWithAuth(
       event,
-      `${config.apiBase}/api/generator/${jobId}/contents/`, {
+      `${config.apiBase}/api/generator/${jobId.data.toString()}/upload/`, {
         method: "POST",
-        // body: formData,
+        body: formData,
       },
     );
     return externalResponse;
