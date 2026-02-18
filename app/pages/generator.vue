@@ -333,8 +333,10 @@ const getStateTextByState = (state: ServerState): string => {
   switch (state) {
     case "pending":
       return "서버 준비 중...";
-    case "running":
+    case "generating":
       return "AI가 시나리오를 생성하고 있습니다";
+    case "recording":
+      return "생성된 시나리오를 녹화 중입니다."
     case "done":
       return "시나리오 생성 완료!";
     default:

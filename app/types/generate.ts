@@ -13,4 +13,4 @@ export interface GenerateStateResponse extends GenerateResponse {
   mapId: number;
 }
 
-export type ServerState = "pending" | "running" | "done" | "error";
+export type ServerState = "pending" | "generating" | "recording" | "done" | "error";
