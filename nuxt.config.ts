@@ -59,6 +59,17 @@ export default defineNuxtConfig({
     },
   },
   icon: {
+    provider: "none",
+
+    serverBundle: {
+      collections: ["lucide"], // lucide 세트 로컬 번들에 포함
+    },
+
+    clientBundle: {
+      scan: true,
+      includeCustomCollections: true,
+      sizeLimitKb: 256,
+    },
     customCollections: [{
       prefix: "site",
       dir: "./app/assets/custom-icons",
