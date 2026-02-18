@@ -259,8 +259,9 @@ import type { ApiResponse, Like, Post, ScenarioItem, Sort } from "~/types";
 const route = useRoute();
 const router = useRouter();
 
-const sort = ref<Sort>(route.query.sort?.toString() as Sort || "popular");
-const validSorts = ["popular", "latest", "oldest"];
+const sort = ref<Sort>(
+  (route.query.sort?.toString() as Sort) || "popular",
+);
 
 const onlyLiked = ref(Boolean(route.query.liked) || false);
 // const pageSize = 12;
@@ -299,11 +300,6 @@ watch(
     if (newData?.currentPage) {
       currentPage.value = newData?.currentPage;
     }
-    if (validSorts.includes(newData?.sort as string)) {
-      sort.value = newData?.sort as Sort;
-    } else {
-      sort.value = "popular";
-    }
     if (newData?.totalPages) {
       totalPages.value = newData?.totalPages;
     }
@@ -328,7 +324,11 @@ watch([currentPage, sort, onlyLiked], () => {
     sort: sort.value,
     liked: onlyLiked.value ? "true" : undefined,
   };
-
+  watch(() => route.query, (newQuery) => {
+    currentPage.value = Number(newQuery.page) || 1;
+    sort.value = (newQuery.sort as Sort) || "popular";
+    onlyLiked.value = newQuery.liked === "true";
+  });
   // 동일하면 push 안 함 (watch 3번 트리거 차단)
   if (
     route.query.page === nextQuery.page
