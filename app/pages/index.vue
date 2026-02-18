@@ -4,28 +4,13 @@
       <section class="hero">
         <div class="hero-icon">
           <div class="hero-icon-tile" aria-hidden="true">
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="56"
-              height="56"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              class="hero-icon-white"
-            >
-              <path
-                d="M19 17h2c.6 0 1-.4 1-1v-3c0-.9-.7-1.7-1.5-1.9C18.7 10.6 16 10 16 10s-1.3-1.4-2.2-2.3c-.5-.4-1.1-.7-1.8-.7H5c-.6 0-1.1.4-1.4.9l-1.4 2.9A3.7 3.7 0 0 0 2 12v4c0 .6.4 1 1 1h2"
-              />
-              <circle cx="7" cy="17" r="2" />
-              <path d="M9 17h6" />
-              <circle cx="17" cy="17" r="2" />
-            </svg>
+            <Icon
+              name="site:main-logo"
+              :size="56"
+              class="text-white"
+            />
           </div>
         </div>
-
         <p class="hero-welcome">Scenario Hub에 오신 것을 환영합니다</p>
         <h1 class="hero-title">
           자율주행 시나리오를 쉽게 생성하고 커뮤니티와 공유하세요
@@ -41,25 +26,11 @@
           @click="goGenerator()"
         >
           <div class="card-icon card-blue">
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="32"
-              height="32"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2"
-              stroke-linecap="round"
-              stroke-linejoin="round"
+            <Icon
+              name="lucide:file-code"
+              :size="32"
               class="icon-create"
-            >
-              <path
-                d="M6 22a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h8a2.4 2.4 0 0 1 1.704.706l3.588 3.588A2.4 2.4 0 0 1 20 8v12a2 2 0 0 1-2 2z"
-              />
-              <path d="M14 2v5a1 1 0 0 0 1 1h5" />
-              <path d="M10 12.5 8 15l2 2.5" />
-              <path d="m14 12.5 2 2.5-2 2.5" />
-            </svg>
+            />
           </div>
           <h3 class="card-title">시나리오 생성</h3>
           <p class="card-desc">
@@ -75,24 +46,11 @@
           @click="onExploreCommunity"
         >
           <div class="card-icon card-green">
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="32"
-              height="32"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2"
-              stroke-linecap="round"
-              stroke-linejoin="round"
+            <Icon
+              name="lucide:share-2"
+              :size="32"
               class="icon-share"
-            >
-              <circle cx="18" cy="5" r="3" />
-              <circle cx="6" cy="12" r="3" />
-              <circle cx="18" cy="19" r="3" />
-              <line x1="8.59" x2="15.42" y1="13.51" y2="17.49" />
-              <line x1="15.41" x2="8.59" y1="6.51" y2="10.49" />
-            </svg>
+            />
           </div>
           <h3 class="card-title">시나리오 공유</h3>
           <p class="card-desc">
@@ -105,26 +63,11 @@
       <section class="stats">
         <div class="stat">
           <div class="stat-top">
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="20"
-              height="20"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2"
-              stroke-linecap="round"
-              stroke-linejoin="round"
+            <Icon
+              name="lucide:file-text"
+              :size="20"
               class="stat-icon stat-blue"
-            >
-              <path
-                d="M6 22a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h8a2.4 2.4 0 0 1 1.704.706l3.588 3.588A2.4 2.4 0 0 1 20 8v12a2 2 0 0 1-2 2z"
-              />
-              <path d="M14 2v5a1 1 0 0 0 1 1h5" />
-              <path d="M10 9H8" />
-              <path d="M16 13H8" />
-              <path d="M16 17H8" />
-            </svg>
+            />
             <div class="stat-value">{{ sharedScenariosText }}</div>
           </div>
           <div class="stat-label">공유된 시나리오</div>
@@ -133,23 +76,11 @@
         <!-- 활성 사용자 -->
         <div class="stat">
           <div class="stat-top">
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="20"
-              height="20"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2"
-              stroke-linecap="round"
-              stroke-linejoin="round"
+            <Icon
+              name="lucide:users"
+              :size="20"
               class="stat-icon stat-green"
-            >
-              <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
-              <path d="M16 3.128a4 4 0 0 1 0 7.744" />
-              <path d="M22 21v-2a4 4 0 0 0-3-3.87" />
-              <circle cx="9" cy="7" r="4" />
-            </svg>
+            />
             <div class="stat-value">{{ activeUsersText }}</div>
           </div>
           <div class="stat-label">활성 사용자</div>
@@ -158,22 +89,11 @@
         <!-- 총 다운로드 -->
         <div class="stat">
           <div class="stat-top">
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="20"
-              height="20"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2"
-              stroke-linecap="round"
-              stroke-linejoin="round"
+            <Icon
+              name="lucide:download"
+              :size="20"
               class="stat-icon stat-purple"
-            >
-              <path d="M12 15V3" />
-              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
-              <path d="m7 10 5 5 5-5" />
-            </svg>
+            />
             <div class="stat-value">{{ totalDownloadsText }}</div>
           </div>
           <div class="stat-label">총 다운로드</div>
@@ -247,9 +167,6 @@ function formatStat(n: number) {
   display: grid;
   place-items: center;
   box-shadow: 0 10px 30px rgba(15, 23, 42, 0.08);
-}
-.hero-icon-white {
-  color: #fff;
 }
 
 .hero-welcome {

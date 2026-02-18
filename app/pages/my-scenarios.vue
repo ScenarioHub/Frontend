@@ -30,22 +30,10 @@
                   생성일: {{ formatDate(item.createdAt) }}
                 </span>
                 <span class="meta-item meta-downloads">
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    width="16"
-                    height="16"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    stroke-width="2"
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    aria-hidden="true"
-                  >
-                    <path d="M12 15V3" />
-                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
-                    <path d="m7 10 5 5 5-5" />
-                  </svg>
+                  <Icon
+                    name="lucide:download"
+                    :size="16"
+                  />
                   {{ item.downloadCount }}
                 </span>
               </div>
@@ -56,23 +44,10 @@
                 class="bg-[#155dfc] hover:bg-[#1447e6] text-white px-4 py-2 rounded-lg text-[14px] flex items-center gap-2"
                 @click="onView(item)"
               >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="16"
-                  height="16"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-width="2"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  aria-hidden="true"
-                >
-                  <path
-                    d="M2.062 12.348a1 1 0 0 1 0-.696 10.75 10.75 0 0 1 19.876 0 1 1 0 0 1 0 .696 10.75 10.75 0 0 1-19.876 0"
-                  />
-                  <circle cx="12" cy="12" r="3" />
-                </svg>
+                <Icon
+                  name="lucide:eye"
+                  :size="16"
+                />
                 보기
               </button>
 
@@ -80,24 +55,10 @@
                 class="bg-white border-2 border-gray-200 hover:border-red-500 text-red-500 px-4 py-2 rounded-lg text-[14px] flex items-center gap-2"
                 @click="openDeleteModal(item)"
               >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="16"
-                  height="16"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-width="2"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  aria-hidden="true"
-                >
-                  <path d="M10 11v6" />
-                  <path d="M14 11v6" />
-                  <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6" />
-                  <path d="M3 6h18" />
-                  <path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
-                </svg>
+                <Icon
+                  name="lucide:trash-2"
+                  :size="16"
+                />
                 삭제
               </button>
             </div>

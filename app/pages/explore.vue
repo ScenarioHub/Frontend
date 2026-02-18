@@ -47,29 +47,6 @@
             즐겨찾기
           </button>
         </div>
-
-        <!-- <div class="toolbar-right">
-          <button type="button" class="toolbar-filter">
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="16"
-              height="16"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              aria-hidden="true"
-            >
-              <path d="M4 4h16" />
-              <path d="M6 8h12" />
-              <path d="M8 12h8" />
-              <path d="M10 16h4" />
-            </svg>
-            필터
-          </button>
-        </div> -->
       </section>
 
       <!-- 카드 그리드 -->
@@ -142,65 +119,26 @@
           <footer class="card-footer">
             <div class="card-stats">
               <span class="card-stat">
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="14"
-                  height="14"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-width="2"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  aria-hidden="true"
-                >
-                  <path d="M12 15V3" />
-                  <path
-                    d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"
-                  />
-                  <path d="m7 10 5 5 5-5" />
-                </svg>
+                <Icon
+                  name="lucide:download"
+                  :size="14"
+                />
                 {{ formatNumber(item.stats.downloads) }}
               </span>
 
               <span class="card-stat">
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="14"
-                  height="14"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-width="2"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  aria-hidden="true"
-                >
-                  <path
-                    d="M2.062 12.348a1 1 0 0 1 0-.696 10.75 10.75 0 0 1 19.876 0 1 1 0 0 1 0 .696 10.75 10.75 0 0 1-19.876 0"
-                  />
-                  <circle cx="12" cy="12" r="3" />
-                </svg>
+                <Icon
+                  name="lucide:eye"
+                  :size="14"
+                />
                 {{ formatNumber(item.stats.views) }}
               </span>
 
               <span class="card-stat">
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="14"
-                  height="14"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-width="2"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  aria-hidden="true"
-                >
-                  <path
-                    d="M2 9.5a5.5 5.5 0 0 1 9.591-3.676.56.56 0 0 0 .818 0A5.49 5.49 0 0 1 22 9.5c0 2.29-1.5 4-3 5.5l-5.492 5.313a2 2 0 0 1-3 .019L5 15c-1.5-1.5-3-3.2-3-5.5"
-                  />
-                </svg>
+                <Icon
+                  name="lucide:heart"
+                  :size="14"
+                />
                 {{ formatNumber(item.stats.likes) }}
               </span>
             </div>
@@ -212,24 +150,11 @@
                 class="btn-view"
                 @click="onView(item)"
               >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="16"
-                  height="16"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-width="2"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  class="lucide lucide-eye mr-1"
-                  aria-hidden="true"
-                >
-                  <path
-                    d="M2.062 12.348a1 1 0 0 1 0-.696 10.75 10.75 0 0 1 19.876 0 1 1 0 0 1 0 .696 10.75 10.75 0 0 1-19.876 0"
-                  />
-                  <circle cx="12" cy="12" r="3" />
-                </svg>
+                <Icon
+                  name="lucide:eye"
+                  :size="16"
+                  class="mr-1"
+                />
                 보기
               </button>
 
@@ -240,6 +165,7 @@
                 :aria-pressed="item.isLiked ? 'true' : 'false'"
                 @click="toggleLike(item)"
               >
+                <!-- 이것도 Icon화 하려했는데 많이 귀찮아져서 포기 -->
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
                   width="16"
@@ -268,25 +194,11 @@
                 class="btn-download"
                 @click="onDownload(item)"
               >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="16"
-                  height="16"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-width="2"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  class="lucide lucide-download mr-1"
-                  aria-hidden="true"
-                >
-                  <path d="M12 15V3" />
-                  <path
-                    d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"
-                  />
-                  <path d="m7 10 5 5 5-5" />
-                </svg>
+                <Icon
+                  name="lucide:download"
+                  :size="16"
+                  class="mr-1"
+                />
                 다운로드
               </button>
             </div>

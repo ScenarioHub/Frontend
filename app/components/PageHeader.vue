@@ -4,25 +4,7 @@
       <!-- 좌상단 홈 아이콘 -->
       <div class="brand" role="button" tabindex="0" @click="navigateTo('/')">
         <div class="brand-icon" aria-hidden="true">
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            width="22"
-            height="22"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="2"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-            class="icon-white"
-          >
-            <path
-              d="M19 17h2c.6 0 1-.4 1-1v-3c0-.9-.7-1.7-1.5-1.9C18.7 10.6 16 10 16 10s-1.3-1.4-2.2-2.3c-.5-.4-1.1-.7-1.8-.7H5c-.6 0-1.1.4-1.4.9l-1.4 2.9A3.7 3.7 0 0 0 2 12v4c0 .6.4 1 1 1h2"
-            />
-            <circle cx="7" cy="17" r="2" />
-            <path d="M9 17h6" />
-            <circle cx="17" cy="17" r="2" />
-          </svg>
+          <Icon name="site:main-logo" :size="22" class="text-white" />
         </div>
         <span class="brand-text">Scenario Hub</span>
       </div>
@@ -46,7 +28,7 @@
 
     <div class="right">
       <div v-if="false" class="search">
-        <span class="search-icon" aria-hidden="true">
+        <!-- <span class="search-icon" aria-hidden="true">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
             <path
               d="M10.5 18.5a8 8 0 1 1 0-16 8 8 0 0 1 0 16Z"
@@ -60,7 +42,7 @@
               stroke-linecap="round"
             />
           </svg>
-        </span>
+        </span> -->
 
         <input
           class="search-input"
@@ -75,23 +57,11 @@
       <template v-if="isLoggedIn === true">
         <button class="btn btn-primary" @click="navigateTo('upload')">
           <span class="btn-icon" aria-hidden="true">
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="18"
-              height="18"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              class="lucide lucide-upload mr-2"
-              aria-hidden="true"
-            >
-              <path d="M12 3v12" />
-              <path d="m17 8-5-5-5 5" />
-              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
-            </svg>
+            <Icon
+              name="lucide:upload"
+              :size="18"
+              class="mr-2"
+            />
           </span>
           업로드
         </button>
@@ -174,22 +144,10 @@
       <template v-else>
         <button class="btn btn-ghost" @click="$emit('login')">
           <span class="btn-icon" aria-hidden="true">
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="18"
-              height="18"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-            >
-              <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
-              <circle cx="9" cy="7" r="4" />
-              <path d="M22 21v-2a4 4 0 0 0-3-3.87" />
-              <path d="M16 3.128a4 4 0 0 1 0 7.744" />
-            </svg>
+            <Icon
+              name="lucide:user"
+              :size="20"
+            />
           </span>
           로그인
         </button>

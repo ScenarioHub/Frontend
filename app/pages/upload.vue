@@ -104,12 +104,11 @@
             <template v-else>
               <div class="upload-placeholder">
                 <div class="upload-icon">
-                  <!-- 업로드 아이콘 SVG -->
-                  <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
-                    <polyline points="17 8 12 3 7 8" />
-                    <line x1="12" y1="3" x2="12" y2="15" />
-                  </svg>
+                  <Icon
+                    name="lucide:upload"
+                    :size="48"
+                    class="text-gray-400"
+                  />
                 </div>
                 <p class="upload-text">파일을 드래그하거나 클릭하여 업로드</p>
                 <button class="btn-select" type="button">파일 선택</button>

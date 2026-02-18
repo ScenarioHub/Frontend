@@ -3,7 +3,11 @@ import type { ApiResponse, LoginResponseData, User } from "~/types";
 export const useAuth = () => {
   const { searchQuery, userName, accessToken, refreshToken } = useAuthState();
 
-  async function register(payload: { email: string; password: string; name: string }) {
+  async function register(payload: {
+    email: string;
+    password: string;
+    name: string;
+  }) {
     try {
       // const response =
       await $fetch<ApiResponse<User>>("/nuxt-api/auth/register/", {
@@ -39,10 +43,13 @@ export const useAuth = () => {
 
   async function login(payload: { email: string; password: string }) {
     try {
-      const res = await $fetch<ApiResponse<LoginResponseData>>("/nuxt-api/auth/login/", {
-        method: "POST",
-        body: payload,
-      });
+      const res = await $fetch<ApiResponse<LoginResponseData>>(
+        "/nuxt-api/auth/login/",
+        {
+          method: "POST",
+          body: payload,
+        },
+      );
       // console.log("로그인 성공 in useAuth.ts:", res);
       accessToken.value = res.message?.access as string | null;
       refreshToken.value = res.message?.refresh as string | null;

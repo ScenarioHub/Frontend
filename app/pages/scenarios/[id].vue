@@ -10,20 +10,10 @@
             aria-label="뒤로가기"
             @click="goBack"
           >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="18"
-              height="18"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              aria-hidden="true"
-            >
-              <path d="M15 18l-6-6 6-6" />
-            </svg>
+            <Icon
+              name="lucide:chevron-left"
+              :size="22"
+            />
           </button>
 
           <div class="title-wrap">
@@ -47,68 +37,28 @@
             class="bg-white border-2 border-gray-200 hover:border-red-500 text-red-500 px-4 py-2 rounded-lg text-[14px] flex items-center gap-2"
             @click="openDeleteModal()"
           >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="16"
-              height="16"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              aria-hidden="true"
-            >
-              <path d="M10 11v6" />
-              <path d="M14 11v6" />
-              <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6" />
-              <path d="M3 6h18" />
-              <path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
-            </svg>
+            <Icon
+              name="lucide:trash-2"
+              :size="16"
+            />
             삭제
           </button>
 
           <!-- 2. 공유 버튼 -->
           <button class="btn btn-share" type="button" @click="onShare">
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="16"
-              height="16"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              class="lucide lucide-share2"
-            >
-              <circle cx="18" cy="5" r="3" />
-              <circle cx="6" cy="12" r="3" />
-              <circle cx="18" cy="19" r="3" />
-              <line x1="8.59" x2="15.42" y1="13.51" y2="17.49" />
-              <line x1="15.41" x2="8.59" y1="6.51" y2="10.49" />
-            </svg>
+            <Icon
+              name="lucide:share-2"
+              :size="16"
+            />
             공유
           </button>
 
           <!-- 3. 다운로드 버튼 -->
           <button class="btn btn-download" type="button" @click="onDownload">
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="16"
-              height="16"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              class="lucide lucide-download"
-            >
-              <path d="M12 15V3" />
-              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
-              <path d="m7 10 5 5 5-5" />
-            </svg>
+            <Icon
+              name="lucide:download"
+              :size="16"
+            />
             다운로드
           </button>
 
@@ -120,6 +70,7 @@
             aria-label="좋아요"
             @click="toggleLikeButton"
           >
+            <!-- 이것도 Icon화 하려했는데 많이 귀찮아져서 포기 -->
             <svg
               xmlns="http://www.w3.org/2000/svg"
               viewBox="0 0 24 24"
@@ -136,8 +87,6 @@
               />
             </svg>
           </button>
-
-          <!-- 5. 로그인/로그아웃 (여기가 수정됨) -->
           <button
             v-if="!isLoggedIn"
             class="btn btn-ghost"
@@ -145,22 +94,11 @@
             @click="openLogin"
           >
             <span class="btn-icon">
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="18"
-                height="18"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-              >
-                <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
-                <circle cx="9" cy="7" r="4" />
-                <path d="M22 21v-2a4 4 0 0 0-3-3.87" />
-                <path d="M16 3.128a4 4 0 0 1 0 7.744" />
-              </svg>
+              <Icon
+                name="lucide:user"
+                :size="20"
+                class="align-middle"
+              />
             </span>
             로그인
           </button>
@@ -279,20 +217,10 @@
             <div class="panel">
               <div class="panel-title">
                 <span class="code-label">
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    width="16"
-                    height="16"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    stroke-width="2"
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                  >
-                    <path d="m16 18 6-6-6-6" />
-                    <path d="m8 6-6 6 6 6" />
-                  </svg>
+                  <Icon
+                    name="lucide:code"
+                    :size="16"
+                  />
                   시나리오 코드 미리보기
                 </span>
               </div>
@@ -309,21 +237,10 @@
               <div class="stat-row">
                 <div class="stat-left">
                   <div class="stat-label">
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      width="16"
-                      height="16"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      stroke-width="2"
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                    >
-                      <path d="M12 15V3" />
-                      <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
-                      <path d="m7 10 5 5 5-5" />
-                    </svg>
+                    <Icon
+                      name="lucide:download"
+                      :size="16"
+                    />
                     <span class="stat-text">다운로드</span>
                   </div>
                 </div>
@@ -335,22 +252,10 @@
               <div class="stat-row">
                 <div class="stat-left">
                   <div class="stat-label">
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      width="16"
-                      height="16"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      stroke-width="2"
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                    >
-                      <path
-                        d="M2.062 12.348a1 1 0 0 1 0-.696 10.75 10.75 0 0 1 19.876 0 1 1 0 0 1 0 .696 10.75 10.75 0 0 1-19.876 0"
-                      />
-                      <circle cx="12" cy="12" r="3" />
-                    </svg>
+                    <Icon
+                      name="lucide:eye"
+                      :size="16"
+                    />
                     <span class="stat-text">조회수</span>
                   </div>
                 </div>
@@ -362,21 +267,10 @@
               <div class="stat-row">
                 <div class="stat-left">
                   <div class="stat-label">
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      width="16"
-                      height="16"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      stroke-width="2"
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                    >
-                      <path
-                        d="M2 9.5a5.5 5.5 0 0 1 9.591-3.676.56.56 0 0 0 .818 0A5.49 5.49 0 0 1 22 9.5c0 2.29-1.5 4-3 5.5l-5.492 5.313a2 2 0 0 1-3 .019L5 15c-1.5-1.5-3-3.2-3-5.5"
-                      />
-                    </svg>
+                    <Icon
+                      name="lucide:heart"
+                      :size="16"
+                    />
                     <span class="stat-text">좋아요</span>
                   </div>
                 </div>
@@ -824,9 +718,9 @@ const onDownload = () => {
 }
 
 .heart-icon {
-  width: 23px;
-  height: 23px;
-  min-width: 23px;
+  width: 22px;
+  height: 22px;
+  min-width: 22px;
   fill: none;
   transition: fill 0.15s;
 }
