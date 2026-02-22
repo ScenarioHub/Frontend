@@ -303,7 +303,7 @@
                   v{{ detail.file?.version ?? "" }}</span>
               </div>
               <div class="info-row">
-                <span class="info-key">파일 크기</span><span class="info-val">{{ detail.file?.size ?? "-" }} KB</span>
+                <span class="info-key">파일 크기</span><span class="info-val">{{ formattedSize ?? "-" }} KB</span>
               </div>
             </div>
 
@@ -369,8 +369,8 @@
 
 <script setup lang="ts">
 import type { ApiError, ApiResponse, Like, ScenarioDetail } from "@/types";
-import { Menu, MenuButton, MenuItem, MenuItems } from "@headlessui/vue"; // ✅ 추가
-
+import { Menu, MenuButton, MenuItem, MenuItems } from "@headlessui/vue";
+// ✅ 추가
 definePageMeta({ layout: false });
 
 const { logout } = useAuth();
@@ -572,7 +572,9 @@ function formatDate(iso: string | undefined) {
 function formatNumber(n: number) {
   return new Intl.NumberFormat("en-US").format(n);
 }
-
+const formattedSize = computed(() => {
+  return formatBytesToKB(detail.value.file.size);
+});
 const onDownload = () => {
   if (!id.value) return;
   const downloadUrl = `/nuxt-api/board/${id.value}/download`;

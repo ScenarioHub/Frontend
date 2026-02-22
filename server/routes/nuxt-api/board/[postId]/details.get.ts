@@ -17,7 +17,6 @@ export default defineEventHandler(async (event): Promise<ScenarioDetail> => {
     if (!data) {
       throw new Error("API 응답에 message 필드가 없습니다.");
     }
-
     // 2. 매핑 (타입 불일치 해결)
     const scenario: ScenarioDetail = {
       ...data,
