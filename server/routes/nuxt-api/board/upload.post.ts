@@ -22,7 +22,7 @@ export default defineEventHandler(async (event) => {
     const description = findField("description");
     const tags = findField("tags");
     const scenarioId = findField("id") || findField("scenarioId");
-
+    const mapId = findField("mapId");
     // 필수값 검증
     if (!title || !description) {
       throw createError({ statusCode: 500, statusMessage: "필수 데이터(제목, 설명) 누락" });
@@ -30,7 +30,6 @@ export default defineEventHandler(async (event) => {
 
     formData.append("title", title.data.toString());
     formData.append("description", description.data.toString());
-
     if (tags) {
       formData.append("tags", tags.data.toString());
     }
@@ -38,7 +37,9 @@ export default defineEventHandler(async (event) => {
     if (scenarioId) {
       formData.append("scenarioId", scenarioId.data.toString());
     }
-
+    if (mapId) {
+      formData.append("mapId", mapId.data.toString());
+    }
     // 3. 파일 처리
     const fileField = findField("file");
     if (!fileField) {
@@ -52,7 +53,6 @@ export default defineEventHandler(async (event) => {
     });
 
     formData.append("file", fileBlob, fileField.filename);
-
     const externalResponse = await fetchWithAuth(
       event,
       `${config.apiBase}/api/board/upload/`, {

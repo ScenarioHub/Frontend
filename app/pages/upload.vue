@@ -203,7 +203,7 @@ const route = useRoute();
 const router = useRouter();
 const { isLoggedIn } = useAuthState();
 
-const selectedMapId = ref<number | null>(null);
+const selectedMapId = ref<number | null>(1);
 const maps = ref<MapItem[]>([]);
 const modules = [Pagination, Navigation];
 const swiperRef = ref<SwiperType | null>(null);
@@ -229,6 +229,7 @@ const form = ref({
   scenarioId: 0,
   jobId: "",
   serverFilePath: "" as string,
+  mapId: 1,
 });
 
 // UI 상태
@@ -307,6 +308,7 @@ async function loadScenarioData(jobId: string) {
 function setInputData(data: DataWithJobIdResponse) {
   console.log(data);
   selectedMapId.value = data.mapId;
+  form.value.mapId = selectedMapId.value;
   form.value.description = data.description;
   form.value.scenarioId = data.scenarioId;
   form.value.serverFilePath = data.filePath;
@@ -374,6 +376,7 @@ const onSlideChange = (swiper: SwiperType) => {
   const index = swiper.realIndex;
   if (maps.value[index]) {
     selectedMapId.value = maps.value[index].id;
+    form.value.mapId = selectedMapId.value;
   }
 };
 
@@ -471,7 +474,9 @@ async function onSubmit() {
       if (form.value.file) {
         formData.append("file", form.value.file);
       }
-
+      if (form.value.mapId) {
+        formData.append("mapId", form.value.mapId.toString());
+      }
       const res = await $fetch<ApiResponse<UploadResponse>>("/nuxt-api/board/upload/", {
         method: "POST",
         body: formData,
