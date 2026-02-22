@@ -8,6 +8,12 @@ export default defineNuxtConfig({
     "reka-ui/nuxt",
   ],
   devtools: { enabled: true },
+  app: {
+    head: {
+      title: "Scenario Hub", // title이 지정되지 않은 페이지에서 보여질 기본값
+      titleTemplate: "%s", // %s 자리에 개별 페이지의 title이 치환됨
+    },
+  },
   css: [
     "./app/assets/main.css",
   ],
