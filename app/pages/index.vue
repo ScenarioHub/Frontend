@@ -34,7 +34,7 @@
           </div>
           <h3 class="card-title">시나리오 생성</h3>
           <p class="card-desc">
-            자연어로 설명하면 AI가 자동으로 시나리오를 생성합니다
+            자연어로 설명하면 자동으로 시나리오를 생성합니다
           </p>
         </article>
 

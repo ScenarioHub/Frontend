@@ -305,7 +305,7 @@ const downloadUrl = ref<string>("");
 const jobId = ref<string | null>(null);
 const currentStepText = ref("");
 const statusLines = ref<string[]>([]);
-const stateText = ref("AI가 시나리오를 분석하고 있습니다");
+const stateText = ref("시나리오를 분석하고 있습니다");
 const videoUrl = ref<string | null>(null);
 const resultScenarioId = ref<number | null>(null);
 resultScenarioId.value = 1; // eslint 오류 방지용 코드 : 나중에 밑에서 선언하면 삭제 할 코드임========================================
@@ -334,7 +334,7 @@ const getStateTextByState = (state: ServerState): string => {
     case "pending":
       return "서버 준비 중...";
     case "generating":
-      return "AI가 시나리오를 생성하고 있습니다";
+      return "시나리오를 생성하고 있습니다";
     case "recording":
       return "생성된 시나리오를 녹화 중입니다."
     case "done":
@@ -501,7 +501,7 @@ function handleErrorState() {
   currentStep.value = 1;
 
   jobId.value = null;
-  stateText.value = "AI가 시나리오를 분석하고 있습니다";
+  stateText.value = "시나리오를 분석하고 있습니다";
   statusLines.value = [];
   videoUrl.value = null;
   downloadUrl.value = "";
@@ -521,7 +521,7 @@ function onReset() {
   currentStep.value = 1;
 
   jobId.value = null;
-  stateText.value = "AI가 시나리오를 분석하고 있습니다";
+  stateText.value = "시나리오를 분석하고 있습니다";
   statusLines.value = [];
   videoUrl.value = null;
   downloadUrl.value = "";
