@@ -48,7 +48,7 @@
           <textarea
             v-model="description"
             class="textarea"
-            placeholder="예: 차량이 좌회전 중 보행자를 만나는 상황"
+            :placeholder="`예 : ${defaultDescription}`"
             :disabled="uiState === 'done' || uiState === 'running'"
           />
           <div
@@ -312,6 +312,14 @@ resultScenarioId.value = 1; // eslint 오류 방지용 코드 : 나중에 밑에
 let pollInterval: NodeJS.Timeout | null = null;
 const POLL_INTERVAL = 500; // 0.5초마다 확인
 
+const defaultDescription = "빨간색 승용차인 target은 ego와 동일한 차선 10m전방에서 30m/s의 속도로 주행중이다. target은 1.5초 후에 4초에 걸쳐 정지한다.";
+// 데모용 선언문 ==================================
+const isDemo = ref(true);
+if (isDemo.value) {
+  description.value = defaultDescription;
+}
+// ================================================
+
 // const isProgressModalOpen = computed(() => uiState.value === "running");
 const isProgressOpen = ref(false);
 const selectedMapId = ref<number | null>(null);
@@ -336,7 +344,7 @@ const getStateTextByState = (state: ServerState): string => {
     case "generating":
       return "시나리오를 생성하고 있습니다";
     case "recording":
-      return "생성된 시나리오를 녹화 중입니다."
+      return "생성된 시나리오를 녹화 중입니다.";
     case "done":
       return "시나리오 생성 완료!";
     default:
