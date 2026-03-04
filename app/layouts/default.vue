@@ -1,6 +1,7 @@
 <script setup lang="ts">
 const { searchQuery: q, userName } = useAuthState();
 const { openLogin } = useAuthModal();
+const year = new Date().getFullYear();
 </script>
 
 <template>
@@ -15,7 +16,7 @@ const { openLogin } = useAuthModal();
       <slot />
     </main>
     <footer class="footer">
-      &copy; 2026 Team ScenarioHub. All rights reserved.
+      &copy; {{ year }} Team ScenarioHub. All rights reserved.
     </footer>
   </div>
 </template>
