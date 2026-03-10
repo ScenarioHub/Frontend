@@ -24,7 +24,7 @@
               }}</span>
               <span class="sub-text">{{ detail.uploader?.name ?? "-" }}</span>
               <span class="dot">•</span>
-              <span class="sub-text">{{ formatDate(detail.createdAt) }}</span>
+              <span class="sub-text">{{ formatDate(detail.created_at) }}</span>
             </div>
           </div>
         </div>
@@ -388,7 +388,7 @@ const DEFAULT_DETAIL: ScenarioDetail = {
   id: 0,
   title: "",
   description: "",
-  createdAt: "",
+  created_at: "",
   code: "",
   stats: { downloads: 0, views: 0, likes: 0 },
   tags: [],

@@ -1,7 +1,7 @@
 export interface ScenarioBase {
   id: number;
   title: string;
-  createdAt: string;
+  created_at: string;
   tags: string[];
   stats: PostStats;
   uploader: Uploader;
