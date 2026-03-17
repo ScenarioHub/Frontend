@@ -67,7 +67,7 @@
               <p class="card-meta">
                 {{ item.uploader.name }}
                 <span class="card-dot">•</span>
-                {{ formatDate(item.createdAt) }}
+                {{ formatDate(item.created_at) }}
               </p>
             </div>
           </header>
