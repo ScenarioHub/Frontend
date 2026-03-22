@@ -12,7 +12,7 @@ export default defineEventHandler(async (event) => {
         method: "GET",
       },
     );
-    console.log(res.message);
+    // console.log(res.message);
     return res.message;
   } catch (error) {
     console.error("[Viewer.get.ts API Error]", error);

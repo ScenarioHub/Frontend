@@ -26,9 +26,6 @@ import * as SkeletonUtils from "three/addons/utils/SkeletonUtils.js";
 import { onBeforeUnmount, onMounted, ref } from "vue";
 import type { ViewerData } from "~/types";
 
-const config = useRuntimeConfig();
-const apiBase = config.public.apiBase;
-
 // --- 타입 정의 ---
 interface Position {
   x: number;
@@ -112,8 +109,9 @@ const loadData = async () => {
   }
 };
 
+// 브라우저에서 호출하는 URL (도메인 기준 상대 경로)
 const buildAssetUrl = (path: string) => {
-  return `${apiBase}api${path}`;
+  return `/nuxt-api${path}`; // "/nuxt-api/contents/..."
 };
 
 onBeforeUnmount(() => {
@@ -187,11 +185,14 @@ const initThreeJS = () => {
 
 // --- 2. 맵 모델 로드 ---
 const loadMap = (mapUrl: string) => {
+  console.log("mapUrl:", mapUrl);
   const loader = new GLTFLoader();
   loader.load(mapUrl, (gltf) => {
     currentMapModel = gltf.scene;
     currentMapModel.rotation.x = -Math.PI / 2;
     scene.add(currentMapModel);
+  }, undefined, (err) => {
+    console.error("GLTF load error:", err);
   });
 };
 
