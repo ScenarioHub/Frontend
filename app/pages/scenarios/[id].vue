@@ -415,7 +415,6 @@ const {
   {
     key: `scenario-${id.value}-detail`,
     watch: [id],
-    server: false,
   },
 );
 

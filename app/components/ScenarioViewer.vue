@@ -1,34 +1,36 @@
 <template>
-  <div class="scenario-viewer">
-    <div
-      ref="threeContainer"
-      class="three-container"
-    >
-      <button
-        class="fullscreen-btn"
-        type="button"
-        @click="toggleFullscreen"
+  <ClientOnly>
+    <div class="scenario-viewer">
+      <div
+        ref="threeContainer"
+        class="three-container"
       >
-        <Icon
-          :name="isFullscreen ? 'lucide:minimize' : 'lucide:maximize'"
-          :size="20"
-        />
-      </button>
-      <button
-        class="play-toggle-btn"
-        type="button"
-        @click="togglePlay"
-      >
-        <Icon
-          :name="isPlaying ? 'lucide:pause' : 'lucide:play'"
-          :size="18"
-        />
-      </button>
-      <div v-if="isLoading" class="loading-overlay">
-        로딩 중...
+        <button
+          class="fullscreen-btn"
+          type="button"
+          @click="toggleFullscreen"
+        >
+          <Icon
+            :name="isFullscreen ? 'lucide:minimize' : 'lucide:maximize'"
+            :size="20"
+          />
+        </button>
+        <button
+          class="play-toggle-btn"
+          type="button"
+          @click="togglePlay"
+        >
+          <Icon
+            :name="isPlaying ? 'lucide:pause' : 'lucide:play'"
+            :size="18"
+          />
+        </button>
+        <div v-if="isLoading" class="loading-overlay">
+          로딩 중...
+        </div>
       </div>
     </div>
-  </div>
+  </ClientOnly>
 </template>
 
 <script setup lang="ts">
@@ -195,13 +197,23 @@ onBeforeUnmount(() => {
 
   if (renderer) renderer.dispose();
 });
+const hasInitialized = ref(false);
 
 onMounted(() => {
-  initThreeJS();
-  isPlaying.value = true;
-  animationFrameId = requestAnimationFrame(animate);
-  window.addEventListener("resize", onWindowResize);
-  loadData();
+  watch(
+    threeContainer,
+    (el) => {
+      if (!el || hasInitialized.value) return;
+
+      hasInitialized.value = true;
+      initThreeJS();
+      isPlaying.value = true;
+      animationFrameId = requestAnimationFrame(animate);
+      window.addEventListener("resize", onWindowResize);
+      loadData();
+    },
+    { immediate: true },
+  );
 });
 
 const togglePlay = () => {
@@ -265,6 +277,13 @@ const loadMap = (mapUrl: string) => {
     loader.load(
       mapUrl,
       (gltf) => {
+        // scene이 이미 dispose된 드문 경우만 방어
+        if (!scene) {
+          console.error("Scene disposed before map loaded.");
+          resolve();
+          return;
+        }
+
         currentMapModel = gltf.scene;
         currentMapModel.rotation.x = -Math.PI / 2;
         scene.add(currentMapModel);
