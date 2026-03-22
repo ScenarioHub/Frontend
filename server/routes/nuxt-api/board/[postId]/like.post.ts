@@ -3,7 +3,6 @@ import type { ApiError, ApiResponse, Like } from "~/types";
 import { fetchWithAuth } from "../../utils/fetchWithAuth";
 
 export default defineEventHandler(async (event) => {
-  const config = useRuntimeConfig();
   const token = getCookie(event, "auth_access_token");
   const id = getRouterParam(event, "postId") as string;
 
@@ -17,7 +16,7 @@ export default defineEventHandler(async (event) => {
 
     const externalResponse = await fetchWithAuth<ApiResponse<Like>>(
       event,
-      `${config.apiBase}/api/board/${id}/like/`, {
+      `api/board/${id}/like/`, {
         method: "POST",
       },
     );

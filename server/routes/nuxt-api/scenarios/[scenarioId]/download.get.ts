@@ -11,7 +11,7 @@ export default defineEventHandler(async (event) => {
   try {
     // 1. 요청 설정 변경 (blob -> stream)
     const response = await $fetch.raw(
-      `${config.apiBase}/api/scenarios/${encodeURIComponent(scenarioId)}/download/`,
+      `${config.public.apiBase}/api/scenarios/${encodeURIComponent(scenarioId)}/download/`,
       {
         method: "GET",
         responseType: "stream",

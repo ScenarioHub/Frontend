@@ -7,7 +7,7 @@ export default defineEventHandler(async (event): Promise<MapItem[]> => {
   try {
     // 1. 실제 백엔드 API 호출
     const response = await $fetch<ApiResponse<ServerMapItem[]>>(
-      `${config.apiBase}/api/scenarios/maps/list`, // 백엔드 엔드포인트 경로 확인 필요
+      `${config.public.apiBase}/api/scenarios/maps/list`, // 백엔드 엔드포인트 경로 확인 필요
     );
 
     const data = response.message;

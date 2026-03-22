@@ -7,7 +7,7 @@ export default defineEventHandler(async (event) => {
 
   try {
     const logoutResponse = await $fetch<ApiResponse<string>>(
-      `${config.apiBase}/api/auth/logout/`,
+      `${config.public.apiBase}/api/auth/logout/`,
       {
         method: "POST",
         body: {

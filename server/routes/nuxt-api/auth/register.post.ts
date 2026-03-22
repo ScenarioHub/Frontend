@@ -24,7 +24,7 @@ export default defineEventHandler(async (event) => {
     }
 
     // 2. 외부 백엔드 API로 전송 (JSON)
-    const registerResponse = await $fetch<ApiResponse<User>>(`${config.apiBase}/api/auth/register/`, {
+    const registerResponse = await $fetch<ApiResponse<User>>(`${config.public.apiBase}/api/auth/register/`, {
       method: "POST",
       body: {
         email,

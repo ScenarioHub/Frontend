@@ -30,7 +30,7 @@ export default defineEventHandler(async (event) => {
 
     const externalResponse = await fetchWithAuth(
       event,
-      `${config.apiBase}/api/generator/${jobId}/upload/`, {
+      `${config.public.apiBase}/api/generator/${jobId}/upload/`, {
         method: "POST",
         body: formData,
       },

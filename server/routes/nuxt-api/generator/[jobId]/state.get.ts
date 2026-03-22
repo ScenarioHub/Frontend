@@ -3,13 +3,12 @@ import type { ApiError, ApiResponse, GenerateStateResponse } from "~/types";
 import { fetchWithAuth } from "../../utils/fetchWithAuth";
 
 export default defineEventHandler(async (event) => {
-  const config = useRuntimeConfig(event);
   const jobId = getRouterParam(event, "jobId") as string;
 
   try {
     const res = await fetchWithAuth<ApiResponse<GenerateStateResponse>>(
       event,
-      `${config.apiBase}/api/generator/${jobId}/state`, {
+      `api/generator/${jobId}/state`, {
         method: "GET",
       },
     );

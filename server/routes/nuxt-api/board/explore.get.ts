@@ -3,7 +3,6 @@ import type { ApiResponse, Post } from "~/types";
 import { fetchWithAuth } from "../utils/fetchWithAuth";
 
 export default defineEventHandler(async (event) => {
-  const config = useRuntimeConfig(event);
   const query = getQuery(event);
 
   const page = Number(query.page) || 1;
@@ -14,7 +13,7 @@ export default defineEventHandler(async (event) => {
   try {
     const externalResponse = await fetchWithAuth<ApiResponse<Post>>(
       event,
-      `${config.apiBase}/api/board/explore`, {
+      `api/board/explore`, {
         method: "GET",
         query: {
           page: page,

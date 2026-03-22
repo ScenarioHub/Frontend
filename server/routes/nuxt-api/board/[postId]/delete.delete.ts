@@ -3,7 +3,6 @@ import type { ApiError, ApiResponse } from "~/types";
 import { fetchWithAuth } from "../../utils/fetchWithAuth"; // 경로 확인 필요
 
 export default defineEventHandler(async (event) => {
-  const config = useRuntimeConfig();
   const id = getRouterParam(event, "postId") as string;
 
   try {
@@ -13,7 +12,7 @@ export default defineEventHandler(async (event) => {
 
     const externalResponse = await fetchWithAuth<ApiResponse<string>>(
       event,
-      `${config.apiBase}/api/board/${id}/delete/`,
+      `api/board/${id}/delete/`,
       {
         method: "DELETE",
       },

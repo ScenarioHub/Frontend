@@ -3,8 +3,6 @@ import type { ApiError, ApiResponse, GenerateResponse } from "~/types";
 import { fetchWithAuth } from "../utils/fetchWithAuth";
 
 export default defineEventHandler(async (event) => {
-  const config = useRuntimeConfig();
-
   try {
     const body = await readBody(event);
     if (!body) {
@@ -15,7 +13,7 @@ export default defineEventHandler(async (event) => {
 
     const generateResponse = await fetchWithAuth<ApiResponse<GenerateResponse>>(
       event,
-      `${config.apiBase}/api/generator/generate/`,
+      "api/generator/generate/",
       {
         method: "POST",
         body: {

@@ -18,8 +18,9 @@ export default defineNuxtConfig({
     "./app/assets/main.css",
   ],
   runtimeConfig: {
-    // 서버에서만 접근(비공개)
-    apiBase: process.env.API_BASE,
+    public: {
+      apiBase: process.env.API_BASE,
+    },
   },
   experimental: {
     appManifest: false,

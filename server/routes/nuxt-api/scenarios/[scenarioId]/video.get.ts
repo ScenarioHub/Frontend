@@ -17,7 +17,7 @@ export default defineEventHandler(async (event) => {
   try {
     // 2. 외부 서버로 요청 보내기 (스트림 모드)
     const response = await $fetch.raw(
-      `${config.apiBase}/api/scenarios/${encodeURIComponent(scenarioId)}/video/`, // 외부 API 엔드포인트 (상황에 맞춰 수정 필요)
+      `${config.public.apiBase}/api/scenarios/${encodeURIComponent(scenarioId)}/video/`, // 외부 API 엔드포인트 (상황에 맞춰 수정 필요)
       {
         method: "GET",
         responseType: "stream", // 메모리에 담지 않고 스트림으로 받음

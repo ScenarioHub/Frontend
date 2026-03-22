@@ -13,7 +13,7 @@ export const fetchWithAuth = async <T>(
   const refreshToken = getCookie(event, "auth_refresh_token");
   // 내부 헬퍼: 실제 요청 보내기
   const sendRequest = (token: string | undefined) => {
-    return $fetch<T>(url, {
+    return $fetch<T>(`${config.public.apiBase}${url}`, {
       ...options,
       headers: {
         // ...options.headers, // 토큰 외 다른 속성 있는가?
@@ -31,7 +31,7 @@ export const fetchWithAuth = async <T>(
       try {
         console.log("🔄 [Server] 토큰 만료 감지 -> 갱신 시도");
 
-        const refreshResponse = await $fetch<ApiResponse<RefreshData>>(`${config.apiBase}/api/auth/refresh/`, {
+        const refreshResponse = await $fetch<ApiResponse<RefreshData>>(`${config.public.apiBase}/api/auth/refresh/`, {
           method: "POST",
           body: { refresh: refreshToken },
         });

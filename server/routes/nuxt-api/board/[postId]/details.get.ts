@@ -2,13 +2,12 @@ import type { ApiResponse, ScenarioDetail } from "@/types";
 import { fetchWithAuth } from "../../utils/fetchWithAuth";
 
 export default defineEventHandler(async (event): Promise<ScenarioDetail> => {
-  const config = useRuntimeConfig(event);
   const id = getRouterParam(event, "postId") as string;
 
   try {
     const res = await fetchWithAuth<ApiResponse<ScenarioDetail>>(
       event,
-      `${config.apiBase}/api/board/${id}/details/`, {
+      `api/board/${id}/details/`, {
         method: "GET",
       },
     );
@@ -43,7 +42,7 @@ export default defineEventHandler(async (event): Promise<ScenarioDetail> => {
     return {
       id: 0,
       title: "로드 실패",
-      createdAt: new Date().toISOString(),
+      created_at: new Date().toISOString(),
       description: "데이터를 불러오는 중 오류가 발생했습니다.",
       tags: [],
       stats: { downloads: 0, views: 0, likes: 0 },

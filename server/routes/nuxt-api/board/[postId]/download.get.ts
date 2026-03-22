@@ -11,7 +11,7 @@ export default defineEventHandler(async (event) => {
   try {
     // 1. 요청 설정 변경 (blob -> stream)
     const response = await $fetch.raw(
-      `${config.apiBase}/api/board/${encodeURIComponent(id)}/download/`,
+      `${config.public.apiBase}/api/board/${encodeURIComponent(id)}/download/`,
       {
         method: "GET", // 명시적으로 GET 적어줌
         responseType: "stream", // 여기가 핵심입니다! 메모리에 담지 않고 스트림으로 받음

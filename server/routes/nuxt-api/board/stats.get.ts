@@ -5,7 +5,7 @@ export default defineEventHandler(async () => {
 
   try {
     const res = await $fetch<ApiResponse<IndexStats>>(
-      `${config.apiBase}/api/board/stats/`, {
+      `${config.public.apiBase}/api/board/stats/`, {
         method: "GET",
       },
     );

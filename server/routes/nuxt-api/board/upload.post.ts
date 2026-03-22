@@ -55,7 +55,7 @@ export default defineEventHandler(async (event) => {
     formData.append("file", fileBlob, fileField.filename);
     const externalResponse = await fetchWithAuth(
       event,
-      `${config.apiBase}/api/board/upload/`, {
+      `${config.public.apiBase}/api/board/upload/`, {
         method: "POST",
         body: formData,
       },

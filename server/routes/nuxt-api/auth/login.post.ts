@@ -26,7 +26,7 @@ export default defineEventHandler(async (event) => {
 
     // 2. 외부 백엔드 API로 로그인 요청 전송
     const loginResponse = await $fetch<ApiResponse<LoginResponseData>>(
-      `${config.apiBase}/api/auth/login/`,
+      `${config.public.apiBase}/api/auth/login/`,
       {
         method: "POST",
         body: {

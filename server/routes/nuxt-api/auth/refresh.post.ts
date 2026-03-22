@@ -7,7 +7,7 @@ export default defineEventHandler(async (event) => {
 
   try {
     const refreshResponse = await $fetch<ApiResponse<RefreshData>>(
-      `${config.apiBase}/api/auth/refresh/`,
+      `${config.public.apiBase}/api/auth/refresh/`,
       {
         method: "POST",
         body: {
