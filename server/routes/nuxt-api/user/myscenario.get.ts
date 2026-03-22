@@ -6,7 +6,7 @@ export default defineEventHandler(async (event) => {
   try {
     const res = await fetchWithAuth<ApiResponse<MyScenarioItem[]>>(
       event,
-      "api/user/myscenario", {
+      "/api/user/myscenario", {
         method: "GET",
       },
     );

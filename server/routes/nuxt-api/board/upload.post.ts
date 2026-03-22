@@ -3,7 +3,6 @@ import type { ApiError } from "~/types";
 import { fetchWithAuth } from "../utils/fetchWithAuth";
 
 export default defineEventHandler(async (event) => {
-  const config = useRuntimeConfig();
   try {
     const body = await readMultipartFormData(event);
 
@@ -55,7 +54,7 @@ export default defineEventHandler(async (event) => {
     formData.append("file", fileBlob, fileField.filename);
     const externalResponse = await fetchWithAuth(
       event,
-      `${config.public.apiBase}/api/board/upload/`, {
+      "/api/board/upload/", {
         method: "POST",
         body: formData,
       },

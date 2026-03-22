@@ -16,7 +16,7 @@ export default defineEventHandler(async (event) => {
 
     const externalResponse = await fetchWithAuth<ApiResponse<Like>>(
       event,
-      `api/board/${id}/like/`, {
+      `/api/board/${id}/like/`, {
         method: "POST",
       },
     );

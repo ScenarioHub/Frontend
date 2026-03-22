@@ -8,7 +8,7 @@ export default defineEventHandler(async (event) => {
   try {
     const res = await fetchWithAuth<ApiResponse<DataWithJobIdResponse>>(
       event,
-      `api/generator/${jobId}/contents`, {
+      `/api/generator/${jobId}/contents`, {
         method: "GET",
       },
     );

@@ -108,7 +108,7 @@ const loadData = async () => {
     lastTimestamp = 0;
     isCameraInitialized = false;
   } catch (error) {
-    console.error("데이터 로드 에러:", error);
+    console.error("데이터 로드 에러 from test.vue:", error);
   }
 };
 

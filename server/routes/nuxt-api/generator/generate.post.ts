@@ -13,7 +13,7 @@ export default defineEventHandler(async (event) => {
 
     const generateResponse = await fetchWithAuth<ApiResponse<GenerateResponse>>(
       event,
-      "api/generator/generate/",
+      "/api/generator/generate/",
       {
         method: "POST",
         body: {

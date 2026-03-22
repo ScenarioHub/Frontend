@@ -13,7 +13,7 @@ export default defineEventHandler(async (event) => {
   try {
     const externalResponse = await fetchWithAuth<ApiResponse<Post>>(
       event,
-      `api/board/explore`, {
+      `/api/board/explore`, {
         method: "GET",
         query: {
           page: page,
