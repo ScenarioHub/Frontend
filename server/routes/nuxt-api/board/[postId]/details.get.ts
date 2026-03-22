@@ -7,7 +7,8 @@ export default defineEventHandler(async (event): Promise<ScenarioDetail> => {
   try {
     const res = await fetchWithAuth<ApiResponse<ScenarioDetail>>(
       event,
-      `/api/board/${id}/details/`, {
+      `/api/board/${id}/details/`,
+      {
         method: "GET",
       },
     );
@@ -33,7 +34,6 @@ export default defineEventHandler(async (event): Promise<ScenarioDetail> => {
         totalScenarios: data.uploader?.totalScenarios ?? 0,
       },
     };
-
     return scenario;
   } catch (error) {
     console.error("[API Error]", error);
@@ -51,6 +51,7 @@ export default defineEventHandler(async (event): Promise<ScenarioDetail> => {
       code: "",
       isOwner: false,
       isLiked: false,
+      data_id: 0,
     } as ScenarioDetail;
   }
 });

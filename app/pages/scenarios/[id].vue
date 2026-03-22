@@ -198,6 +198,7 @@
             <!-- 1. 비디오 카드 -->
             <div class="video-card">
               <video
+                v-if="false"
                 controls
                 preload="metadata"
                 class="simulation-player"
@@ -205,6 +206,7 @@
               >
                 브라우저가 비디오 태그를 지원하지 않습니다.
               </video>
+              <ScenarioViewer v-model:scenario-id="detail.data_id" />
             </div>
 
             <!-- 2. 설명 패널 -->
@@ -396,6 +398,7 @@ const DEFAULT_DETAIL: ScenarioDetail = {
   file: { format: "", version: "", size: 0 },
   isLiked: false,
   isOwner: false,
+  data_id: 0,
 };
 
 // 2. [로컬 상태]

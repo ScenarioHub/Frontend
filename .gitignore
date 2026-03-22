@@ -17,7 +17,7 @@
 .cache
 dist
 *.tsbuildinfo
-.sh
+*.sh
 
 # Node 종속성
 node_modules

@@ -8,11 +8,12 @@ export default defineEventHandler(async (event) => {
   try {
     const res = await fetchWithAuth<ApiResponse<ViewerData>>(
       event,
-      `/api/scenarios/${scenarioId}/viewer`, {
+      `/api/scenarios/${scenarioId}/viewer`,
+      {
         method: "GET",
       },
     );
-    // console.log(res.message);
+    console.log(res.message);
     return res.message;
   } catch (error) {
     console.error("[Viewer.get.ts API Error]", error);
