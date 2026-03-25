@@ -13,7 +13,7 @@ export const fetchWithAuth = async <T>(
   const refreshToken = getCookie(event, "auth_refresh_token");
   // 내부 헬퍼: 실제 요청 보내기
   const sendRequest = (token: string | undefined) => {
-    return $fetch<T>(`${config.public.apiBase}/${url}`, {
+    return $fetch<T>(`${config.public.apiBase}${url}`, {
       ...options,
       headers: {
         // ...options.headers, // 토큰 외 다른 속성 있는가?
@@ -31,10 +31,13 @@ export const fetchWithAuth = async <T>(
       try {
         console.log("🔄 [Server] 토큰 만료 감지 -> 갱신 시도");
 
-        const refreshResponse = await $fetch<ApiResponse<RefreshData>>(`${config.public.apiBase}/api/auth/refresh/`, {
-          method: "POST",
-          body: { refresh: refreshToken },
-        });
+        const refreshResponse = await $fetch<ApiResponse<RefreshData>>(
+          `${config.public.apiBase}/api/auth/refresh/`,
+          {
+            method: "POST",
+            body: { refresh: refreshToken },
+          },
+        );
 
         const newAccessToken = refreshResponse.message?.access;
         if (!newAccessToken) {
@@ -53,7 +56,10 @@ export const fetchWithAuth = async <T>(
         setCookie(event, "auth_access_token", newAccessToken, cookieOptions);
 
         console.log("✅ [Server] 토큰 갱신 성공 -> 재요청\n");
-        console.log("이전과 다른 값인가? : ", accessToken == newAccessToken ? "False" : "True");
+        console.log(
+          "이전과 다른 값인가? : ",
+          accessToken == newAccessToken ? "False" : "True",
+        );
         // [2차 시도]
         return await sendRequest(newAccessToken);
       } catch (refreshError) {
