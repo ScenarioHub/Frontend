@@ -24,7 +24,7 @@
               }}</span>
               <span class="sub-text">{{ detail.uploader?.name ?? "-" }}</span>
               <span class="dot">•</span>
-              <span class="sub-text">{{ formatDate(detail.created_at) }}</span>
+              <span class="sub-text">{{ formatDate(detail.createdAt) }}</span>
             </div>
           </div>
         </div>
@@ -206,7 +206,7 @@
               >
                 브라우저가 비디오 태그를 지원하지 않습니다.
               </video>
-              <ScenarioViewer v-model:scenario-id="detail.data_id" />
+              <ScenarioViewer v-model:scenario-id="detail.scenarioId" />
             </div>
 
             <!-- 2. 설명 패널 -->
@@ -380,17 +380,17 @@ const { isLoggedIn, userName, accessToken } = useAuthState();
 const { openLogin } = useAuthModal();
 
 const route = useRoute();
-const id = computed(() => String(route.params.id));
+const postId = computed(() => String(route.params.postId));
 
 const isDeleteOpen = ref(false);
 const deleting = ref(false);
 
 // 1. [초기값]
 const DEFAULT_DETAIL: ScenarioDetail = {
-  id: 0,
+  postId: 0,
   title: "",
   description: "",
-  created_at: "",
+  createdAt: "",
   code: "",
   stats: { downloads: 0, views: 0, likes: 0 },
   tags: [],
@@ -398,7 +398,7 @@ const DEFAULT_DETAIL: ScenarioDetail = {
   file: { format: "", version: "", size: 0 },
   isLiked: false,
   isOwner: false,
-  data_id: 0,
+  scenarioId: 0,
 };
 
 // 2. [로컬 상태]
@@ -411,10 +411,10 @@ const {
   error,
   refresh,
 } = await useFetch<ScenarioDetail>(
-  () => `/nuxt-api/board/${id.value}/details/`,
+  () => `/nuxt-api/board/${postId.value}/details/`,
   {
-    key: `scenario-${id.value}-detail`,
-    watch: [id],
+    key: `scenario-${postId.value}-detail`,
+    watch: [postId],
   },
 );
 
@@ -447,7 +447,7 @@ const checkMyLikeStatus = async () => {
 
   try {
     const res = await $fetch<ApiResponse<Like>>(
-      `/nuxt-api/board/${id.value}/like/`,
+      `/nuxt-api/board/${postId.value}/like/`,
       {
         method: "POST",
       },
@@ -499,7 +499,7 @@ async function confirmDelete() {
 
   try {
     const deleteResponseData = await $fetch<ApiResponse<string>>(
-      `/nuxt-api/board/${detail.value.id}/delete`,
+      `/nuxt-api/board/${detail.value.postId}/delete`,
       { method: "DELETE" },
     );
     if (deleteResponseData.status == 200) {
@@ -556,8 +556,8 @@ async function onShare() {
 }
 
 const videoSrc = computed(() => {
-  if (!id.value) return "";
-  return `/nuxt-api/board/${id.value}/video`;
+  if (!postId.value) return "";
+  return `/nuxt-api/board/${postId.value}/video`;
 });
 
 function formatDate(iso: string | undefined) {
@@ -578,8 +578,8 @@ const formattedSize = computed(() => {
   return formatBytesToKB(detail.value.file.size);
 });
 const onDownload = () => {
-  if (!id.value) return;
-  const downloadUrl = `/nuxt-api/board/${id.value}/download`;
+  if (!postId.value) return;
+  const downloadUrl = `/nuxt-api/board/${postId.value}/download`;
   window.location.href = downloadUrl;
   detail.value.stats.downloads += 1;
 };

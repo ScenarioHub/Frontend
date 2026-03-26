@@ -1,7 +1,7 @@
 export interface ScenarioBase {
-  id: number;
+  postId: number;
   title: string;
-  created_at: string;
+  createdAt: string;
   tags: string[];
   stats: PostStats;
   uploader: Uploader;
@@ -25,7 +25,7 @@ export interface ScenarioDetail extends Omit<ScenarioItem, "uploader"> {
     email: string;
     totalScenarios: number; // 업로드한 사니리오
   };
-  data_id: number;
+  scenarioId: number;
 }
 
 export interface MyScenarioItem {

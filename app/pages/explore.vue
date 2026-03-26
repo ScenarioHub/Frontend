@@ -53,7 +53,7 @@
       <section class="grid">
         <article
           v-for="item in uiItems"
-          :key="item.id"
+          :key="item.postId"
           class="card bg-card text-card-foreground flex flex-col gap-6 rounded-xl p-6 border-2 border-gray-200 hover:border-blue-300 hover:shadow-lg transition-all"
         >
           <!-- 상단 정보 -->
@@ -67,7 +67,7 @@
               <p class="card-meta">
                 {{ item.uploader.name }}
                 <span class="card-dot">•</span>
-                {{ formatDate(item.created_at) }}
+                {{ formatDate(item.createdAt) }}
               </p>
             </div>
           </header>
@@ -81,7 +81,7 @@
           <div class="card-tags-wrapper">
             <div class="card-tags-wrapper-wrapper">
               <button
-                v-if="tagOverflowMap[item.id]"
+                v-if="tagOverflowMap[item.postId]"
                 type="button"
                 class="tags-arrow tags-arrow-left"
                 aria-label="이전 태그 보기"
@@ -104,7 +104,7 @@
               </div>
 
               <button
-                v-if="tagOverflowMap[item.id]"
+                v-if="tagOverflowMap[item.postId]"
                 type="button"
                 class="tags-arrow tags-arrow-right"
                 aria-label="다음 태그 보기"
@@ -386,7 +386,7 @@ function goNext() {
 }
 
 function onView(item: ScenarioItem) {
-  navigateTo(`/scenarios/${item.id}`);
+  navigateTo(`/scenarios/${item.postId}`);
 }
 
 // [핵심 수정] 북마크 토글 함수
@@ -405,7 +405,7 @@ const checkMyLikeStatus = async (item: ScenarioItem) => {
   }
 
   try {
-    const res = await $fetch<ApiResponse<Like>>(`/nuxt-api/board/${item.id}/like/`, {
+    const res = await $fetch<ApiResponse<Like>>(`/nuxt-api/board/${item.postId}/like/`, {
       method: "POST",
     });
     if (res.message) {
@@ -419,10 +419,10 @@ const checkMyLikeStatus = async (item: ScenarioItem) => {
 };
 
 function onDownload(item: ScenarioItem) {
-  if (!item.id) return;
+  if (!item.postId) return;
 
-  console.log("download scenario", item.id);
-  const downloadUrl = `/nuxt-api/board/${item.id}/download/`;
+  console.log("download scenario", item.postId);
+  const downloadUrl = `/nuxt-api/board/${item.postId}/download/`;
 
   const iframe = document.createElement("iframe");
   iframe.style.display = "none";
@@ -451,7 +451,7 @@ function recomputeTagOverflow() {
     const el = tagContainers.value[index];
     if (!el) return;
     const isOverflow = el.scrollWidth > el.clientWidth;
-    map[item.id] = isOverflow;
+    map[item.postId] = isOverflow;
   });
   tagOverflowMap.value = map;
 }

@@ -2,12 +2,12 @@ import type { ApiResponse, ScenarioDetail } from "@/types";
 import { fetchWithAuth } from "../../utils/fetchWithAuth";
 
 export default defineEventHandler(async (event): Promise<ScenarioDetail> => {
-  const id = getRouterParam(event, "postId") as string;
+  const postId = getRouterParam(event, "postId") as string;
 
   try {
     const res = await fetchWithAuth<ApiResponse<ScenarioDetail>>(
       event,
-      `/api/board/${id}/details/`,
+      `/api/board/${postId}/details/`,
       {
         method: "GET",
       },
@@ -20,7 +20,7 @@ export default defineEventHandler(async (event): Promise<ScenarioDetail> => {
     // 2. 매핑 (타입 불일치 해결)
     const scenario: ScenarioDetail = {
       ...data,
-      id: data.id,
+      postId: data.postId,
       isLiked: data.isLiked ?? false,
       file: {
         format: data.file?.format ?? "-",
@@ -40,9 +40,9 @@ export default defineEventHandler(async (event): Promise<ScenarioDetail> => {
 
     // 에러 시 Fallback
     return {
-      id: 0,
+      postId: 0,
       title: "로드 실패",
-      created_at: new Date().toISOString(),
+      createdAt: new Date().toISOString(),
       description: "데이터를 불러오는 중 오류가 발생했습니다.",
       tags: [],
       stats: { downloads: 0, views: 0, likes: 0 },
@@ -51,7 +51,7 @@ export default defineEventHandler(async (event): Promise<ScenarioDetail> => {
       code: "",
       isOwner: false,
       isLiked: false,
-      data_id: 0,
+      scenarioId: 0,
     } as ScenarioDetail;
   }
 });
