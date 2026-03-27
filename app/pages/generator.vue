@@ -115,8 +115,8 @@
           <p class="panel-sub">시나리오 대기 중</p>
 
           <div class="sim-viewport">
-            <template v-if="uiState === 'done' && videoUrl">
-              <video
+            <template v-if="uiState === 'done' && scenarioId!=-1">
+              <!-- <video
                 v-if="uiState === 'done' && videoUrl"
                 ref="videoEl"
                 class="video"
@@ -125,7 +125,10 @@
                 muted
                 playsinline
                 controls
-              />
+              /> -->
+              <div class="video-card">
+                <ScenarioViewer :scenario-id />
+              </div>
             </template>
             <template v-else>
               <div>
@@ -180,100 +183,6 @@
   </div>
 </template>
 
-<!-- f5나 웹 껐을 떄의 대응
- 취소(1번 정책):
-    새로고침/이탈 시 취소하려면 서버는 jobId 기반으로 “취소 가능한 작업”이어야 하고,
-    인터럽트/취소 플래그 체크가 들어가야 실제로 멈춥니다
-
-SSE는 구독/작업 분리: job 생성은 POST, 진행률은 SSE로 구독(재접속 가능) 구조가 안정적입니다
-
-autoplay는 실패할 수 있음:
-    자동재생은 브라우저 정책으로 막힐 수 있어서 play() Promise reject를 대비하고,
-    막히면 사용자가 controls로 재생하게 두면 됩니다.
- -->
-
-<!--
-서버(jobId 기준)는 최소 4개의 상태를 나눠두면 프론트가 깔끔해집니다.
-
-gpt_generating : GPT로 .xosc 생성 중(진행률 모달)
-xosc_ready : .xosc 생성 완료 → 이때 다운로드 버튼 활성화
-stream_ready : HLS의 index.m3u8가 생성되고 최초 세그먼트가 붙기 시작 → 모달 닫고 video 재생 시작
-stream_ended : 시뮬 종료 → FFmpeg 종료 + 플레이리스트에 #EXT-X-ENDLIST가 최종적으로 붙게(또는 event playlist로 마무리)
-
-server-sent events (progress 진행률 실시간 전송)
-video js 라이브러리 사용
-서버에서 m3u8
-
-서버에서
-사용자의 코드 -> gpt로 시나리오 코드 -> (실행) 동영상 추출 ->
--->
-
-<!--
-설명문(복붙용, API 포함)
-프로젝트 목표는 “자연어 입력 → 서버에서 GPT로 OpenSCENARIO(.xosc) 생성 → esmini로 시뮬레이션 실행 → 영상은 HLS(3~10초 지연 허용)로 스트리밍 → 웹에서 라이브처럼 재생”이다. mp4 완성본을 다 만들고 전송하면 시뮬 길이만큼(예: 1분) 추가 대기가 생겨 UX가 나쁘므로, 서버가 시뮬을 돌리는 동시에 FFmpeg로 HLS 세그먼트를 생성해 클라이언트가 몇 초 후 바로 재생을 시작하게 만들고 싶다.
-
-상태 머신(클라 UX)
-서버는 jobId 단위로 상태를 관리하고, 클라에서는 모달 진행률 + 버튼 활성화 타이밍을 아래처럼 제어한다.
-
-gpt_generating: GPT로 xosc 생성 중(모달 진행률 표시)
-
-xosc_ready: xosc 생성 완료 → xosc 다운로드 버튼 즉시 활성화
-
-stream_ready: HLS playlist(m3u8)와 초기 세그먼트가 준비됨 → 모달 닫고 <video> 라이브 재생 시작
-
-stream_ended: 시뮬 종료 → 라이브 재생 종료(playlist가 더 이상 갱신되지 않거나 ENDLIST 처리)
-
-API 엔드포인트(초안)
-Job 생성
-
-POST /api/scenarios
-
-body: { prompt: string }
-
-response: 201 Created + { jobId: string } (또는 Location 헤더로 job 리소스 제공)
-
-진행률/상태 SSE
-
-GET /api/scenarios/{jobId}/events
-
-response: Content-Type: text/event-stream
-
-서버는 event: + data: 형태로 JSON을 계속 push (예: percent/message/state/urls)
-
-예시 data: { state: "xosc_ready", percent: 25, message: "...", xoscUrl: "..." }
-
-xosc 다운로드
-
-GET /api/scenarios/{jobId}/xosc
-
-xosc_ready 이후 다운로드 가능
-
-응답은 파일 다운로드(attachment) 또는 presigned URL 리다이렉트
-
-HLS 스트림 제공(playlist/segments)
-
-GET /api/scenarios/{jobId}/hls/index.m3u8
-
-GET /api/scenarios/{jobId}/hls/{segment}.ts (또는 fMP4 세그먼트)
-
-클라이언트는 stream_ready 이후 index.m3u8를 재생한다. HLS는 m3u8(매니페스트)이 세그먼트(.ts 등) 목록을 가리키는 구조라서, 라이브는 플레이리스트가 계속 갱신된다.
-
-(옵션) 취소(새로고침/이탈 시 무조건 취소 정책)
-
-DELETE /api/scenarios/{jobId}
-
-서버의 실행 중 작업(esmini/ffmpeg)을 중단하고 리소스를 정리
-
-클라이언트 동작 요약
-사용자가 “생성 시작” 클릭 → POST /api/scenarios로 jobId 받음 → GET /api/scenarios/{jobId}/events SSE 연결 → gpt_generating 동안 모달 진행률 표시.
-
-SSE에서 xosc_ready 수신 즉시 다운로드 버튼 활성화.
-
-SSE에서 stream_ready 수신 즉시 video에 HLS(m3u8) 붙여 재생 시작(Chrome/Firefox는 hls.js 사용 고려, Safari는 네이티브 가능).
-
-SSE에서 stream_ended 수신하면 UI를 3단계 완료로 바꾸고, 라이브 재생 종료 처리.
- -->
-
 <script setup lang="ts">
 import { computed, onBeforeUnmount, ref } from "vue";
 
@@ -307,8 +216,9 @@ const currentStepText = ref("");
 const statusLines = ref<string[]>([]);
 const stateText = ref("시나리오를 분석하고 있습니다");
 const videoUrl = ref<string | null>(null);
-const resultScenarioId = ref<number | null>(null);
-resultScenarioId.value = 1; // eslint 오류 방지용 코드 : 나중에 밑에서 선언하면 삭제 할 코드임========================================
+
+const scenarioId = ref<number>(-1);
+
 let pollInterval: NodeJS.Timeout | null = null;
 const POLL_INTERVAL = 500; // 0.5초마다 확인
 
@@ -498,7 +408,9 @@ function handleDoneState(state: GenerateStateResponse) {
   isProgressOpen.value = false;
 
   downloadUrl.value = `/nuxt-api/scenarios/${state.scenarioId}/download/`;
-  videoUrl.value = state.scenarioId ? `/nuxt-api/scenarios/${state.scenarioId}/video/` : null;
+  // videoUrl.value = state.scenarioId ? `/nuxt-api/scenarios/${state.scenarioId}/video/` : null;
+  scenarioId.value = state.scenarioId;
+  console.log("asadsadsa", scenarioId.value);
 }
 
 function handleErrorState() {
@@ -914,7 +826,15 @@ function onReset() {
 .btn-blue:hover {
   background: #1d4ed8;
 }
-
+.video-card {
+  background: #000;
+  border-radius: 16px;
+  width: 100%;
+  height: 100%;
+  border: 4px #000 solid;
+  overflow: hidden;
+  display: flex;
+}
 .btn-blue:disabled {
   background: #cbd5e1;
   color: #475569;
