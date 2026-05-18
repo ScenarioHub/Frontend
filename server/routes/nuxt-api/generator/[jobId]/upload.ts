@@ -3,14 +3,16 @@ import type { ApiError } from "~/types";
 import { fetchWithAuth } from "../../utils/fetchWithAuth";
 
 export default defineEventHandler(async (event) => {
-  const config = useRuntimeConfig();
   const jobId = getRouterParam(event, "jobId") as string;
 
   try {
     const body = await readMultipartFormData(event);
 
     if (!body) {
-      throw createError({ statusCode: 500, statusMessage: "요청 본문이 비어있습니다." });
+      throw createError({
+        statusCode: 500,
+        statusMessage: "요청 본문이 비어있습니다.",
+      });
     }
 
     const formData = new FormData();
@@ -20,7 +22,10 @@ export default defineEventHandler(async (event) => {
     const tags = findField("tags");
 
     if (!title || !jobId) {
-      throw createError({ statusCode: 500, statusMessage: "필수 데이터(제목, jobId) 누락" });
+      throw createError({
+        statusCode: 500,
+        statusMessage: "필수 데이터(제목, jobId) 누락",
+      });
     }
     formData.append("title", title.data.toString());
 
@@ -30,7 +35,8 @@ export default defineEventHandler(async (event) => {
 
     const externalResponse = await fetchWithAuth(
       event,
-      `${config.public.apiBase}/api/generator/${jobId}/upload/`, {
+      `/api/generator/${jobId}/upload/`,
+      {
         method: "POST",
         body: formData,
       },
