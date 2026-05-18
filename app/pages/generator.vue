@@ -1,7 +1,12 @@
 <template>
   <div>
     <div v-if="isProgressOpen" class="p-backdrop">
-      <div class="p-modal" role="dialog" aria-modal="true" aria-label="시나리오 생성 중">
+      <div
+        class="p-modal"
+        role="dialog"
+        aria-modal="true"
+        aria-label="시나리오 생성 중"
+      >
         <div class="p-spinner" aria-hidden="true" />
         <div class="p-title">시나리오 생성 중</div>
         <div class="p-sub">{{ currentStepText }}</div>
@@ -53,7 +58,9 @@
           />
           <div
             class="map-slider-section"
-            :class="{ 'is-disabled': uiState === 'done' || uiState === 'running' }"
+            :class="{
+              'is-disabled': uiState === 'done' || uiState === 'running',
+            }"
           >
             <p class="panel-sub">맵 선택 (프리뷰)</p>
 
@@ -76,7 +83,10 @@
                   <!-- 1. 이미지 박스 (여기에 제목과 화살표가 들어감) -->
                   <div class="image-box">
                     <img
-                      :src="map.imageUrl || 'https://via.placeholder.com/600x300/e2e8f0/1e293b?text=Map+Preview'"
+                      :src="
+                        map.imageUrl
+                          || 'https://via.placeholder.com/600x300/e2e8f0/1e293b?text=Map+Preview'
+                      "
                       alt="Map Preview"
                       class="slide-img"
                     >
@@ -94,14 +104,19 @@
                 </div>
               </swiper-slide>
             </swiper>
-            <div v-if="uiState === 'done' || uiState === 'running'" class="disabled-overlay" />
+            <div
+              v-if="uiState === 'done' || uiState === 'running'"
+              class="disabled-overlay"
+            />
           </div>
           <button
             :class="uiState === 'done' ? 'btn-reset' : 'btn-primary'"
             :disabled="isValid"
             @click="uiState === 'done' ? onReset() : onGenerate()"
           >
-            {{ uiState === "done" ? "초기화 (새로 만들기)" : "시나리오 생성하기" }}
+            {{
+              uiState === "done" ? "초기화 (새로 만들기)" : "시나리오 생성하기"
+            }}
           </button>
         </article>
 
@@ -115,7 +130,7 @@
           <p class="panel-sub">시나리오 대기 중</p>
 
           <div class="sim-viewport">
-            <template v-if="uiState === 'done' && scenarioId!=-1">
+            <template v-if="uiState === 'done' && scenarioId != -1">
               <!-- <video
                 v-if="uiState === 'done' && videoUrl"
                 ref="videoEl"
@@ -133,11 +148,7 @@
             <template v-else>
               <div>
                 <div class="wait-icon" aria-hidden="true">
-                  <Icon
-                    name="site:main-logo"
-                    :size="64"
-                    class="wait-car"
-                  />
+                  <Icon name="site:main-logo" :size="64" class="wait-car" />
                 </div>
                 <div class="sim-text">
                   <div class="sim-title">시뮬레이터 준비 완료</div>
@@ -155,11 +166,7 @@
                 :disabled="currentStep !== 3"
                 @click="onGoToUploadForm"
               >
-                <Icon
-                  name="lucide:upload"
-                  :size="24"
-                  class="icon"
-                />
+                <Icon name="lucide:upload" :size="24" class="icon" />
                 <span class="btn-text">커뮤니티 공유하기</span>
               </button>
 
@@ -168,11 +175,7 @@
                 :disabled="currentStep !== 3"
                 @click="onDownload"
               >
-                <Icon
-                  name="lucide:download"
-                  :size="24"
-                  class="icon"
-                />
+                <Icon name="lucide:download" :size="24" class="icon" />
                 <span class="btn-text">다운로드 (.xosc)</span>
               </button>
             </div>
@@ -194,7 +197,13 @@ import "swiper/css/navigation";
 import "swiper/css/pagination";
 import { Navigation, Pagination } from "swiper/modules";
 import { Swiper, SwiperSlide } from "swiper/vue";
-import type { ApiResponse, GenerateResponse, GenerateStateResponse, MapItem, ServerState } from "~/types";
+import type {
+  ApiResponse,
+  GenerateResponse,
+  GenerateStateResponse,
+  MapItem,
+  ServerState,
+} from "~/types";
 
 const modules = [Pagination, Navigation];
 
@@ -222,7 +231,8 @@ const scenarioId = ref<number>(-1);
 let pollInterval: NodeJS.Timeout | null = null;
 const POLL_INTERVAL = 500; // 0.5초마다 확인
 
-const defaultDescription = "빨간색 승용차인 target은 ego와 동일한 차선 10m전방에서 30m/s의 속도로 주행중이다. target은 1.5초 후에 4초에 걸쳐 정지한다.";
+const defaultDescription
+  = "빨간색 승용차인 target은 ego와 동일한 차선 10m전방에서 30m/s의 속도로 주행중이다. target은 1.5초 후에 4초에 걸쳐 정지한다.";
 // 데모용 선언문 ==================================
 const isDemo = ref(true);
 if (isDemo.value) {
@@ -323,13 +333,16 @@ async function onGenerate() {
   isProgressOpen.value = true;
   stateText.value = "요청을 준비 중입니다...";
   try {
-    const res = await $fetch<ApiResponse<GenerateResponse>>("/nuxt-api/generator/generate", {
-      method: "POST",
-      body: {
-        description: description.value,
-        mapId: selectedMapId.value,
+    const res = await $fetch<ApiResponse<GenerateResponse>>(
+      "/nuxt-api/generator/generate",
+      {
+        method: "POST",
+        body: {
+          description: description.value,
+          mapId: selectedMapId.value,
+        },
       },
-    });
+    );
     jobId.value = res.message?.jobId as string;
     stateText.value = getStateTextByState(res.message?.state as ServerState);
     currentStepText.value = getStateTextByState("pending");
@@ -364,7 +377,9 @@ async function startPolling() {
     if (!jobId.value) return;
 
     try {
-      const res = await $fetch<ApiResponse<GenerateStateResponse>>(`/nuxt-api/generator/${jobId.value}/state`);
+      const res = await $fetch<ApiResponse<GenerateStateResponse>>(
+        `/nuxt-api/generator/${jobId.value}/state`,
+      );
       const msg = res.message;
       // console.log("✅ 상태 수신:", msg?.state);
 
@@ -454,8 +469,16 @@ function onReset() {
   min-height: 100vh;
   background: #f5f7fb;
   color: #0f172a;
-  font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto,
-    "Noto Sans KR", Apple SD Gothic Neo, "Malgun Gothic", sans-serif;
+  font-family:
+    ui-sans-serif,
+    system-ui,
+    -apple-system,
+    Segoe UI,
+    Roboto,
+    "Noto Sans KR",
+    Apple SD Gothic Neo,
+    "Malgun Gothic",
+    sans-serif;
 }
 
 .stepbar {
@@ -593,7 +616,7 @@ function onReset() {
 }
 .textarea:disabled {
   background: #f1f5f9; /* 연한 회색 배경 */
-  color: #64748b;      /* 흐릿한 글자색 */
+  color: #64748b; /* 흐릿한 글자색 */
   cursor: not-allowed;
   border-color: rgba(15, 23, 42, 0.1);
 }
@@ -619,15 +642,15 @@ function onReset() {
   height: 54px;
   border-radius: 14px;
   cursor: pointer;
-  background: #7c3aed;     /* 배경 흰색 */
-  color: #fff;       /* 글자 회색 */
+  background: #7c3aed; /* 배경 흰색 */
+  color: #fff; /* 글자 회색 */
   font-weight: 800;
   font-size: 16px;
   transition: all 0.2s;
 }
 
 .btn-reset:hover {
-  background: #6d28d9;  /* 마우스 올리면 연한 회색 */
+  background: #6d28d9; /* 마우스 올리면 연한 회색 */
 }
 
 .sim-box {
@@ -659,7 +682,9 @@ function onReset() {
   justify-content: center;
   gap: 12px;
   cursor: pointer;
-  transition: background-color 0.15s ease, opacity 0.15s ease,
+  transition:
+    background-color 0.15s ease,
+    opacity 0.15s ease,
     transform 0.05s ease;
 }
 
@@ -816,7 +841,7 @@ function onReset() {
 }
 
 .btn-row .btn {
-    min-width: 0;
+  min-width: 0;
 }
 
 .btn-blue {
@@ -949,17 +974,17 @@ function onReset() {
 
 :deep(.swiper-button-prev),
 :deep(.swiper-button-next) {
-    width: 40px;
-    height: 40px;
-    background-color: rgba(0, 0, 0, 0);
-    border-radius: 50%; /* 원형 */
-    color: #2f6dff; /* 화살표 색상 */
-    transition: all 0.2s ease;
+  width: 40px;
+  height: 40px;
+  background-color: rgba(0, 0, 0, 0);
+  border-radius: 50%; /* 원형 */
+  color: #2f6dff; /* 화살표 색상 */
+  transition: all 0.2s ease;
 
-    top: 40%;
-    transform: translateY(-50%);
-    margin: 0;
-    z-index: 20;
+  top: 40%;
+  transform: translateY(-50%);
+  margin: 0;
+  z-index: 20;
 }
 
 :deep(.swiper-button-prev) {

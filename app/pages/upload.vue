@@ -39,9 +39,19 @@
         <div class="tag-input-wrap">
           <!-- 태그 목록 -->
           <div v-if="form.tags.length > 0" class="tags-list">
-            <span v-for="(tag, index) in form.tags" :key="index" class="tag-pill">
+            <span
+              v-for="(tag, index) in form.tags"
+              :key="index"
+              class="tag-pill"
+            >
               #{{ tag }}
-              <button class="tag-remove" type="button" @click="removeTag(index)">×</button>
+              <button
+                class="tag-remove"
+                type="button"
+                @click="removeTag(index)"
+              >
+                ×
+              </button>
             </span>
           </div>
 
@@ -50,7 +60,11 @@
             v-model="tagInput"
             type="text"
             class="input-text tag-input"
-            :placeholder="form.tags.length < MAX_TAGS ? '태그 입력 후 Enter' : '태그 최대 개수에 도달했습니다'"
+            :placeholder="
+              form.tags.length < MAX_TAGS
+                ? '태그 입력 후 Enter'
+                : '태그 최대 개수에 도달했습니다'
+            "
             :disabled="form.tags.length >= MAX_TAGS"
             @keydown.enter.prevent="addTag"
           >
@@ -104,11 +118,7 @@
             <template v-else>
               <div class="upload-placeholder">
                 <div class="upload-icon">
-                  <Icon
-                    name="lucide:upload"
-                    :size="48"
-                    class="text-gray-400"
-                  />
+                  <Icon name="lucide:upload" :size="48" class="text-gray-400" />
                 </div>
                 <p class="upload-text">파일을 드래그하거나 클릭하여 업로드</p>
                 <button class="btn-select" type="button">파일 선택</button>
@@ -118,9 +128,7 @@
         </ClientOnly>
       </div>
       <div>
-        <div
-          class="form-group"
-        >
+        <div class="form-group">
           <label class="label">
             맵 선택 (프리뷰)
             <span class="required">*</span>
@@ -138,7 +146,7 @@
                 :loop="isLoopEnabled"
                 :centered-slides-bounds="true"
                 :pagination="{ clickable: !isMapReadonly }"
-                :navigation="!isMapReadonly "
+                :navigation="!isMapReadonly"
                 :initial-slide="setInitialSlide"
                 :modules
                 class="mySwiper"
@@ -151,7 +159,10 @@
                     <!-- 1. 이미지 박스 (여기에 제목과 화살표가 들어감) -->
                     <div class="image-box">
                       <img
-                        :src="map.imageUrl || 'https://via.placeholder.com/600x300/e2e8f0/1e293b?text=Map+Preview'"
+                        :src="
+                          map.imageUrl
+                            || 'https://via.placeholder.com/600x300/e2e8f0/1e293b?text=Map+Preview'
+                        "
                         alt="Map Preview"
                         class="slide-img"
                       >
@@ -180,7 +191,7 @@
         :disabled="isLoading || !isValid"
         @click="onSubmit"
       >
-        {{ isLoading ? '업로드 중...' : '업로드' }}
+        {{ isLoading ? "업로드 중..." : "업로드" }}
       </button>
     </div>
   </div>
@@ -196,7 +207,13 @@ import { Swiper, SwiperSlide } from "swiper/vue";
 
 import { onMounted, ref } from "vue";
 import { useRoute, useRouter } from "vue-router";
-import type { ApiResponse, DataWithJobIdResponse, MapItem, UploadResponse, UploadResponseFromGenerator } from "~/types";
+import type {
+  ApiResponse,
+  DataWithJobIdResponse,
+  MapItem,
+  UploadResponse,
+  UploadResponseFromGenerator,
+} from "~/types";
 
 // 라우터 및 상태 관리
 const route = useRoute();
@@ -297,14 +314,16 @@ async function loadScenarioData(jobId: string) {
     isLoading.value = true;
     form.value.jobId = jobId;
 
-    const data = await $fetch<DataWithJobIdResponse>(`/nuxt-api/generator/${jobId}/contents/`);
+    const data = await $fetch<DataWithJobIdResponse>(
+      `/nuxt-api/generator/${jobId}/contents/`,
+    );
     setInputData(data);
   } catch (e) {
     console.error("데이터 로드 실패", e);
   } finally {
     isLoading.value = false;
   }
-};
+}
 function setInputData(data: DataWithJobIdResponse) {
   console.log(data);
   selectedMapId.value = data.mapId;
@@ -405,12 +424,10 @@ const isValid = computed(() => {
       form.value.title.trim() !== ""
       && form.value.description.trim() !== ""
       && form.value.file !== null
-      && (form.value.file !== null)
+      && form.value.file !== null
     );
   } else {
-    return (
-      form.value.title.trim() !== ""
-    );
+    return form.value.title.trim() !== "";
   }
 });
 
@@ -454,10 +471,13 @@ async function onSubmit() {
     if (form.value.jobId) {
       // jobId 있으면 여기 실행
       // formData.append("jobId", form.value.jobId);
-      const res = await $fetch<ApiResponse<UploadResponseFromGenerator>>(`/nuxt-api/generator/${form.value.jobId}/upload`, {
-        method: "POST",
-        body: formData,
-      });
+      const res = await $fetch<ApiResponse<UploadResponseFromGenerator>>(
+        `/nuxt-api/generator/${form.value.jobId}/upload`,
+        {
+          method: "POST",
+          body: formData,
+        },
+      );
       if (res.status === 201) {
         console.log("업로드 성공, ID:", res.message);
         alert("성공적으로 업로드되었습니다!");
@@ -477,10 +497,13 @@ async function onSubmit() {
       if (form.value.mapId) {
         formData.append("mapId", form.value.mapId.toString());
       }
-      const res = await $fetch<ApiResponse<UploadResponse>>("/nuxt-api/board/upload/", {
-        method: "POST",
-        body: formData,
-      });
+      const res = await $fetch<ApiResponse<UploadResponse>>(
+        "/nuxt-api/board/upload/",
+        {
+          method: "POST",
+          body: formData,
+        },
+      );
 
       // [수정 3] 응답 처리 로직 변경 (res.id -> res.message.postId)
       if (res.status === 201) {
@@ -506,7 +529,9 @@ async function onSubmit() {
   max-width: 800px;
   margin: 60px auto;
   padding: 0 20px;
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  font-family:
+    -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue",
+    Arial, sans-serif;
   color: #1e293b;
 }
 
@@ -691,7 +716,7 @@ async function onSubmit() {
   margin-top: 8px;
   padding: 8px 16px;
   background: #dbeafe; /* 연한 파랑 배경 */
-  color: #2563eb;     /* 진한 파랑 글씨 */
+  color: #2563eb; /* 진한 파랑 글씨 */
   font-weight: 600;
   font-size: 13px;
   border: none;
@@ -775,12 +800,12 @@ async function onSubmit() {
 
 /*  */
 .map-slider-section {
-.map-slider-section {
-  width: 100%;
-  margin-top: 4px;      /* label과 약간 간격 */
-  margin-bottom: 0;     /* form-group가 gap으로 간격 관리 */
-  position: relative;
-}
+  .map-slider-section {
+    width: 100%;
+    margin-top: 4px; /* label과 약간 간격 */
+    margin-bottom: 0; /* form-group가 gap으로 간격 관리 */
+    position: relative;
+  }
 }
 .map-slider-section.is-readonly {
   opacity: 0.6;
@@ -865,17 +890,17 @@ async function onSubmit() {
 
 :deep(.swiper-button-prev),
 :deep(.swiper-button-next) {
-    width: 40px;
-    height: 40px;
-    background-color: rgba(0, 0, 0, 0);
-    border-radius: 50%; /* 원형 */
-    color: #2f6dff; /* 화살표 색상 */
-    transition: all 0.2s ease;
+  width: 40px;
+  height: 40px;
+  background-color: rgba(0, 0, 0, 0);
+  border-radius: 50%; /* 원형 */
+  color: #2f6dff; /* 화살표 색상 */
+  transition: all 0.2s ease;
 
-    top: 40%;
-    transform: translateY(-50%);
-    margin: 0;
-    z-index: 20;
+  top: 40%;
+  transform: translateY(-50%);
+  margin: 0;
+  z-index: 20;
 }
 
 :deep(.swiper-button-prev) {
@@ -912,7 +937,9 @@ async function onSubmit() {
   opacity: 1;
 }
 :deep(.mySwiper .swiper-slide) {
-  transition: transform 0.3s ease, opacity 0.3s ease;
+  transition:
+    transform 0.3s ease,
+    opacity 0.3s ease;
   opacity: 0.5;
 }
 :deep(.mySwiper .swiper-slide-active) {
