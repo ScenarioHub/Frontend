@@ -17,38 +17,43 @@
             type="button"
             class="toolbar-chip"
             :class="{ 'toolbar-chip--active': sort === 'popular' }"
-            @click="sort = 'popular'"
+            @click="changeSort('popular')"
           >
             인기
           </button>
+
           <button
             type="button"
             class="toolbar-chip"
             :class="{ 'toolbar-chip--active': sort === 'latest' }"
-            @click="sort = 'latest'"
+            @click="changeSort('latest')"
           >
             최신
           </button>
+
           <button
             type="button"
             class="toolbar-chip"
             :class="{ 'toolbar-chip--active': sort === 'oldest' }"
-            @click="sort = 'oldest'"
+            @click="changeSort('oldest')"
           >
             과거
           </button>
+
           <button
-            v-if="isLoggedIn===true"
+            v-if="isLoggedIn === true"
             type="button"
             class="toolbar-chip"
             :class="{ 'toolbar-chip--active': onlyLiked }"
-            @click="onlyLiked = !onlyLiked"
+            @click="toggleOnlyLiked"
           >
             즐겨찾기
           </button>
         </div>
       </section>
-
+      <section v-if="uiItems.length === 0" class="empty-state">
+        검색 조건에 맞는 시나리오가 없습니다.
+      </section>
       <!-- 카드 그리드 -->
       <section class="grid">
         <article
@@ -259,27 +264,85 @@ import type { ApiResponse, Like, Post, ScenarioItem, Sort } from "~/types";
 const route = useRoute();
 const router = useRouter();
 
-const sort = ref<Sort>(
-  (route.query.sort?.toString() as Sort) || "popular",
-);
-
-const onlyLiked = ref(Boolean(route.query.liked) || false);
-// const pageSize = 12;
-const currentPage = ref(Number(route.query.page) || 1);
-const totalPages = ref(1);
-
 const { isLoggedIn, accessToken } = useAuthState();
 const { openLogin } = useAuthModal();
+
+const validSorts: Sort[] = ["popular", "latest", "oldest"];
+
+function normalizeSort(value: unknown): Sort {
+  const sortValue = String(value ?? "");
+  return validSorts.includes(sortValue as Sort) ? (sortValue as Sort) : "popular";
+}
+
+const sort = ref<Sort>(normalizeSort(route.query.sort));
+const onlyLiked = ref(route.query.liked === "true");
+const currentPage = ref(Math.max(1, Number(route.query.page) || 1));
+const searchQuery = ref(typeof route.query.q === "string" ? route.query.q : "");
+const totalPages = ref(1);
 
 const tagOverflowMap = ref<Record<string, boolean>>({});
 const tagContainers = ref<HTMLElement[]>([]);
 
-const { data: serverData, refresh } = await useFetch<Post>("/nuxt-api/board/explore", {
-  query: {
-    page: currentPage,
-    sort: sort,
-    onlyLiked: onlyLiked,
-  },
+type ExploreQueryKey = "page" | "sort" | "liked" | "q";
+
+function updateQuery(
+  patch: Partial<Record<ExploreQueryKey, string | undefined>>,
+) {
+  const current: Partial<Record<ExploreQueryKey, string>> = {
+    page: typeof route.query.page === "string" ? route.query.page : undefined,
+    sort: typeof route.query.sort === "string" ? route.query.sort : undefined,
+    liked: typeof route.query.liked === "string" ? route.query.liked : undefined,
+    q: typeof route.query.q === "string" ? route.query.q : undefined,
+  };
+
+  const merged: Partial<Record<ExploreQueryKey, string>> = {
+    ...current,
+    ...patch,
+  };
+
+  const nextQuery: Record<string, string> = {};
+
+  if (merged.page) nextQuery.page = merged.page;
+  if (merged.sort) nextQuery.sort = merged.sort;
+  if (merged.liked) nextQuery.liked = merged.liked;
+  if (merged.q) nextQuery.q = merged.q;
+
+  router.replace({
+    path: "/explore",
+    query: nextQuery,
+  });
+}
+
+function changeSort(nextSort: Sort) {
+  updateQuery({
+    sort: nextSort,
+    page: "1",
+  });
+}
+
+function toggleOnlyLiked() {
+  updateQuery({
+    liked: onlyLiked.value ? undefined : "true",
+    page: "1",
+  });
+}
+
+function goPage(page: number) {
+  if (page < 1 || page > totalPages.value) return;
+  updateQuery({ page: String(page) });
+  window.scrollTo({ top: 0, behavior: "smooth" });
+}
+
+const {
+  data: serverData,
+  refresh,
+} = await useFetch<Post>("/nuxt-api/board/explore", {
+  query: computed(() => ({
+    page: currentPage.value,
+    sort: sort.value,
+    liked: onlyLiked.value ? "true" : undefined,
+    q: searchQuery.value.trim() || undefined,
+  })),
   server: false,
 });
 
@@ -294,15 +357,9 @@ onMounted(() => {
 watch(
   serverData,
   (newData) => {
-    if (newData?.posts) {
-      uiItems.value = newData?.posts || [];
-    }
-    if (newData?.currentPage) {
-      currentPage.value = newData?.currentPage;
-    }
-    if (newData?.totalPages) {
-      totalPages.value = newData?.totalPages;
-    }
+    uiItems.value = newData?.posts || [];
+    currentPage.value = newData?.currentPage || 1;
+    totalPages.value = newData?.totalPages || 1;
   },
   { immediate: true, deep: true },
 );
@@ -312,38 +369,69 @@ watch([isLoggedIn, accessToken], async () => {
 });
 
 watch(
-  () => [uiItems.value], // 감지 대상도 uiItems로 변경
+  () => uiItems.value,
   () => nextTick(recomputeTagOverflow),
   { deep: true },
 );
 
-watch([currentPage, sort, onlyLiked], () => {
-  const nextQuery = {
-    ...route.query,
-    page: currentPage.value.toString(),
+watch(
+  () => route.query,
+  (newQuery) => {
+    const nextPage = Math.max(1, Number(newQuery.page) || 1);
+    const nextSort = normalizeSort(newQuery.sort);
+    const nextLiked = newQuery.liked === "true";
+    const nextQ = typeof newQuery.q === "string" ? newQuery.q : "";
+
+    const changed
+      = currentPage.value !== nextPage
+        || sort.value !== nextSort
+        || onlyLiked.value !== nextLiked
+        || searchQuery.value !== nextQ;
+
+    if (!changed) return;
+
+    currentPage.value = nextPage;
+    sort.value = nextSort;
+    onlyLiked.value = nextLiked;
+    searchQuery.value = nextQ;
+  },
+  { immediate: true },
+);
+
+watch([currentPage, sort, onlyLiked, searchQuery], () => {
+  const nextQuery: Record<string, string> = {
+    page: String(currentPage.value),
     sort: sort.value,
-    liked: onlyLiked.value ? "true" : undefined,
   };
-  watch(() => route.query, (newQuery) => {
-    currentPage.value = Number(newQuery.page) || 1;
-    sort.value = (newQuery.sort as Sort) || "popular";
-    onlyLiked.value = newQuery.liked === "true";
-  });
-  // 동일하면 push 안 함 (watch 3번 트리거 차단)
+
+  if (onlyLiked.value) {
+    nextQuery.liked = "true";
+  }
+
+  if (searchQuery.value.trim()) {
+    nextQuery.q = searchQuery.value.trim();
+  }
+
+  const currentQuery = {
+    page: String(route.query.page ?? "1"),
+    sort: String(route.query.sort ?? "popular"),
+    liked: route.query.liked === "true" ? "true" : undefined,
+    q: typeof route.query.q === "string" ? route.query.q : undefined,
+  };
+
   if (
-    route.query.page === nextQuery.page
-    && route.query.sort === nextQuery.sort
-    && String(route.query.liked ?? "") === String(nextQuery.liked ?? "")
+    currentQuery.page === nextQuery.page
+    && currentQuery.sort === nextQuery.sort
+    && currentQuery.liked === nextQuery.liked
+    && currentQuery.q === nextQuery.q
   ) {
     return;
   }
-  router.replace({ path: "/explore", query: nextQuery }); // replace로 히스토리 중복 방지
-});
 
-watch(() => route.query, (newQuery) => {
-  currentPage.value = Number(newQuery.page) || 1;
-  sort.value = (newQuery.sort as Sort) || "popular"; // validSorts 검증 추가 추천
-  onlyLiked.value = newQuery.liked === "true";
+  router.replace({
+    path: "/explore",
+    query: nextQuery,
+  });
 });
 
 const visiblePages = computed(() => {
@@ -369,14 +457,12 @@ const visiblePages = computed(() => {
   return pages;
 });
 
-// --- 액션 함수들 ---
-
-function goPage(p: number) {
-  if (1 <= p && p <= totalPages.value) {
-    currentPage.value = p;
-    window.scrollTo({ top: 0, behavior: "smooth" });
+watch([sort, onlyLiked, searchQuery], () => {
+  if (currentPage.value !== 1) {
+    currentPage.value = 1;
   }
-}
+});
+
 function goPrev() {
   goPage(currentPage.value - 1);
 }
@@ -389,7 +475,6 @@ function onView(item: ScenarioItem) {
   navigateTo(`/scenarios/${item.postId}`);
 }
 
-// [핵심 수정] 북마크 토글 함수
 function toggleLike(item: ScenarioItem) {
   if (!isLoggedIn.value) {
     openLogin();
@@ -409,8 +494,8 @@ const checkMyLikeStatus = async (item: ScenarioItem) => {
       method: "POST",
     });
     if (res.message) {
-      item.isLiked = res.message?.liked ? res.message?.liked : false;
-      item.stats.likes = res.message?.likes ? res.message?.likes : 0;
+      item.isLiked = res.message?.liked ? res.message.liked : false;
+      item.stats.likes = res.message?.likes ? res.message.likes : 0;
       refresh();
     }
   } catch (e) {
@@ -421,7 +506,6 @@ const checkMyLikeStatus = async (item: ScenarioItem) => {
 function onDownload(item: ScenarioItem) {
   if (!item.postId) return;
 
-  console.log("download scenario", item.postId);
   const downloadUrl = `/nuxt-api/board/${item.postId}/download/`;
 
   const iframe = document.createElement("iframe");
@@ -450,8 +534,7 @@ function recomputeTagOverflow() {
   uiItems.value.forEach((item, index) => {
     const el = tagContainers.value[index];
     if (!el) return;
-    const isOverflow = el.scrollWidth > el.clientWidth;
-    map[item.postId] = isOverflow;
+    map[item.postId] = el.scrollWidth > el.clientWidth;
   });
   tagOverflowMap.value = map;
 }
@@ -463,8 +546,9 @@ function scrollTagsFromEvent(e: MouseEvent, direction: "left" | "right") {
   if (!button) return;
   const parent = button.parentElement;
   if (!parent) return;
-  const tags = (parent.querySelector(".card-tags") as HTMLElement | null) ?? null;
+  const tags = parent.querySelector(".card-tags") as HTMLElement | null;
   if (!tags) return;
+
   const delta = direction === "left" ? -TAG_SCROLL_AMOUNT : TAG_SCROLL_AMOUNT;
   tags.scrollBy({ left: delta, behavior: "smooth" });
 }
@@ -472,6 +556,7 @@ function scrollTagsFromEvent(e: MouseEvent, direction: "left" | "right") {
 function scrollTagsLeft(e: MouseEvent) {
   scrollTagsFromEvent(e, "left");
 }
+
 function scrollTagsRight(e: MouseEvent) {
   scrollTagsFromEvent(e, "right");
 }

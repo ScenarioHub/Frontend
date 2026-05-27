@@ -9,7 +9,7 @@ export default defineEventHandler(async (event) => {
       throw createError({ statusCode: 400, statusMessage: "요청 본문이 비어있습니다." });
     }
 
-    const { description, mapId } = body;
+    const { description, mapId, weather } = body;
 
     const generateResponse = await fetchWithAuth<ApiResponse<GenerateResponse>>(
       event,
@@ -18,7 +18,7 @@ export default defineEventHandler(async (event) => {
         method: "POST",
         body: {
           description: description,
-          // mapId 수정하시오.
+          weather: weather,
           mapId: mapId,
         },
       });

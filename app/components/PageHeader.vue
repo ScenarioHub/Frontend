@@ -2,16 +2,22 @@
   <header class="topbar">
     <div class="left">
       <!-- 좌상단 홈 아이콘 -->
-      <div class="brand" role="button" tabindex="0" @click="navigateTo('/')">
+      <NuxtLink to="/" class="brand">
         <div class="brand-icon" aria-hidden="true">
           <Icon name="site:main-logo" :size="22" class="text-white" />
         </div>
         <span class="brand-text">Scenario Hub</span>
-      </div>
+      </NuxtLink>
 
       <!-- 네비게이터 -->
       <nav class="menu">
-        <NuxtLink to="/explore" class="menu-item">탐색</NuxtLink>
+        <NuxtLink
+          to="/explore"
+          class="menu-item"
+          :class="{ 'is-active': route.path === '/explore' }"
+        >
+          탐색
+        </NuxtLink>
         <!-- is-active 클래스에 넣으면 굵게 -->
         <!-- <NuxtLink
           v-if="isLoggedIn === true"
@@ -22,28 +28,20 @@
           v-if="isLoggedIn === true"
           to="/my-scenarios"
           class="menu-item"
-        >내 시나리오</NuxtLink>
+          :class="{ 'is-active': route.path === '/my-scenarios' }"
+        >
+          내 시나리오
+        </NuxtLink>
       </nav>
     </div>
 
     <div class="right">
-      <div v-if="false" class="search">
-        <!-- <span class="search-icon" aria-hidden="true">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
-            <path
-              d="M10.5 18.5a8 8 0 1 1 0-16 8 8 0 0 1 0 16Z"
-              stroke="currentColor"
-              stroke-width="2"
-            />
-            <path
-              d="M16.7 16.7 21 21"
-              stroke="currentColor"
-              stroke-width="2"
-              stroke-linecap="round"
-            />
-          </svg>
-        </span> -->
-
+      <div v-if="showSearch" class="search">
+        <Icon
+          name="lucide:search"
+          :size="18"
+          class="search-icon"
+        />
         <input
           class="search-input"
           :value="modelValue"
@@ -55,16 +53,12 @@
 
       <!-- 로그인 하면 (후) -->
       <template v-if="isLoggedIn === true">
-        <button class="btn btn-primary" @click="navigateTo('upload')">
+        <NuxtLink to="/upload" class="btn btn-primary">
           <span class="btn-icon" aria-hidden="true">
-            <Icon
-              name="lucide:upload"
-              :size="18"
-              class="mr-2"
-            />
+            <Icon name="lucide:upload" :size="18" class="mr-2" />
           </span>
           업로드
-        </button>
+        </NuxtLink>
 
         <Menu as="div" class="relative inline-block text-left">
           <!-- 메뉴 버튼 (아바타) -->
@@ -162,6 +156,8 @@ import { computed } from "vue";
 import { useAuth } from "~/composables/useAuth";
 
 const { isLoggedIn } = useAuthState();
+const route = useRoute();
+const { logout } = useAuth();
 
 const props = withDefaults(
   defineProps<{
@@ -181,7 +177,8 @@ const emit = defineEmits<{
 }>();
 
 const userInitial = computed(() => (props.userName?.[0] ?? "U").toUpperCase());
-const { logout } = useAuth();
+
+const showSearch = computed(() => route.path === "/explore");
 
 function onInput(e: Event) {
   const target = e.target as HTMLInputElement | null;
@@ -207,7 +204,7 @@ function onLogout() {
   display: flex;
   align-items: center;
   gap: 22px;
-  min-width: 520px;
+  min-width: 0;
 }
 
 .brand {
@@ -276,6 +273,16 @@ function onLogout() {
   padding: 0 12px 0 38px;
   outline: none;
   font-size: 14px;
+}
+.search-input:focus {
+  border-color: rgba(47, 109, 255, 0.35);
+  box-shadow: 0 0 0 3px rgba(47, 109, 255, 0.12);
+}
+.avatar:focus-visible,
+.btn:focus-visible,
+.brand:focus-visible {
+  outline: 2px solid #2f6dff;
+  outline-offset: 2px;
 }
 
 .btn {

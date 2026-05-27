@@ -8,12 +8,14 @@ export default defineEventHandler(async (event) => {
   const page = Number(query.page) || 1;
   const liked = query.onlyLiked || false;
   // const page_size = 12;
+  const searchQuery = String(query.q);
+  // console.log("searchQuery in explore.get.ts", searchQuery);
   const sortString = String(query.sort) || "popular";
 
   try {
     const externalResponse = await fetchWithAuth<ApiResponse<Post>>(
       event,
-      `/api/board/explore`,
+      "/api/board/explore",
       {
         method: "GET",
         query: {
@@ -21,6 +23,7 @@ export default defineEventHandler(async (event) => {
           // page_size: page_size,
           isLiked: liked,
           sort: sortString,
+          searchQuery: searchQuery,
         },
       },
     );

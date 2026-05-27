@@ -62,6 +62,23 @@
               'is-disabled': uiState === 'done' || uiState === 'running',
             }"
           >
+            <div class="weather-select-wrap">
+              <label for="weather-select" class="weather-label">날씨 선택</label>
+              <select
+                id="weather-select"
+                v-model="selectedWeather"
+                class="weather-select"
+                :disabled="uiState === 'done' || uiState === 'running'"
+              >
+                <option value="맑음">맑음</option>
+                <option value="비">비</option>
+                <option value="눈">눈</option>
+                <option value="안개">안개</option>
+                <option value="강풍">강풍</option>
+                <option value="결빙">결빙</option>
+              </select>
+            </div>
+
             <p class="panel-sub">맵 선택 (프리뷰)</p>
 
             <swiper
@@ -95,11 +112,6 @@
                     <div class="map-name-badge">
                       {{ map.name }}
                     </div>
-                  </div>
-
-                  <!-- 3. 맵 설명 (박스 아래) -->
-                  <div class="map-description">
-                    {{ map.description }}
                   </div>
                 </div>
               </swiper-slide>
@@ -231,6 +243,8 @@ const scenarioId = ref<number>(-1);
 let pollInterval: NodeJS.Timeout | null = null;
 const POLL_INTERVAL = 500; // 0.5초마다 확인
 
+const selectedWeather = ref("맑음");
+
 const defaultDescription
   = "빨간색 승용차인 target은 ego와 동일한 차선 10m전방에서 30m/s의 속도로 주행중이다. target은 1.5초 후에 4초에 걸쳐 정지한다.";
 // 데모용 선언문 ==================================
@@ -340,6 +354,7 @@ async function onGenerate() {
         body: {
           description: description.value,
           mapId: selectedMapId.value,
+          weather: selectedWeather.value,
         },
       },
     );
@@ -954,24 +969,6 @@ function onReset() {
   z-index: 10;
 }
 
-.map-description {
-  font-size: 14px;
-  color: #475569;
-  line-height: 1.5;
-  min-height: 1.5em;
-  max-width: 90%;
-  padding: 0 4px;
-  align-self: center;
-  font-weight: 500;
-  word-break: keep-all;
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  line-clamp: 2;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
 :deep(.swiper-button-prev),
 :deep(.swiper-button-next) {
   width: 40px;
@@ -1019,5 +1016,41 @@ function onReset() {
 :deep(.swiper-pagination-bullet-active) {
   background: #2f6dff;
   opacity: 1;
+}
+.weather-select-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 14px;
+}
+
+.weather-label {
+  font-size: 14px;
+  font-weight: 700;
+  color: #334155;
+}
+
+.weather-select {
+  width: 100%;
+  height: 44px;
+  border-radius: 12px;
+  border: 1px solid rgba(15, 23, 42, 0.15);
+  background: #fff;
+  padding: 0 14px;
+  font-size: 14px;
+  color: #0f172a;
+  outline: none;
+  transition: all 0.2s ease;
+}
+
+.weather-select:focus {
+  border-color: #2f6dff;
+  box-shadow: 0 0 0 3px rgba(47, 109, 255, 0.12);
+}
+
+.weather-select:disabled {
+  background: #f1f5f9;
+  color: #64748b;
+  cursor: not-allowed;
 }
 </style>
