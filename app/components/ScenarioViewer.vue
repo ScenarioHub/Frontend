@@ -140,14 +140,15 @@ const loadData = async () => {
   if (!scenarioIdLocal.value) return;
   isLoading.value = true;
   isReady.value = false;
+
   try {
     const res = await $fetch<ViewerData>(
       `/nuxt-api/scenarios/${scenarioIdLocal.value}/viewer`,
     );
     const data = res as ViewerData;
 
-    trajectoryData =
-      typeof data.scenario === "string"
+    trajectoryData
+      = typeof data.scenario === "string"
         ? JSON.parse(data.scenario)
         : data.scenario;
 
@@ -166,23 +167,38 @@ const loadData = async () => {
     });
     await loadCarModels(convertedModels);
 
-    currentSimulationTime = 0;
-    currentIndex = 0;
-    lastTimestamp = 0;
-    isCameraInitialized = false;
     if (trajectoryData) {
       timeKeys = Object.keys(trajectoryData)
         .map(Number)
         .sort((a, b) => a - b);
-      // ✅ 추가
-      maxSimulationTime.value = timeKeys[timeKeys.length - 1] ?? 0;
     }
+
+    const initialIndex = findInitialFrameIndex();
+    const initialTime = timeKeys[initialIndex] ?? 0;
+
+    currentIndex = initialIndex;
+    currentSimulationTime = initialTime;
+    currentSimulationTimeRef.value = initialTime;
+    maxSimulationTime.value = timeKeys[timeKeys.length - 1] ?? 0;
+
+    lastTimestamp = 0;
+    isCameraInitialized = false;
+
     isReady.value = true;
+    isPlaying.value = false;
+
+    // 최초 유효 프레임 기준으로 차량/카메라 배치
+    updateVehiclePositions();
+
+    // OrbitControls target 반영
+    if (controls) controls.update();
+
+    // 첫 화면 즉시 렌더
+    renderOnce();
   } catch (error) {
     console.error("데이터 로드 에러 from ScenarioViewer.vue:", error);
   } finally {
     isLoading.value = false;
-    isPlaying.value = false;
   }
 };
 
@@ -251,29 +267,20 @@ onMounted(() => {
 
       hasInitialized.value = true;
       initThreeJS();
-      isPlaying.value = true;
-      animationFrameId = requestAnimationFrame(animate);
       window.addEventListener("resize", onWindowResize);
       loadData();
+
+      if (animationFrameId === null) {
+        animationFrameId = requestAnimationFrame(animate);
+      }
     },
     { immediate: true },
   );
 });
 
 const togglePlay = () => {
-  if (isPlaying.value) {
-    // 일시정지
-    isPlaying.value = false;
-    if (animationFrameId !== null) {
-      cancelAnimationFrame(animationFrameId);
-      animationFrameId = null;
-    }
-  } else {
-    // 다시 재생: 시간 기준 맞춰주고 루프 재시작
-    isPlaying.value = true;
-    lastTimestamp = 0; // 다음 프레임에서 deltaTime을 자연스럽게 재계산
-    animationFrameId = requestAnimationFrame(animate);
-  }
+  isPlaying.value = !isPlaying.value;
+  lastTimestamp = 0;
 };
 
 const initThreeJS = () => {
@@ -365,42 +372,40 @@ const loadCarModels = async (modelsMap: Record<string, string>) => {
 };
 
 const animate = (timestamp?: number) => {
-  if (isPlaying.value) {
-    animationFrameId = requestAnimationFrame(animate);
-  }
+  animationFrameId = requestAnimationFrame(animate);
 
-  const currentTimestamp =
-    timestamp !== undefined ? timestamp : performance.now();
+  const currentTimestamp
+    = timestamp !== undefined ? timestamp : performance.now();
+
   if (lastTimestamp === 0) lastTimestamp = currentTimestamp;
-
   const deltaTime = (currentTimestamp - lastTimestamp) / 1000;
   lastTimestamp = currentTimestamp;
 
   if (
-    isReady.value &&
-    trajectoryData &&
-    timeKeys.length > 0 &&
-    Object.keys(baseCarModels).length > 0
+    isReady.value
+    && trajectoryData
+    && timeKeys.length > 0
+    && Object.keys(baseCarModels).length > 0
   ) {
-    currentSimulationTime += deltaTime;
-    currentSimulationTimeRef.value = currentSimulationTime;
+    if (isPlaying.value) {
+      currentSimulationTime += deltaTime;
 
-    const maxTime = timeKeys[timeKeys.length - 1] ?? 0;
-    if (currentSimulationTime > maxTime) {
-      currentSimulationTime = 0;
-      currentIndex = 0;
-      currentSimulationTimeRef.value = 0;
+      const maxTime = timeKeys[timeKeys.length - 1] ?? 0;
+      if (currentSimulationTime > maxTime) {
+        currentSimulationTime = 0;
+        currentIndex = 0;
+      }
+
+      while (
+        currentIndex < timeKeys.length - 1
+        && (timeKeys[currentIndex] ?? 0) <= currentSimulationTime
+      ) {
+        currentIndex++;
+      }
+
+      currentSimulationTimeRef.value = currentSimulationTime;
+      updateVehiclePositions();
     }
-
-    while (
-      currentIndex < timeKeys.length - 1 &&
-      (timeKeys[currentIndex] ?? 0) <= currentSimulationTime
-    ) {
-      currentIndex++;
-    }
-
-    // ✅ 분리된 함수 호출
-    updateVehiclePositions();
   }
 
   if (renderer && scene && camera) {
@@ -408,7 +413,6 @@ const animate = (timestamp?: number) => {
     renderer.render(scene, camera);
   }
 };
-
 const onWindowResize = () => {
   if (!camera || !renderer || !threeContainer.value) return;
 
@@ -429,19 +433,35 @@ function seekTo(ratio: number) {
   currentIndex = timeKeys.findIndex((t) => t >= target);
   if (currentIndex === -1) currentIndex = timeKeys.length - 1;
 
-  // ✅ 일시정지 중에도 즉시 화면 갱신
-  if (!isPlaying.value) {
-    // 차량 위치를 해당 시간으로 먼저 업데이트
-    updateVehiclePositions();
-    renderOnce();
-  }
+  isCameraInitialized = false;
+  updateVehiclePositions();
+}
+
+function findInitialFrameIndex() {
+  if (!trajectoryData || timeKeys.length === 0) return 0;
+
+  // 1순위: ego vehicle "0"가 있는 첫 프레임
+  const egoIndex = timeKeys.findIndex((time) => {
+    const frame = trajectoryData?.[String(time)];
+    return !!frame?.["0"];
+  });
+  if (egoIndex !== -1) return egoIndex;
+
+  // 2순위: 차량이 하나라도 있는 첫 프레임
+  const firstVehicleIndex = timeKeys.findIndex((time) => {
+    const frame = trajectoryData?.[String(time)];
+    return !!frame && Object.keys(frame).length > 0;
+  });
+  if (firstVehicleIndex !== -1) return firstVehicleIndex;
+
+  return 0;
 }
 
 function updateVehiclePositions() {
   if (
-    !trajectoryData ||
-    timeKeys.length === 0 ||
-    Object.keys(baseCarModels).length === 0
+    !trajectoryData
+    || timeKeys.length === 0
+    || Object.keys(baseCarModels).length === 0
   )
     return;
 
@@ -545,6 +565,9 @@ function onSliderMouseDown(e: MouseEvent) {
   if (!isReady.value) return;
   isDragging = true;
 
+  // ✅ OrbitControls가 슬라이더 드래그를 카메라 회전으로 잘못 인식하지 않도록
+  if (controls) controls.enabled = false;
+
   const track = (e.currentTarget as HTMLElement).querySelector(
     ".tl-track",
   ) as HTMLElement;
@@ -556,6 +579,8 @@ function onSliderMouseDown(e: MouseEvent) {
   };
   const onUp = () => {
     isDragging = false;
+    // ✅ 드래그 종료 후 OrbitControls 재활성화
+    if (controls) controls.enabled = true;
     window.removeEventListener("mousemove", onMove);
     window.removeEventListener("mouseup", onUp);
   };
@@ -566,6 +591,10 @@ function onSliderMouseDown(e: MouseEvent) {
 
 function onSliderTouchStart(e: TouchEvent) {
   if (!isReady.value) return;
+
+  // ✅ OrbitControls 비활성화
+  if (controls) controls.enabled = false;
+
   const track = (e.currentTarget as HTMLElement).querySelector(
     ".tl-track",
   ) as HTMLElement;
@@ -577,6 +606,8 @@ function onSliderTouchStart(e: TouchEvent) {
     if (t) seekTo(getRatioFromEvent(t, track));
   };
   const onEnd = () => {
+    // ✅ 터치 종료 후 OrbitControls 재활성화
+    if (controls) controls.enabled = true;
     window.removeEventListener("touchmove", onMove);
     window.removeEventListener("touchend", onEnd);
   };
