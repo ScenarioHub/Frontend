@@ -130,10 +130,31 @@
       <div>
         <div class="form-group">
           <label class="label">
-            맵 선택 (프리뷰)
+            맵 선택 / 업로드
             <span class="required">*</span>
-            <span class="sub-label">시나리오가 실행될 맵을 선택하세요</span>
           </label>
+
+          <!-- 모드 탭 -->
+          <div class="map-mode-tabs" :class="{ 'is-readonly': isReadonlyFromGenerator || isInitLoading }">
+            <button
+              type="button"
+              class="map-tab-btn"
+              :class="{ active: mapUploadMode === 'select' }"
+              @click="mapUploadMode = 'select'"
+            >
+              기존 맵 선택
+            </button>
+            <button
+              type="button"
+              class="map-tab-btn"
+              :class="{ active: mapUploadMode === 'upload' }"
+              @click="mapUploadMode = 'upload'"
+            >
+              맵 직접 업로드
+            </button>
+          </div>
+
+          <!-- 기존 맵 슬라이더 -->
           <div
             class="map-slider-section"
             :class="{ 'is-readonly': isMapReadonly }"
@@ -154,33 +175,60 @@
                 @slide-change="onSlideChange"
               >
                 <swiper-slide v-for="map in maps" :key="map.id">
-                  <!-- 슬라이드 전체 컨테이너 -->
                   <div class="slide-container">
-                    <!-- 1. 이미지 박스 (여기에 제목과 화살표가 들어감) -->
                     <div class="image-box">
                       <img
-                        :src="
-                          map.imageUrl
-                            || 'https://via.placeholder.com/600x300/e2e8f0/1e293b?text=Map+Preview'
-                        "
+                        :src="map.imageUrl || 'https://via.placeholder.com/600x300/e2e8f0/1e293b?text=Map+Preview'"
                         alt="Map Preview"
                         class="slide-img"
                       >
-
-                      <!-- 2. 맵 이름 (좌측 상단 오버레이) -->
-                      <div class="map-name-badge">
-                        {{ map.name }}
-                      </div>
+                      <div class="map-name-badge">{{ map.name }}</div>
                     </div>
-
-                    <!-- 3. 맵 설명 (박스 아래) -->
-                    <div class="map-description">
-                      {{ map.description }}
-                    </div>
+                    <div class="map-description">{{ map.description }}</div>
                   </div>
                 </swiper-slide>
               </swiper>
             </ClientOnly>
+          </div>
+
+          <!-- 맵 파일 업로드 영역 -->
+          <div v-if="mapUploadMode === 'upload'" class="map-file-upload-area">
+            <div
+              class="upload-area"
+              :class="{
+                'is-dragover': isMapDragOver,
+                'has-file': form.mapFile,
+              }"
+              @dragover.prevent="isMapDragOver = true"
+              @dragleave.prevent="isMapDragOver = false"
+              @drop.prevent="onMapDrop"
+              @click="mapFileInputRef?.click()"
+            >
+              <input
+                ref="mapFileInputRef"
+                type="file"
+                class="hidden-input"
+                accept=".xodr,.xml"
+                @change="onMapFileChange"
+              >
+              <template v-if="form.mapFile">
+                <div class="file-info">
+                  <span class="file-icon">🗺️</span>
+                  <span class="file-name">{{ form.mapFile.name }}</span>
+                  <span class="file-size">({{ (form.mapFile.size / 1024).toFixed(1) }} KB)</span>
+                  <button class="btn-clear-file" type="button" @click.stop="clearMapFile">삭제</button>
+                </div>
+              </template>
+              <template v-else>
+                <div class="upload-placeholder">
+                  <div class="upload-icon">
+                    <Icon name="lucide:map" :size="48" class="text-gray-400" />
+                  </div>
+                  <p class="upload-text">맵 파일을 드래그하거나 클릭하여 업로드</p>
+                  <button class="btn-select" type="button">파일 선택</button>
+                </div>
+              </template>
+            </div>
           </div>
         </div>
       </div>
@@ -225,6 +273,10 @@ const maps = ref<MapItem[]>([]);
 const modules = [Pagination, Navigation];
 const swiperRef = ref<SwiperType | null>(null);
 
+const mapUploadMode = ref<"select" | "upload">("select");
+const isMapDragOver = ref(false);
+const mapFileInputRef = ref<HTMLInputElement | null>(null);
+
 const isReadonlyFromGenerator = ref(false);
 const isInitLoading = ref(true);
 const isDescriptionDisabled = computed(
@@ -234,7 +286,7 @@ const isFileDisabled = computed(
   () => isInitLoading.value || isReadonlyFromGenerator.value,
 );
 const isMapReadonly = computed(
-  () => isInitLoading.value || isReadonlyFromGenerator.value,
+  () => isInitLoading.value || isReadonlyFromGenerator.value || mapUploadMode.value === "upload",
 );
 
 // 폼 데이터
@@ -243,10 +295,12 @@ const form = ref({
   description: "",
   tags: [] as string[],
   file: null as File | null,
+  mapFile: null as File | null,
+  mapId: 1,
+  mapUploadMode: mapUploadMode.value, // "select" | "upload"
   scenarioId: 0,
   jobId: "",
   serverFilePath: "" as string,
-  mapId: 1,
 });
 
 // UI 상태
@@ -303,11 +357,32 @@ async function fetchMaps() {
     console.error("fetchMaps 에러:", err);
   }
 }
+
+function onMapFileChange(e: Event) {
+  const target = e.target as HTMLInputElement;
+  if (target.files && target.files.length > 0) {
+    form.value.mapFile = target.files[0] || null;
+  }
+}
+
+function onMapDrop(e: DragEvent) {
+  isMapDragOver.value = false;
+  if (e.dataTransfer?.files && e.dataTransfer.files.length > 0) {
+    form.value.mapFile = e.dataTransfer.files[0] || null;
+  }
+}
+
+function clearMapFile() {
+  form.value.mapFile = null;
+  if (mapFileInputRef.value) mapFileInputRef.value.value = "";
+}
+
 const setInitialSlide = computed(() => {
   if (!selectedMapId.value || maps.value.length === 0) return 0;
   const idx = maps.value.findIndex((m) => m.id === selectedMapId.value);
   return idx === -1 ? 0 : idx;
 });
+
 async function loadScenarioData(jobId: string) {
   if (!jobId) return;
   try {
@@ -419,15 +494,19 @@ function addTag() {
 // jobId 없으면 (제목, 설명, 파일이 모두 있어야 함)
 // jobId 있으면 (제목만 필수)
 const isValid = computed(() => {
+  const mapValid = mapUploadMode.value === "upload"
+    ? form.value.mapFile !== null
+    : true;
+
   if (!form.value.jobId) {
     return (
       form.value.title.trim() !== ""
       && form.value.description.trim() !== ""
       && form.value.file !== null
-      && form.value.file !== null
+      && mapValid
     );
   } else {
-    return form.value.title.trim() !== "";
+    return form.value.title.trim() !== "" && mapValid;
   }
 });
 
@@ -494,7 +573,9 @@ async function onSubmit() {
       if (form.value.file) {
         formData.append("file", form.value.file);
       }
-      if (form.value.mapId) {
+      if (mapUploadMode.value === "upload" && form.value.mapFile) {
+        formData.append("mapFile", form.value.mapFile);
+      } else if (form.value.mapId) {
         formData.append("mapId", form.value.mapId.toString());
       }
       const res = await $fetch<ApiResponse<UploadResponse>>(
@@ -944,5 +1025,47 @@ async function onSubmit() {
 }
 :deep(.mySwiper .swiper-slide-active) {
   opacity: 1;
+}
+.map-mode-tabs {
+  display: flex;
+  gap: 0;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  overflow: hidden;
+  width: fit-content;
+  margin-bottom: 12px;
+}
+
+.map-mode-tabs.is-readonly {
+  opacity: 0.5;
+  pointer-events: none;
+}
+
+.map-tab-btn {
+  padding: 8px 20px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #64748b;
+  background: #f8fafc;
+  border: none;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.map-tab-btn:not(:last-child) {
+  border-right: 1px solid #cbd5e1;
+}
+
+.map-tab-btn.active {
+  background: #2f6dff;
+  color: #fff;
+}
+
+.map-tab-btn:not(.active):hover {
+  background: #e2e8f0;
+}
+
+.map-file-upload-area {
+  margin-top: 8px;
 }
 </style>

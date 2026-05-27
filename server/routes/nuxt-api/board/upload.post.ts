@@ -22,6 +22,8 @@ export default defineEventHandler(async (event) => {
     const tags = findField("tags");
     const scenarioId = findField("id") || findField("scenarioId");
     const mapId = findField("mapId");
+    const mapUploadModeField = findField("mapUploadMode");
+    const mapUploadMode = mapUploadModeField?.data?.toString();
     // 필수값 검증
     if (!title || !description) {
       throw createError({ statusCode: 500, statusMessage: "필수 데이터(제목, 설명) 누락" });
@@ -39,10 +41,19 @@ export default defineEventHandler(async (event) => {
     if (mapId) {
       formData.append("mapId", mapId.data.toString());
     }
+    if (mapUploadMode) {
+      formData.append("mapUploadMode", mapUploadMode);
+    }
+
     // 3. 파일 처리
     const fileField = findField("file");
     if (!fileField) {
-      throw createError({ statusCode: 500, statusMessage: "파일이 누락되었습니다." });
+      throw createError({ statusCode: 500, statusMessage: "시나리오 파일이 누락되었습니다." });
+    }
+    const mapFileField = findField("mapFile");
+
+    if (!mapFileField && mapUploadMode === "upload") { // 맵파일 업로드가 없고, 맵 직접 업로드 이어야
+      throw createError({ statusCode: 500, statusMessage: "맵 파일이 누락되었습니다." });
     }
 
     // [수정 포인트 1] Buffer -> BlobPart 타입 호환 문제 해결
@@ -50,8 +61,16 @@ export default defineEventHandler(async (event) => {
     const fileBlob = new Blob([fileField.data as unknown as BlobPart], {
       type: fileField.type || "application/octet-stream",
     });
-
     formData.append("file", fileBlob, fileField.filename);
+
+    if (mapFileField) {
+      const mapFileBlob = new Blob([mapFileField.data as unknown as BlobPart], {
+        type: mapFileField.type || "application/octet-stream",
+      });
+
+      formData.append("mapFile", mapFileBlob, mapFileField.filename);
+    }
+
     const externalResponse = await fetchWithAuth(
       event,
       "/api/board/upload/", {
