@@ -17,8 +17,48 @@ export interface TrajectoryData {
   [timeKey: string]: TimeFrameData;
 }
 
+export type LiteralUnion<T extends string> = T | (string & {});
+
+export type BooleanString = "true" | "false";
+export type FractionalCloudCover = LiteralUnion<"zeroOktas">;
+export type PrecipitationType = LiteralUnion<"snow">;
+export type RoadWetness = LiteralUnion<"wetWithPuddles">;
+
+export interface Environment {
+  TimeOfDay: {
+    animation: BooleanString;
+    dateTime: string; // ISO datetime string
+  };
+  Weather: {
+    atmosphericPressure: string;
+    fractionalCloudCover: FractionalCloudCover;
+    temperature: string;
+    Sun: {
+      azimuth: string;
+      elevation: string;
+      illuminance: string;
+    };
+    Fog: {
+      visualRange: string;
+    };
+    Precipitation: {
+      precipitationIntensity: string;
+      precipitationType: PrecipitationType;
+    };
+    Wind: {
+      direction: string;
+      speed: string;
+    };
+  };
+  RoadCondition: {
+    frictionScaleFactor: string;
+    wetness: RoadWetness;
+  };
+}
+
 export interface ViewerData {
   scenario: TrajectoryData;
   models: Record<string, string>;
   map: string;
+  Environment: Environment;
 }

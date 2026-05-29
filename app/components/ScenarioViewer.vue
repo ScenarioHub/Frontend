@@ -53,8 +53,8 @@ import * as THREE from "three";
 import { OrbitControls } from "three/addons/controls/OrbitControls.js";
 import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
 import * as SkeletonUtils from "three/addons/utils/SkeletonUtils.js";
-import { onBeforeUnmount, onMounted, ref, watch } from "vue";
-import type { ViewerData } from "~/types";
+import { computed, onBeforeUnmount, onMounted, ref, watch } from "vue";
+import type { Environment, ViewerData } from "~/types";
 
 // 부모에서 scenarioId를 props로 넘기고 싶으면:
 const props = defineProps<{
@@ -118,6 +118,20 @@ const isPlaying = ref(true);
 const currentSimulationTimeRef = ref(0); // 렌더링용 (animate 루프에서 동기화)
 const maxSimulationTime = ref(0); // 전체 길이
 
+// == 날씨
+let ambientLight: THREE.AmbientLight;
+let dirLight: THREE.DirectionalLight;
+let hemiLight: THREE.HemisphereLight;
+let weatherParticles: THREE.Points | THREE.LineSegments | null = null;
+
+let currentEnvironment: Environment | null = null;
+
+const sunGeo = new THREE.SphereGeometry(72, 24, 24);
+const sunMat = new THREE.MeshBasicMaterial({ color: 0xfff2a8 });
+let sunMesh: THREE.Mesh | null = null;
+
+// ==
+
 // progressPercent: 0~100
 const progressPercent = computed(() => {
   if (!maxSimulationTime.value) return 0;
@@ -126,6 +140,12 @@ const progressPercent = computed(() => {
     100,
   );
 });
+
+function toNumberOrNull(value: string | null | undefined): number | null {
+  if (value == null) return null;
+  const n = Number(value);
+  return Number.isFinite(n) ? n : null;
+}
 
 function formatTime(sec: number) {
   const s = Math.floor(sec);
@@ -146,6 +166,7 @@ const loadData = async () => {
       `/nuxt-api/scenarios/${scenarioIdLocal.value}/viewer`,
     );
     const data = res as ViewerData;
+    currentEnvironment = data.Environment ?? null;
 
     trajectoryData
       = typeof data.scenario === "string"
@@ -193,6 +214,9 @@ const loadData = async () => {
     // OrbitControls target 반영
     if (controls) controls.update();
 
+    // 날씨 적용
+    applyEnvironmentToScene(currentEnvironment);
+
     // 첫 화면 즉시 렌더
     renderOnce();
   } catch (error) {
@@ -201,6 +225,475 @@ const loadData = async () => {
     isLoading.value = false;
   }
 };
+
+// ====================== 날씨 ==================
+function applyEnvironmentToScene(env: Environment | null) {
+  if (!scene) return;
+
+  clearWeatherParticles();
+  applyDefaultEnvironment();
+
+  if (!env) return;
+
+  applyTimeOfDay(env);
+  applyWeather(env);
+  applyRoadCondition(env);
+}
+
+function applyDefaultEnvironment() {
+  scene.background = new THREE.Color(0x87ceeb);
+  scene.fog = null;
+
+  if (ambientLight) ambientLight.intensity = 1.0;
+  if (hemiLight) {
+    hemiLight.intensity = 0.6;
+    hemiLight.color.set(0xbfdcff);
+    hemiLight.groundColor.set(0x5f666d);
+  }
+
+  if (dirLight) {
+    dirLight.intensity = 1.2;
+    dirLight.color.set(0xffffff);
+    dirLight.position.set(50, 100, 50);
+    dirLight.target.position.set(0, 0, 0);
+  }
+  // sunMesh.position.copy(dirLight.position.clone().normalize().multiplyScalar(500));
+  // scene.add(sunMesh);
+}
+function applyTimeOfDay(env: Environment) {
+  const dateTime = env.TimeOfDay?.dateTime;
+
+  if (!dateTime) return;
+
+  const hour = new Date(dateTime).getHours();
+
+  if (hour >= 6 && hour < 18) {
+    scene.background = new THREE.Color(0x87ceeb);
+
+    if (ambientLight) ambientLight.intensity = 1.0;
+    if (hemiLight) hemiLight.intensity = 0.6;
+    if (dirLight) dirLight.intensity = Math.max(dirLight.intensity, 1.0);
+  } else {
+    scene.background = new THREE.Color(0x0f172a);
+
+    if (ambientLight) ambientLight.intensity = 0.35;
+    if (hemiLight) hemiLight.intensity = 0.2;
+    if (dirLight) dirLight.intensity = 0.25;
+  }
+}
+function applyWeather(env: Environment) {
+  const weather = env.Weather;
+  if (!weather) return;
+
+  applyCloudCover(weather.fractionalCloudCover);
+  applySun(weather.Sun);
+  applyFog(weather.Fog?.visualRange);
+  applyPrecipitation(weather.Precipitation, weather.Wind);
+}
+
+function applyCloudCover(cloudCover: string | null | undefined) {
+  if (!cloudCover) return;
+
+  if (cloudCover === "zeroOktas") {
+    scene.background = new THREE.Color(0x87ceeb);
+    if (ambientLight) ambientLight.intensity *= 1.0;
+    if (hemiLight) hemiLight.intensity *= 1.0;
+    return;
+  }
+
+  scene.background = new THREE.Color(0xb8c0c8);
+  if (ambientLight) ambientLight.intensity *= 0.85;
+  if (hemiLight) hemiLight.intensity *= 0.9;
+  if (dirLight) dirLight.intensity *= 0.8;
+}
+
+function applySun(
+  sun:
+    | {
+      azimuth: string | null;
+      elevation: string | null;
+      illuminance: string | null;
+    }
+    | null
+    | undefined,
+) {
+  if (!dirLight) return;
+
+  const azimuth = toNumberOrNull(sun?.azimuth);
+  const elevation = toNumberOrNull(sun?.elevation);
+  const illuminance = toNumberOrNull(sun?.illuminance);
+
+  // null이면 태양/태양광 둘 다 숨김 또는 최소화
+  if (azimuth == null || elevation == null) {
+    dirLight.intensity = 0.0;
+    if (sunMesh) sunMesh.visible = false;
+    return;
+  }
+
+  const radius = 1200;
+  const x = Math.cos(elevation) * Math.cos(azimuth) * radius;
+  const y = Math.sin(elevation) * radius;
+  const z = Math.cos(elevation) * Math.sin(azimuth) * radius;
+
+  dirLight.position.set(x, y, z);
+  dirLight.target.position.set(0, 0, 0);
+
+  if (illuminance != null) {
+    dirLight.intensity = Math.max(0.1, Math.min(2.0, illuminance / 5));
+  }
+
+  if (sunMesh) {
+    sunMesh.visible = y > 0;
+    sunMesh.position.set(x, y, z);
+    sunMesh.scale.setScalar(1);
+  }
+}
+
+function applyFog(visualRangeValue: string | null | undefined) {
+  const visualRange = toNumberOrNull(visualRangeValue);
+
+  if (visualRange == null || visualRange <= 0) {
+    scene.fog = null;
+    return;
+  }
+
+  const far = Math.max(100, visualRange);
+  const near = Math.max(10, far * 0.15);
+
+  scene.fog = new THREE.Fog(0xdbe7f2, near, far);
+}
+
+function applyPrecipitation(
+  precipitation:
+    | {
+      precipitationIntensity: string | null;
+      precipitationType: string | null;
+    }
+    | null
+    | undefined,
+  wind:
+    | {
+      direction: string | null;
+      speed: string | null;
+    }
+    | null
+    | undefined,
+) {
+  if (!precipitation?.precipitationType) return;
+
+  const type = precipitation.precipitationType;
+  const intensity = toNumberOrNull(precipitation.precipitationIntensity) ?? 0;
+
+  if (intensity <= 0) return;
+
+  if (type === "snow") {
+    createSnowParticles(intensity, wind);
+  } else if (type === "rain") {
+    createRainParticles(intensity, wind);
+  }
+}
+function createSnowParticles(
+  intensity: number,
+  wind:
+    | {
+      direction: string | null;
+      speed: string | null;
+    }
+    | null
+    | undefined,
+) {
+  const snowConfig = getSnowConfig(intensity);
+
+  const count = snowConfig.count;
+  const positions = new Float32Array(count * 3);
+  const velocities = new Float32Array(count * 3);
+
+  const windDirection = toNumberOrNull(wind?.direction) ?? 0;
+  const windSpeedRaw = toNumberOrNull(wind?.speed) ?? 0;
+  const windSpeed = Math.min(60, windSpeedRaw * 0.1);
+
+  for (let i = 0; i < count; i++) {
+    positions[i * 3 + 0] = (Math.random() - 0.5) * 300;
+    positions[i * 3 + 1] = Math.random() * 80 + 20;
+    positions[i * 3 + 2] = (Math.random() - 0.5) * 300;
+
+    velocities[i * 3 + 0] = Math.cos(windDirection) * windSpeed;
+    velocities[i * 3 + 1] = -(0.2 + Math.random() * 1.0);
+    velocities[i * 3 + 2] = Math.sin(windDirection) * windSpeed;
+  }
+
+  const geometry = new THREE.BufferGeometry();
+  geometry.setAttribute("position", new THREE.BufferAttribute(positions, 3));
+  geometry.setAttribute("velocity", new THREE.BufferAttribute(velocities, 3));
+
+  const material = new THREE.PointsMaterial({
+    color: 0xffffff,
+    size: 0.5,
+    transparent: true,
+    opacity: snowConfig.opacity,
+    depthWrite: false,
+    sizeAttenuation: true,
+  });
+
+  weatherParticles = new THREE.Points(geometry, material);
+  scene.add(weatherParticles);
+}
+function clearWeatherParticles() {
+  if (!weatherParticles) return;
+
+  scene.remove(weatherParticles);
+  weatherParticles.geometry.dispose();
+
+  if (Array.isArray(weatherParticles.material)) {
+    weatherParticles.material.forEach((m) => m.dispose());
+  } else {
+    weatherParticles.material.dispose();
+  }
+
+  weatherParticles = null;
+}
+
+function updateWeather(deltaTime: number) {
+  if (!weatherParticles) return;
+
+  if (weatherParticles && vehicles["0"]) {
+    const ego = vehicles["0"];
+    const forward = new THREE.Vector3(0, 0, -1).applyAxisAngle(
+      new THREE.Vector3(0, 1, 0),
+      ego.rotation.y,
+    );
+
+    weatherParticles.position.copy(ego.position).add(forward.multiplyScalar(20));
+  }
+
+  const type = getPrecipitationType();
+
+  if (type === "rain" && weatherParticles instanceof THREE.LineSegments) {
+    updateRain(deltaTime);
+  } else if (type === "snow" && weatherParticles instanceof THREE.Points) {
+    updateSnow(deltaTime);
+  }
+}
+
+function updateSnow(deltaTime: number) {
+  if (!(weatherParticles instanceof THREE.Points)) return;
+
+  const positions = weatherParticles.geometry.getAttribute(
+    "position",
+  ) as THREE.BufferAttribute;
+  const velocities = weatherParticles.geometry.getAttribute(
+    "velocity",
+  ) as THREE.BufferAttribute;
+
+  const intensity = getPrecipitationIntensity();
+  const snowConfig = getSnowConfig(intensity);
+  const range = 100;
+
+  for (let i = 0; i < positions.count; i++) {
+    let x = positions.getX(i);
+    let y = positions.getY(i);
+    let z = positions.getZ(i);
+
+    const vx = velocities.getX(i);
+    const vy = velocities.getY(i);
+    const vz = velocities.getZ(i);
+
+    x += vx * deltaTime * 60;
+    y += vy * deltaTime * 20;
+    z += vz * deltaTime * 60;
+
+    if (Math.abs(x) > range || Math.abs(z) > range || y < 0) {
+      x = (Math.random() - 0.5) * range * 2;
+      z = (Math.random() - 0.5) * range * 2;
+
+      if (Math.random() < snowConfig.upperSpawnRatio) {
+        y = Math.random() * 80 + 20;
+      } else {
+        y = Math.random() * 18 + 6;
+      }
+    }
+
+    positions.setXYZ(i, x, y, z);
+  }
+
+  positions.needsUpdate = true;
+}
+function updateRain(deltaTime: number) {
+  if (!(weatherParticles instanceof THREE.LineSegments)) return;
+
+  const positions = weatherParticles.geometry.getAttribute(
+    "position",
+  ) as THREE.BufferAttribute;
+  const velocities = weatherParticles.geometry.getAttribute(
+    "velocity",
+  ) as THREE.BufferAttribute;
+
+  const range = 80;
+  const dropLength = 1.8;
+
+  for (let i = 0; i < velocities.count; i++) {
+    let x = positions.getX(i * 2);
+    let y = positions.getY(i * 2);
+    let z = positions.getZ(i * 2);
+
+    const vx = velocities.getX(i);
+    const vy = velocities.getY(i);
+    const vz = velocities.getZ(i);
+
+    const moveFactor = 12; // 10 → 12~15 정도
+
+    x += vx * deltaTime * moveFactor;
+    y += vy * deltaTime * moveFactor;
+    z += vz * deltaTime * moveFactor;
+
+    if (Math.abs(x) > range || Math.abs(z) > range || y < 0) {
+      x = (Math.random() - 0.5) * range * 2;
+      y = Math.random() * 80 + 20;
+      z = (Math.random() - 0.5) * range * 2;
+    }
+
+    positions.setXYZ(i * 2, x, y, z);
+    positions.setXYZ(
+      i * 2 + 1,
+      x + vx * 0.2,
+      y - dropLength,
+      z + vz * 0.2,
+    );
+  }
+
+  positions.needsUpdate = true;
+}
+
+function createRainParticles(
+  intensity: number,
+  wind:
+    | {
+      direction: string | null;
+      speed: string | null;
+    }
+    | null
+    | undefined,
+) {
+  const rainConfig = getRainConfig(intensity);
+  const count = rainConfig.count;
+
+  const positions = new Float32Array(count * 2 * 3);
+  const velocities = new Float32Array(count * 3);
+
+  const windDirection = toNumberOrNull(wind?.direction) ?? 0;
+  const windSpeedRaw = toNumberOrNull(wind?.speed) ?? 0;
+  const windSpeed = Math.min(30, windSpeedRaw * 1.2);
+
+  const windX = Math.cos(windDirection) * windSpeed;
+  const windZ = Math.sin(windDirection) * windSpeed;
+
+  const range = 80;
+  const dropLength = 1.8;
+
+  for (let i = 0; i < count; i++) {
+    const x = (Math.random() - 0.5) * range * 2;
+    const y = Math.random() * 80 + 20;
+    const z = (Math.random() - 0.5) * range * 2;
+
+    const i6 = i * 6;
+    positions[i6 + 0] = x;
+    positions[i6 + 1] = y;
+    positions[i6 + 2] = z;
+
+    const lateralFactor = 0.2; // 0.15 → 0.2~0.3 정도로 키우기
+    const velocityFactor = 0.5; // 0.15 → 0.2~0.3 정도로 키우기
+
+    positions[i6 + 3] = x + windX * lateralFactor;
+    positions[i6 + 4] = y - dropLength;
+    positions[i6 + 5] = z + windZ * lateralFactor;
+
+    velocities[i * 3 + 0] = windX * velocityFactor;
+    velocities[i * 3 + 1] = -(2 + Math.random() * 5);
+    velocities[i * 3 + 2] = windZ * velocityFactor;
+  }
+
+  const geometry = new THREE.BufferGeometry();
+  geometry.setAttribute("position", new THREE.BufferAttribute(positions, 3));
+  geometry.setAttribute("velocity", new THREE.BufferAttribute(velocities, 3));
+
+  const material = new THREE.LineBasicMaterial({
+    color: 0xaad4ff,
+    transparent: true,
+    opacity: 0.5,
+  });
+
+  weatherParticles = new THREE.LineSegments(geometry, material);
+  scene.add(weatherParticles);
+}
+
+function getPrecipitationIntensity(): number {
+  return toNumberOrNull(
+    currentEnvironment?.Weather?.Precipitation?.precipitationIntensity,
+  ) ?? 0;
+}
+
+function getSnowConfig(intensity: number) {
+  if (intensity < 0.25) {
+    return { count: 150, upperSpawnRatio: 0.8, opacity: 0.65 };
+  }
+  if (intensity < 1.0) {
+    return { count: 300, upperSpawnRatio: 0.75, opacity: 0.72 };
+  }
+  if (intensity < 2.5) {
+    return { count: 600, upperSpawnRatio: 0.7, opacity: 0.8 };
+  }
+  if (intensity < 10.0) {
+    return { count: 1200, upperSpawnRatio: 0.65, opacity: 0.88 };
+  }
+  if (intensity < 25.0) {
+    return { count: 2200, upperSpawnRatio: 0.6, opacity: 0.92 };
+  }
+  return { count: 3200, upperSpawnRatio: 0.55, opacity: 0.96 };
+}
+
+function getRainConfig(intensity: number) {
+  if (intensity < 1.0) return { count: 400 };
+  if (intensity < 3.0) return { count: 800 };
+  if (intensity < 7.5) return { count: 1600 };
+  if (intensity < 20.0) return { count: 2600 };
+  return { count: 3600 };
+}
+
+function getPrecipitationType(): string | null {
+  return currentEnvironment?.Weather?.Precipitation?.precipitationType ?? null;
+}
+
+function applyRoadCondition(env: Environment) {
+  if (!currentMapModel) return;
+
+  const wetness = env.RoadCondition?.wetness;
+  if (!wetness) return;
+
+  const isWet = wetness === "wetWithPuddles";
+
+  currentMapModel.traverse((child) => {
+    if (!(child instanceof THREE.Mesh)) return;
+
+    const materials = Array.isArray(child.material)
+      ? child.material
+      : [child.material];
+
+    materials.forEach((mat) => {
+      if (!("roughness" in mat) || !("metalness" in mat)) return;
+
+      if (isWet) {
+        mat.roughness = 0.2;
+        mat.metalness = 0.15;
+      } else {
+        mat.roughness = 0.9;
+        mat.metalness = 0.0;
+      }
+
+      mat.needsUpdate = true;
+    });
+  });
+}
+// ========================================
 
 const toggleFullscreen = async () => {
   if (!threeContainer.value) return;
@@ -256,6 +749,7 @@ onBeforeUnmount(() => {
   }
 
   if (renderer) renderer.dispose();
+  clearWeatherParticles();
 });
 const hasInitialized = ref(false);
 
@@ -291,12 +785,21 @@ const initThreeJS = () => {
   scene = new THREE.Scene();
   scene.background = new THREE.Color(0x87ceeb);
 
-  const ambientLight = new THREE.AmbientLight(0xffffff, 1.2);
+  ambientLight = new THREE.AmbientLight(0xffffff, 1.0);
   scene.add(ambientLight);
 
-  const dirLight = new THREE.DirectionalLight(0xffffff, 1.5);
+  hemiLight = new THREE.HemisphereLight(0xbfdcff, 0x5f666d, 0.6);
+  scene.add(hemiLight);
+
+  dirLight = new THREE.DirectionalLight(0xffffff, 1.2);
   dirLight.position.set(50, 100, 50);
+  dirLight.target.position.set(0, 0, 0);
   scene.add(dirLight);
+  scene.add(dirLight.target);
+
+  sunMesh = new THREE.Mesh(sunGeo, sunMat);
+  sunMesh.visible = false;
+  scene.add(sunMesh);
 
   camera = new THREE.PerspectiveCamera(
     60,
@@ -405,6 +908,7 @@ const animate = (timestamp?: number) => {
 
       currentSimulationTimeRef.value = currentSimulationTime;
       updateVehiclePositions();
+      updateWeather(deltaTime);
     }
   }
 
