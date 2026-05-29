@@ -537,6 +537,9 @@ function extractFileName(path: string) {
 function clearFile() {
   form.value.file = null;
   form.value.serverFilePath = "";
+  if (fileInputRef.value) {
+    fileInputRef.value.value = "";
+  }
 }
 // 업로드(제출) 핸들러
 async function onSubmit() {
