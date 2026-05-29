@@ -75,7 +75,7 @@
                 <option value="눈">눈</option>
                 <option value="안개">안개</option>
                 <option value="강풍">강풍</option>
-                <option value="결빙">결빙</option>
+                <!-- <option value="결빙">결빙</option> -->
               </select>
             </div>
 
