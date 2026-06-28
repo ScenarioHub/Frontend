@@ -130,12 +130,17 @@
       <div>
         <div class="form-group">
           <label class="label">
+            맵 선택
+            <span class="required">*</span>
+          </label>
+          <label v-if="false" class="label">
             맵 선택 / 업로드
             <span class="required">*</span>
           </label>
 
-          <!-- 모드 탭 -->
-          <div class="map-mode-tabs" :class="{ 'is-readonly': isReadonlyFromGenerator || isInitLoading }">
+          <!-- 맵 직접 업로드 기능을 위한 버튼 -->
+
+          <div v-if="false" class="map-mode-tabs" :class="{ 'is-readonly': isReadonlyFromGenerator || isInitLoading }">
             <button
               type="button"
               class="map-tab-btn"
