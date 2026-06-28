@@ -1,6 +1,7 @@
 export interface ApiError<T = unknown> {
   statusCode?: number;
   statusMessage?: string;
+  status?: number;
   message?: string;
   data?: T;
 }

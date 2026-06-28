@@ -51,6 +51,7 @@
 <script setup lang="ts">
 import { ref } from "vue";
 import { useAuth } from "~/composables/useAuth";
+import type { ApiError } from "~/types";
 
 const emit = defineEmits<{
   (e: "close"): void;
@@ -66,8 +67,13 @@ async function onLogin() {
     errorMessage.value = "";
     await login({ email: email.value, password: password.value });
     emit("close"); // 모달 닫기
-  } catch {
-    errorMessage.value = "아이디 또는 비밀번호가 틀렸습니다.";
+  } catch (error) {
+    const err = error as ApiError;
+    const errData = err.data as ApiError;
+
+    console.log(errData.statusMessage);
+    errorMessage.value = errData.statusMessage || "알수 없는 오류가 발생했습니다.";
+    // errorMessage.value = "아이디 또는 비밀번호가 틀렸습니다.";
   }
 }
 

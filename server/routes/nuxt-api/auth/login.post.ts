@@ -42,6 +42,13 @@ export default defineEventHandler(async (event) => {
 
     // 에러 타입 단언
     const err = error as ApiError;
+    if (err.status == 401) {
+      console.log("login post ts에서 401 에러 발생");
+      throw createError({
+        statusCode: 401,
+        statusMessage: "아이디 또는 비밀번호가 틀렸습니다.",
+      });
+    }
 
     throw createError({
       statusCode: 500,
