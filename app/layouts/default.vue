@@ -14,43 +14,33 @@ const headerSearchValue = computed(() => {
   return typeof route.query.q === "string" ? route.query.q : "";
 });
 
-let searchTimer: ReturnType<typeof setTimeout> | null = null;
-
 function handleHeaderSearch(value: string) {
   if (!isExplorePage.value) return;
 
-  if (searchTimer) clearTimeout(searchTimer);
+  const trimmed = value.trim();
+  const nextQuery: Record<string, string> = {};
 
-  searchTimer = setTimeout(() => {
-    const trimmed = value.trim();
-    const nextQuery: Record<string, string> = {};
-
-    for (const [key, rawValue] of Object.entries(route.query)) {
-      if (Array.isArray(rawValue)) {
-        if (rawValue[0] != null) nextQuery[key] = String(rawValue[0]);
-      } else if (rawValue != null) {
-        nextQuery[key] = String(rawValue);
-      }
+  for (const [key, rawValue] of Object.entries(route.query)) {
+    if (Array.isArray(rawValue)) {
+      if (rawValue[0] != null) nextQuery[key] = String(rawValue[0]);
+    } else if (rawValue != null) {
+      nextQuery[key] = String(rawValue);
     }
+  }
 
-    nextQuery.page = "1";
+  nextQuery.page = "1";
 
-    if (trimmed) {
-      nextQuery.q = trimmed;
-    } else {
-      delete nextQuery.q;
-    }
+  if (trimmed) {
+    nextQuery.q = trimmed;
+  } else {
+    delete nextQuery.q;
+  }
 
-    router.replace({
-      path: "/explore",
-      query: nextQuery,
-    });
-  }, 300);
+  router.replace({
+    path: "/explore",
+    query: nextQuery,
+  });
 }
-
-onBeforeUnmount(() => {
-  if (searchTimer) clearTimeout(searchTimer);
-});
 </script>
 
 <template>
@@ -58,7 +48,7 @@ onBeforeUnmount(() => {
     <PageHeader
       :model-value="headerSearchValue"
       :user-name="userName ?? ''"
-      @update:model-value="handleHeaderSearch"
+      @search="handleHeaderSearch"
       @login="openLogin"
     />
 

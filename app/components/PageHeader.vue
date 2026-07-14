@@ -37,17 +37,24 @@
 
     <div class="right">
       <div v-if="showSearch" class="search">
-        <Icon
-          name="lucide:search"
-          :size="18"
-          class="search-icon"
-        />
+        <button
+          type="button"
+          class="search-icon-btn"
+          aria-label="검색"
+          @click="onSearch"
+        >
+          <Icon
+            name="lucide:search"
+            :size="18"
+          />
+        </button>
         <input
           class="search-input"
-          :value="modelValue"
+          :value="localValue"
           placeholder="시나리오 검색..."
           aria-label="시나리오 검색"
           @input="onInput"
+          @keyup.enter="onSearch"
         >
       </div>
 
@@ -152,7 +159,7 @@
 
 <script setup lang="ts">
 import { Menu, MenuButton, MenuItem, MenuItems } from "@headlessui/vue";
-import { computed } from "vue";
+import { computed, ref, watch } from "vue";
 import { useAuth } from "~/composables/useAuth";
 
 const { isLoggedIn } = useAuthState();
@@ -171,7 +178,7 @@ const props = withDefaults(
 );
 
 const emit = defineEmits<{
-  (e: "update:modelValue", value: string): void;
+  (e: "search", value: string): void;
   // (e: "profile"): void;
   (e: "login"): void;
 }>();
@@ -180,10 +187,24 @@ const userInitial = computed(() => (props.userName?.[0] ?? "U").toUpperCase());
 
 const showSearch = computed(() => route.path === "/explore");
 
+const localValue = ref(props.modelValue);
+
+watch(
+  () => props.modelValue,
+  (value) => {
+    localValue.value = value;
+  },
+);
+
 function onInput(e: Event) {
   const target = e.target as HTMLInputElement | null;
-  emit("update:modelValue", target?.value ?? "");
+  localValue.value = target?.value ?? "";
 }
+
+function onSearch() {
+  emit("search", localValue.value);
+}
+
 function onLogout() {
   logout();
 }
@@ -256,13 +277,26 @@ function onLogout() {
   position: relative;
   width: 340px;
 }
-.search-icon {
+.search-icon-btn {
   position: absolute;
-  left: 12px;
+  left: 8px;
   top: 50%;
   transform: translateY(-50%);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  border: none;
+  border-radius: 8px;
+  background: transparent;
   color: #94a3b8;
-  pointer-events: none;
+  cursor: pointer;
+  padding: 0;
+}
+.search-icon-btn:hover {
+  color: #2f6dff;
+  background: rgba(47, 109, 255, 0.08);
 }
 .search-input {
   width: 100%;

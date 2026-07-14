@@ -8,7 +8,7 @@ export default defineEventHandler(async (event) => {
   const page = Number(query.page) || 1;
   const liked = query.onlyLiked || false;
   // const page_size = 12;
-  const searchQuery = String(query.q);
+  const searchQuery = query.q ? String(query.q) : "";
   // console.log("searchQuery in explore.get.ts", searchQuery);
   const sortString = String(query.sort) || "popular";
 
