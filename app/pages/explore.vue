@@ -676,6 +676,9 @@ function scrollTagsRight(e: MouseEvent) {
   margin: 0;
   font-size: 15px;
   letter-spacing: -0.2px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 .card-meta {
   margin: 3px 0 0;
