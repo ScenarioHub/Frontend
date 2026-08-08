@@ -248,7 +248,7 @@ const selectedWeather = ref("맑음");
 const defaultDescription
   = "빨간색 승용차인 target은 ego와 동일한 차선 10m전방에서 30m/s의 속도로 주행중이다. target은 1.5초 후에 4초에 걸쳐 정지한다.";
 // 데모용 선언문 ==================================
-const isDemo = ref(true);
+const isDemo = ref(false);
 if (isDemo.value) {
   description.value = defaultDescription;
 }

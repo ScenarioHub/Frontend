@@ -6,7 +6,7 @@ export default defineEventHandler(async (event) => {
   const query = getQuery(event);
 
   const page = Number(query.page) || 1;
-  const liked = query.onlyLiked || false;
+  const liked = query.liked || query.onlyLiked || false;
   // const page_size = 12;
   const searchQuery = query.q ? String(query.q) : "";
   // console.log("searchQuery in explore.get.ts", searchQuery);

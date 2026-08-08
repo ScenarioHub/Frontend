@@ -19,7 +19,7 @@ export default defineNuxtConfig({
   ],
   runtimeConfig: {
     public: {
-      apiBase: process.env.API_BASE || "https://localhost:7778",
+      apiBase: process.env.API_BASE || "http://127.0.0.1:7778",
     },
   },
   experimental: {
